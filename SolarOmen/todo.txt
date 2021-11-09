@@ -1,0 +1,65 @@
+Specular environment mapping -> reading through irradance probes
+CMS shadows - Change to global shadow matrix, slope scale depth, 16 bit depth buffer, 3x3 PCF
+
+Clean up
+Const buffers
+Render Target
+Shaders
+Pipelines/render pass
+Swap chain depth buffer is using some crazy flag, shader resource view etc. Do we need this ?
+
+
+Rendering:
+	-Particels:
+		-rotation over time
+		-colour over time
+		-different spawn areas
+		-starting velocity 
+		-acceleration
+
+	-Instancing
+	-Light radius + culling
+	-Text rendering + UI stuff
+	-PBR shading model
+	-Anti aliasing
+	-Colour grading ?
+	-Soft shadows ?
+
+Gameplay:
+	-Better character controller
+	-Physics -> Convex shapes
+	-Physics -> Constraints
+	-Basic AI 
+	-Entity interaction
+	-Parent and child entities
+	-Collision	
+
+Serialization:
+	-particles 
+	-Save Game
+
+Code Improvements:
+	-Transform OBB, Prehaps we should pack the extents into the rotation matrix
+	-
+
+Optimization Ideas:
+	-Threading!
+	-Improve EPA
+	-Enviroment never moves -> Shadow/Scene update simplification
+	-Entity Transform matrix caching
+	-Particle Add/Remove is terrible
+	-Player collider culling -> BVH/AABB tests
+	-Undo system
+
+Editor:
+	-Copy and Paste entities
+	-Load all shaders
+	-Load all textures
+	-Templated Entities
+	-Paritcle interface
+	
+
+
+
+
+
