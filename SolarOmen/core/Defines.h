@@ -53,7 +53,6 @@ typedef double real64;
 #define ZeroArray(ptr_data) memset(ptr_data, 0, sizeof(ptr_data));
 #define ZeroArrayCount(ptr_data, count) memset(ptr_data, 0, count);
 
-#include "String.h"
 //#include <atomic>
 #include <mutex>
 //typedef std::atomic<bool> AtomicBool;

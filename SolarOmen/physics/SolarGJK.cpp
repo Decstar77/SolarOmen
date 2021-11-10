@@ -538,9 +538,10 @@ namespace cm
 		//
 		Polytope polytope = {};
 		{
-			polytope.points = GameMemory::GetManagedArray<SupportPoint>();
-			polytope.danglingEdges = GameMemory::GetManagedArray<SupportEdge>();
-			polytope.triangles = GameMemory::GetManagedArray<SupportTriangle>();
+			Assert(0, "Change");
+			//polytope.points = GameMemory::GetManagedArray<SupportPoint>();
+			//polytope.danglingEdges = GameMemory::GetManagedArray<SupportEdge>();
+			//polytope.triangles = GameMemory::GetManagedArray<SupportTriangle>();
 		}
 		// @TODO: Constants
 		const real32 bias = 0.001f;
@@ -643,10 +644,6 @@ namespace cm
 		Vec3f ptB_b = polytope.points[tri->b].ptB;
 		Vec3f ptC_b = polytope.points[tri->c].ptB;
 		*ptOnB = ptA_b * lambdas[0] + ptB_b * lambdas[1] + ptC_b * lambdas[2];
-
-		GameMemory::Release(&polytope.points);
-		GameMemory::Release(&polytope.danglingEdges);
-		GameMemory::Release(&polytope.triangles);
 
 		return true;
 	}

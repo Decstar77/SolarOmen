@@ -464,6 +464,8 @@ namespace cm
 	{
 	public:
 		Entity* player;
+		Entity* gun;
+
 		int32 entityCount;
 		int32 entityLoopIndex;
 		int32 entityLoopCount;

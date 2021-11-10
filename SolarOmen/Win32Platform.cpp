@@ -389,7 +389,7 @@ namespace cm
 
 		s3.Replace('l', 'X');
 
-		std::vector<CString> someSplit = s1.Split(' ');
+		Array<CString>someSplit = s1.Split(' ');
 
 		s1.RemoveWhiteSpace();
 		s5.RemoveWhiteSpace();
@@ -444,15 +444,7 @@ namespace cm
 	{
 		LOG("Begin");
 
-		ManagedArray<real32> reals = GameMemory::GetManagedArray<real32>();
-		ManagedArray<int32> ints = GameMemory::GetManagedArray<int32>();
-		ManagedArray<bool> bools = GameMemory::GetManagedArray<bool>();
 
-		reals.Add(0.3f);
-
-		GameMemory::Release(&reals);
-		GameMemory::Release(&ints);
-		GameMemory::Release(&bools);
 
 		LOG("End");
 	}
@@ -583,6 +575,17 @@ namespace cm
 
 		ManagedArray<real32> reals = GameMemory::GetManagedArray<real32>();
 #endif
+#if 1
+		// @NOTE: Stack allocated
+		int32 entity_storage[2];
+		Array<int32> entities = Array<int32>(entity_storage, 0);
+
+
+		// @NOTE: Heap allocated
+		Array<int32> arr = GameMemory::PushTransientArray<int32>(10);
+
+#endif
+
 		int a = 2;
 	}
 

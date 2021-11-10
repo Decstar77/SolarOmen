@@ -148,7 +148,7 @@ namespace cm
 		if (input->d)
 		{
 			playerPart->acceleration += (basis.right * speed);
-	}
+		}
 
 		playerPart->acceleration = ClampMag(playerPart->acceleration, speed);
 
@@ -326,7 +326,7 @@ namespace cm
 				{
 					//CreateParticle(entity);
 					emitter->timeSeconds = 0;
-}
+				}
 
 				for (int32 particleIndex = 0; particleIndex < MAX_PARTICLES_PER_EMITTER; particleIndex++)
 				{
@@ -417,6 +417,13 @@ namespace cm
 			player->playerPart.groundCheckDist = 1.0f;
 
 			gs->player = player;
+
+			Entity* gun = gs->CreateEntity();
+			gun->renderComp.active = true;
+			gun->renderComp.modelId = ModelId::Value::SM_WEP_RIFLE_BASE_01;
+			gun->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
+
+			gs->gun = gun;
 		}
 
 		{
@@ -454,7 +461,7 @@ namespace cm
 			e->transform.position.y = -0.05f;
 			e->transform.scale = Vec3f(1, 1, 1);
 			e->name = e->renderComp.modelId.ToString();
-	}
+		}
 
 		{
 			Entity* e = CreateDirectionalLight(gs);

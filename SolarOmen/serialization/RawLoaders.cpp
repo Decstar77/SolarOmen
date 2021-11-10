@@ -5,7 +5,7 @@
 namespace cm
 {
 #if USE_RAW_ASSETS
-	const CString SHADER_FILE_PATH = "../Assets/Processed/Shaders/";
+	const CString SHADER_FILE_PATH = "../Assets/Raw/Shaders/";
 	const CString MODEL_FILE_PATH = "../Assets/Raw/Models/";
 	const CString SKYBOX_FILE_PATH = "../Assets/Raw/Skyboxes/";
 
@@ -55,8 +55,8 @@ namespace cm
 				Assert(file1.path.Contains(".pixl"), "Shader loading err");
 				Assert(file2.path.Contains(".vert"), "Shader loading err");
 
-				CString file1Name = file1.path.Split('.').at(0);
-				CString file2Name = file2.path.Split('.').at(0);
+				CString file1Name = file1.path.Split('.')[0];
+				CString file2Name = file2.path.Split('.')[0];
 
 				Assert(file1Name == file2Name, "Shader loading err");
 

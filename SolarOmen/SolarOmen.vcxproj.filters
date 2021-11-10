@@ -153,19 +153,13 @@
     <ClCompile Include="SolarEntity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vendor\imgui_node\crude_json.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui_node\imgui_canvas.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui_node\imgui_node_editor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui_node\imgui_node_editor_api.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="editor\NodeWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\SolarArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui_node\imnodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -329,28 +323,19 @@
     <ClInclude Include="SolarSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vendor\imgui_node\crude_json.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui_node\imgui_bezier_math.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui_node\imgui_canvas.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui_node\imgui_extra_math.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui_node\imgui_node_editor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui_node\imgui_node_editor_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="editor\NodeWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\SolarCore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\SolarArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui_node\imnodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui_node\imnodes_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -395,15 +380,6 @@
     <None Include="shaders\PixelShaderHeader.hlsli" />
     <None Include="shaders\MatrixUtilHeader.hlsli" />
     <None Include="shaders\VertexShaderHeader.hlsli" />
-    <None Include="vendor\imgui_node\imgui_bezier_math.inl">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="vendor\imgui_node\imgui_extra_math.inl">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="vendor\imgui_node\imgui_node_editor_internal.inl">
-      <Filter>Header Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="todo.txt" />

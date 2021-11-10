@@ -1,5 +1,6 @@
 #pragma once
 #include "Defines.h"
+#include "SolarArray.h"
 namespace cm
 {
 	//template<typename T, uint32 CAPCITY>
@@ -65,35 +66,6 @@ namespace cm
 	//	//	~FreeList() {}
 	//};
 
-	template<typename T>
-	class Array
-	{
-		friend class ProgramMemory;
-	public:
-
-		inline uint32 GetCapcity() const { return capcity; }
-
-		inline T& operator[](const uint32& index)
-		{
-			Assert(index >= 0 && index < capcity, "Array, invalid index");
-			return data[index];
-		}
-
-		inline T operator[](const uint32& index) const
-		{
-			Assert(index >= 0 && index < capcity, "Array, invalid index");
-
-			return data[index];
-		}
-
-	private:
-		Array(T* data, uint32 capcity)
-			: data(data), capcity(capcity)
-		{}
-
-		T* data;
-		uint32 capcity;
-	};
 
 	template<typename T>
 	class ManagedArray
@@ -168,17 +140,6 @@ namespace cm
 		uint32 capcity;
 	};
 
-	struct MemoryContainer
-	{
-		static constexpr uint32 TOTAL_BYTES = Megabytes(4);
-		char data[TOTAL_BYTES];
-
-		inline void ZeroOut()
-		{
-			ZeroArray(data);
-		}
-	};
-
 	struct MemoryArena
 	{
 		uint64 size;
@@ -243,35 +204,11 @@ namespace cm
 		}
 
 		template<typename T>
-		inline static Array<T> GetArray()
+		inline static Array<T> PushTransientArray(uint32 capcity)
 		{
-			MemoryContainer* mem = instance->GetAvailableMemoryContainer();
+			Array<T> arr = Array<T>((T*)instance->TransientPushSize(sizeof(T) * capcity), capcity);
 
-			Array<T> result(reinterpret_cast<T*>(mem->data),
-				MemoryContainer::TOTAL_BYTES / (uint32)sizeof(T));
-
-			return result;
-		}
-
-		template<typename T>
-		inline static ManagedArray<T> GetManagedArray()
-		{
-			uint32 id;
-			MemoryContainer* mem = instance->GetAvailableMemoryContainer(&id);
-
-			ManagedArray<T> result(reinterpret_cast<T*>(mem->data),
-				MemoryContainer::TOTAL_BYTES / (uint32)sizeof(T));
-
-			result.id = id;
-
-			return result;
-		}
-
-		template<typename T>
-		inline static void Release(T* t)
-		{
-			instance->ReleaseMemoryContainer(t->id);
-			t->Release();
+			return arr;
 		}
 
 		inline static void ReleaseAllTransientMemory()
@@ -296,46 +233,8 @@ namespace cm
 
 		std::mutex lock;
 
-		volatile uint32 memoryContainersCount = 0;
-		MemoryContainer memoryContainers[TOTAL_MEMORY_CONTAINERS];
-
-		volatile uint32 memoryContainerFreeListCount = 0;
-		uint32 memoryContainersFreeList[TOTAL_MEMORY_CONTAINERS];
-
 		MemoryArena permanentStorage;
 		MemoryArena transientStorage;
-
-		inline MemoryContainer* GetAvailableMemoryContainer(uint32* id)
-		{
-			lock.lock();
-
-			memoryContainerFreeListCount--;
-			memoryContainersCount++;
-
-			Assert(memoryContainersCount < TOTAL_MEMORY_CONTAINERS, "Ran out of memory containers");
-
-			uint32 index = memoryContainersFreeList[memoryContainerFreeListCount];
-			*id = index;
-			MemoryContainer* mem = &memoryContainers[index];
-			mem->ZeroOut();
-
-			lock.unlock();
-
-			return mem;
-		}
-
-		inline void ReleaseMemoryContainer(uint32 id)
-		{
-			//lock.lock();
-
-			uint32 index = memoryContainerFreeListCount;
-			memoryContainersFreeList[index] = id;
-
-			memoryContainerFreeListCount++;
-			memoryContainersCount--;
-
-			//lock.unlock();
-		}
 
 		inline void* TransientPushSize(uint64 size)
 		{
@@ -376,18 +275,6 @@ namespace cm
 			if (transientStorage.base)
 			{
 				memset(transientStorage.base, 0, transientStorageSize);
-			}
-
-			for (uint32 i = 0; i < TOTAL_MEMORY_CONTAINERS; i++)
-			{
-				memoryContainers[i].ZeroOut();
-				memoryContainersFreeList[i] = 0;
-			}
-
-			for (uint32 i = TOTAL_MEMORY_CONTAINERS; i > 0; i--)
-			{
-				memoryContainersFreeList[i - 1] = TOTAL_MEMORY_CONTAINERS - i;
-				memoryContainerFreeListCount++;
 			}
 
 			permanentStorage.used = 0;

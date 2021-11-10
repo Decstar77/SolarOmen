@@ -5,6 +5,7 @@ namespace cm
 	void InitializeEditorState(GameState* gs, RenderState* rs, AssetState* as, EditorState* es, PlatformState* ws)
 	{
 		ImGui::CreateContext();
+		ImNodes::CreateContext();
 		ImGui::StyleColorsDark();
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
@@ -29,7 +30,7 @@ namespace cm
 
 		es->currentWorld = WorldId::Value::DEMO;
 
-		NodeWindow::Initialize();
+		es->nodeWindow.Initialize();
 	}
 
 	inline static void DrawEditorFrame()
@@ -279,7 +280,7 @@ namespace cm
 				}
 
 
-				es->nodeWindow.Show();
+				//es->nodeWindow.Show(input);
 
 				ImGui::Begin("Editor");
 

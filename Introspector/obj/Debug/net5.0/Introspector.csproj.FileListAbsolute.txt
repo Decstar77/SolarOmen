@@ -13,3 +13,4 @@ F:\codes\SolarOmen\SolarOmen\Introspector\obj\Debug\net5.0\Introspector.dll
 F:\codes\SolarOmen\SolarOmen\Introspector\obj\Debug\net5.0\ref\Introspector.dll
 F:\codes\SolarOmen\SolarOmen\Introspector\obj\Debug\net5.0\Introspector.pdb
 F:\codes\SolarOmen\SolarOmen\Introspector\obj\Debug\net5.0\Introspector.genruntimeconfig.cache
+F:\codes\SolarOmen\SolarOmen\Introspector\obj\Debug\net5.0\Introspector.csproj.AssemblyReference.cache

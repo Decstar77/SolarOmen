@@ -12,8 +12,8 @@
 
 #pragma once
 #include "Defines.h"
-#include <vector>
-
+#include "SolarMemory.h"
+#include "SolarArray.h"
 namespace cm
 {
 	//template<typename T>
@@ -244,9 +244,10 @@ namespace cm
 			SetLength(writePtr);
 		}
 
-		std::vector<CString> Split(const char& delim) const
+		// @NOTE: This array is transietory !!!
+		Array<CString> Split(const char& delim) const
 		{
-			std::vector<CString> result;
+			Array<CString> result = GameMemory::PushTransientArray<CString>(10);
 
 			const int32 len = GetLength();
 
@@ -258,7 +259,8 @@ namespace cm
 				{
 					if (start != end)
 					{
-						result.emplace_back().CopyFrom(*this, start, end - 1);
+						result[result.count].CopyFrom(*this, start, end - 1);
+						result.count++;
 						start = end + 1;
 					}
 					else
@@ -270,7 +272,8 @@ namespace cm
 
 			if (end != start)
 			{
-				result.emplace_back().CopyFrom(*this, start, end - 1);
+				result[result.count].CopyFrom(*this, start, end - 1);
+				result.count++;
 			}
 
 			return result;
@@ -399,16 +402,16 @@ namespace cm
 	{
 		inline CString StripFilePath(const CString& str)
 		{
-			std::vector<CString> pathElements = str.Split('/');
-			CString result = pathElements.at(pathElements.size() - 1);
+			Array<CString> pathElements = str.Split('/');
+			CString result = pathElements[pathElements.count - 1];
 
 			return result;
 		}
 
 		inline CString StripFileExtension(const CString& str)
 		{
-			std::vector<CString> pathElements = str.Split('.');
-			CString result = pathElements.at(0);
+			Array<CString> pathElements = str.Split('.');
+			CString result = pathElements[0];
 
 			return result;
 		}
@@ -423,8 +426,8 @@ namespace cm
 
 		inline CString GetFileExtension(const CString& str)
 		{
-			std::vector<CString > pathElements = str.Split('.');
-			return pathElements.at(pathElements.size() - 1);
+			Array<CString> pathElements = str.Split('.');
+			return pathElements[pathElements.count - 1];
 		}
 	};
 

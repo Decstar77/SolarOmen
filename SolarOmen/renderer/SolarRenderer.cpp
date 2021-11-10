@@ -1097,7 +1097,7 @@ namespace cm
 		real32 reductionDepthMin = 0.0f;
 		real32 reductionDepthMax = 1.0f;
 
-#if 1
+#if 0
 		// @PASS: Depth pre-pass
 		{
 			ShaderInstance* shader = &rs->shaders[(int32)ShaderId::Value::DEPTH_ONLY];
