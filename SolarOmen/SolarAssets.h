@@ -4,8 +4,8 @@
 #include "serialization/assetId/ShaderId.h"
 #include "serialization/assetId/ModelId.h"
 #include "serialization/assetId/TextureId.h"
-#include "serialization/assetId/SkyboxId.h"
 #include "serialization/assetId/WorldId.h"
+
 namespace cm
 {
 	enum class ShaderStage
@@ -136,17 +136,6 @@ namespace cm
 		bool32 mips;
 	};
 
-	// @TODO: Skyboxes that are loaded with via the raw loaders are loaded will malloc !!
-	struct SkyboxAsset
-	{
-		SkyboxId id;
-		TextureFormat format;
-		TextureUsage usage[4];
-		int32 width;
-		int32 height;
-		void* pixels;
-	};
-
 	struct AssetState
 	{
 		int32 textureCount;
@@ -157,9 +146,6 @@ namespace cm
 
 		int32 meshCount;
 		MeshData meshesData[512];
-
-		int32 skyboxCount;
-		SkyboxAsset skyboxes[16];
 	};
 
 	////////////////////////////////////////////////////

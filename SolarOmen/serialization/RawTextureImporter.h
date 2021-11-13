@@ -3,5 +3,4 @@
 namespace cm
 {
 	TextureData LoadTexture(CString filePath);
-	SkyboxAsset LoadSkybox(CString filePath);
 }

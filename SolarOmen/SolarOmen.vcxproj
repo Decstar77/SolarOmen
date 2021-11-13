@@ -167,7 +167,6 @@
     <ClInclude Include="renderer\dx11\D3D11Header.h" />
     <ClInclude Include="renderer\dx11\SolarShader.h" />
     <ClInclude Include="serialization\assetId\ModelId.h" />
-    <ClInclude Include="serialization\assetId\SkyboxId.h" />
     <ClInclude Include="serialization\assetId\TextureId.h" />
     <ClInclude Include="serialization\assetId\WorldId.h" />
     <ClInclude Include="serialization\RawTextureImporter.h" />

@@ -314,9 +314,6 @@
     <ClInclude Include="serialization\assetId\TextureId.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="serialization\assetId\SkyboxId.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="serialization\assetId\WorldId.h">
       <Filter>Header Files</Filter>
     </ClInclude>

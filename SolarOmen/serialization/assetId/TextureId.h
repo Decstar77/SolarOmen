@@ -15,6 +15,13 @@ namespace cm
 			BOOMBOX_NORMAL,
 			BOOMBOX_EMISSIVE,
 			COLOUR_PALETTE_SET_0,
+
+			NEWPORT_LOFT,
+			STUDIO_SMALL_08_4K,
+			FS002_DAY_SUNLESS,
+
+			ARIAL,
+
 			COUNT,
 
 			//@NOTE: Internal, shoud we be more descriptive ? Eg back buffer, etc ?
@@ -89,6 +96,13 @@ namespace cm
 			"BOOMBOX_NORMAL",
 			"BOOMBOX_EMISSIVE",
 			"COLOUR_PALETTE_SET_0",
+
+			"NEWPORT_LOFT",
+			"STUDIO_SMALL_08_4K",
+			"FS002_DAY_SUNLESS",
+
+			"ARIAL",
+
 			"COUNT"
 			"INTERNAL",
 		};

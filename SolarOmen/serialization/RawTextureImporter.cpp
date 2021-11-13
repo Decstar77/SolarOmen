@@ -56,58 +56,56 @@ namespace cm
 		int32 height = -1;
 		int32 channels = -1;
 
-		stbi_set_flip_vertically_on_load(false);
-		void* pixels = stbi_load(filePath.GetCStr(), &width, &height, &channels, 4);
-
-		if (!pixels)
+		if (Util::GetFileExtension(filePath) == "hdr")
 		{
-			LOG(filePath.GetCStr() << stbi_failure_reason());
-			Assert(0, "Could not load texture ");
+			stbi_set_flip_vertically_on_load(false);
+			void* pixels = stbi_loadf(filePath.GetCStr(), &width, &height, &channels, 4);
+
+			if (!pixels)
+			{
+				LOG(filePath.GetCStr() << stbi_failure_reason());
+				Assert(0, "Could not load texture ");
+			}
+
+			// @NOTE: We asked stbi to pad it with an aplha value wheather or not it is there.
+			// @NOTE: The channel value is the TRUE amount of channel without pad/req comps count.
+			// @NOTE: Thus we set it to 4
+
+			TextureData texture = {};
+			texture.width = width;
+			texture.height = height;
+			texture.pixels = pixels;
+			texture.format = TextureFormat::R32G32B32A32_FLOAT;
+			texture.usage[0] = TextureUsage::SHADER_RESOURCE;
+
+			return texture;
 		}
+		else
+		{
+			stbi_set_flip_vertically_on_load(false);
+			void* pixels = stbi_load(filePath.GetCStr(), &width, &height, &channels, 4);
 
-		// @NOTE: We asked stbi to pad it with an aplha value wheather or not it is there.
-		// @NOTE: The channel value is the TRUE amount of channel without pad/req comps count.
-		// @NOTE: Thus we set it to 4
+			if (!pixels)
+			{
+				LOG(filePath.GetCStr() << stbi_failure_reason());
+				Assert(0, "Could not load texture ");
+			}
 
-		TextureData texture = {};
-		texture.width = width;
-		texture.height = height;
-		texture.pixels = pixels;
-		texture.format = TextureFormat::R8G8B8A8_UNORM;
-		texture.usage[0] = TextureUsage::SHADER_RESOURCE;
-		// TODO: WE NEED TO CALL THIS 
-		//stbi_image_free(data);
+			// @NOTE: We asked stbi to pad it with an aplha value wheather or not it is there.
+			// @NOTE: The channel value is the TRUE amount of channel without pad/req comps count.
+			// @NOTE: Thus we set it to 4
 
-		return texture;
+			TextureData texture = {};
+			texture.width = width;
+			texture.height = height;
+			texture.pixels = pixels;
+			texture.format = TextureFormat::R8G8B8A8_UNORM;
+			texture.usage[0] = TextureUsage::SHADER_RESOURCE;
+			// TODO: WE NEED TO CALL THIS 
+			//stbi_image_free(data);
+
+			return texture;
+		}
 	}
 
-	SkyboxAsset LoadSkybox(CString filePath)
-	{
-		int32 width = -1;
-		int32 height = -1;
-		int32 channels = -1;
-
-		stbi_set_flip_vertically_on_load(false);
-		void* pixels = stbi_loadf(filePath.GetCStr(), &width, &height, &channels, 4);
-		if (!pixels)
-		{
-			LOG(filePath.GetCStr() << stbi_failure_reason());
-			Assert(0, "Could not load texture ");
-		}
-
-		// @NOTE: We asked stbi to pad it with an aplha value wheather or not it is there.
-		// @NOTE: The channel value is the TRUE amount of channel without pad/req comps count.
-		// @NOTE: Thus we set it to 4
-
-		SkyboxAsset skybox;
-		skybox.height = height;
-		skybox.width = width;
-		skybox.pixels = pixels;
-		skybox.format = TextureFormat::R32G32B32A32_FLOAT;
-		skybox.usage[0] = TextureUsage::SHADER_RESOURCE;
-		// TODO: WE NEED TO CALL THIS 
-		//stbi_image_free(data);
-
-		return skybox;
-	}
 }

@@ -741,15 +741,7 @@ namespace cm
 		int32 resolution = 512;
 		{
 			rs->environmentMap = CreateCubeMapInstance(rs, resolution, resolution);
-
-			SkyboxAsset skyboxAsset = as->skyboxes[2];
-			TextureData texData = {};
-			texData.width = skyboxAsset.width;
-			texData.height = skyboxAsset.height;
-			texData.pixels = skyboxAsset.pixels;
-			texData.format = skyboxAsset.format;
-			texData.usage[0] = skyboxAsset.usage[0];
-
+			TextureData texData = as->texturesData[(uint32)TextureId::Value::FS002_DAY_SUNLESS];
 			rs->eqiTexture = CreateTextureInstance(rs, texData);
 			rs->eqiTexture.guaranteeValid = true;
 		}
@@ -1282,7 +1274,7 @@ namespace cm
 		SetDepthState(rs, rs->depthOffState);
 		rs->shaders[(int32)ShaderId::Value::SKYBOX].Bind();
 
-		static bool temp = true;
+		static bool temp = false;
 		//if (IsKeyJustDown(input, r))
 		//	temp = !temp;
 		if (temp)

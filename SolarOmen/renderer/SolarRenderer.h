@@ -226,7 +226,7 @@ namespace cm
 
 	struct CubeMapInstance
 	{
-		SkyboxId id;
+		TextureId id;
 
 		ID3D11Texture2D* texture = nullptr;
 		ID3D11ShaderResourceView* shaderView = nullptr;

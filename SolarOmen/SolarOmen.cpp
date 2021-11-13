@@ -567,7 +567,7 @@ namespace cm
 		//Capsule cap = CreateCapsuleFromBaseTip(Vec3f(0, 0, 0), Vec3f(0, 1, 0), 0.25f);
 		//DEBUGDrawCapsule(cap);
 
-		for (int32 i = 0; i < gs->meshCollider.count; i++)
+		for (uint32 i = 0; i < gs->meshCollider.count; i++)
 		{
 			DEBUGDrawTriangleWithNormal(gs->meshCollider[i]);
 		}

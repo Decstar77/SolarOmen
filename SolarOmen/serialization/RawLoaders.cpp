@@ -7,7 +7,7 @@ namespace cm
 #if USE_RAW_ASSETS
 	const CString SHADER_FILE_PATH = "../Assets/Raw/Shaders/";
 	const CString MODEL_FILE_PATH = "../Assets/Raw/Models/";
-	const CString SKYBOX_FILE_PATH = "../Assets/Raw/Skyboxes/";
+	const CString RAW_ASSET_FILE_PATH = "../Assets/Raw/";
 
 	void LoadAllShaders(AssetState* as)
 	{
@@ -142,7 +142,28 @@ namespace cm
 		as->texturesData[0].id = TextureId::Value::INVALID;
 
 		{
-			PlatformFolder folder = DEBUGLoadEnitreFolder(MODEL_FILE_PATH, "png", true);
+			PlatformFolder folder = DEBUGLoadEnitreFolder(RAW_ASSET_FILE_PATH, "png", true);
+
+			for (int32 fileIndex = 0; fileIndex < folder.files.size(); fileIndex++)
+			{
+				PlatformFile file = folder.files[fileIndex];
+				CString name = Util::StripFilePathAndExtentions(file.path);
+				name.ToUpperCase();
+
+				TextureId id = TextureId::ValueOf(name);
+				Assert(id != TextureId::Value::INVALID,
+					CString("The texture, ").Add(name).Add(", is not registered with the engine").GetCStr());
+				TextureData texture = LoadTexture(file.path);
+				texture.id = id;
+				as->texturesData[(int32)id] = texture;
+				as->textureCount++;
+			}
+
+			DEBUGFreeFolder(&folder);
+		}
+
+		{
+			PlatformFolder folder = DEBUGLoadEnitreFolder(RAW_ASSET_FILE_PATH, "hdr", true);
 
 			for (int32 fileIndex = 0; fileIndex < folder.files.size(); fileIndex++)
 			{
@@ -157,30 +178,6 @@ namespace cm
 				texture.id = id;
 				as->texturesData[(int32)id] = texture;
 				as->textureCount++;
-			}
-
-			DEBUGFreeFolder(&folder);
-		}
-
-		as->skyboxCount = 1;
-		as->skyboxes[0].id = SkyboxId::INVALID;
-
-		{
-			PlatformFolder folder = DEBUGLoadEnitreFolder(SKYBOX_FILE_PATH, "hdr", true);
-
-			for (int32 fileIndex = 0; fileIndex < folder.files.size(); fileIndex++)
-			{
-				PlatformFile file = folder.files[fileIndex];
-				CString name = Util::StripFilePathAndExtentions(file.path);
-				name.ToUpperCase();
-
-				SkyboxId id = GetSkyboxIdFromString(name);
-				Assert(id != SkyboxId::INVALID, "The skybox is not registered with the engine");
-
-				SkyboxAsset skybox = LoadSkybox(file.path);
-				skybox.id = id;
-				as->skyboxes[(int32)id] = skybox;
-				as->skyboxCount++;
 			}
 
 			DEBUGFreeFolder(&folder);
