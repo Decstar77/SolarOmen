@@ -164,6 +164,40 @@ namespace cm
 		}
 	}
 
+	void DEBUGDrawCapsule(const Capsule& capsule)
+	{
+		Vec3f bot = capsule.bot;
+		Vec3f top = capsule.top;
+
+		Vec3f dir = Normalize(capsule.top - capsule.bot);
+
+		real32 angle_inc = 25.5;
+		real32 radius = capsule.radius;
+
+		Sphere s1 = CreateSphere(bot, radius);
+		Sphere s2 = CreateSphere(top, radius);
+
+		DEBUGDrawSphere(s1);
+		DEBUGDrawSphere(s2);
+
+		Vec3f up = Vec3f(0, 1, 0);
+		Vec3f forward = Normalize(dir);
+		Vec3f right = Normalize(Cross(up, forward));
+
+		if (Equal(right, Vec3f(0.0f)))
+		{
+			up = Vec3f(-1, 0, 0);
+			right = Normalize(Cross(up, forward));
+		}
+
+		up = (Cross(forward, right));
+
+		DEBUGDrawLine(bot + right * radius, top + right * radius);
+		DEBUGDrawLine(bot - right * radius, top - right * radius);
+		DEBUGDrawLine(bot + up * radius, top + up * radius);
+		DEBUGDrawLine(bot - up * radius, top - up * radius);
+	}
+
 	void DEBUGDrawTriangle(const Triangle& tri)
 	{
 		DEBUGDrawLine(tri.v0, tri.v1);

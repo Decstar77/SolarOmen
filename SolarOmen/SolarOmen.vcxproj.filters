@@ -162,6 +162,15 @@
     <ClCompile Include="vendor\imgui_node\imnodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="platform\win32\Win32Network.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="platform\SolarPlatform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="platform\win32\Win32Socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\SolarMath.h">
@@ -263,9 +272,6 @@
     <ClInclude Include="platform\win32\BlockingQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="platform\win32\Network.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="physics\MK2\SolarConstraintMK2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -336,6 +342,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vendor\imgui_node\imnodes_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\win32\Win32Socket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

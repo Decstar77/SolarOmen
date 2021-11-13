@@ -106,11 +106,13 @@
     <ClCompile Include="physics\SolarPhysics.cpp" />
     <ClCompile Include="physics\MK2\SolarPhysicsMK2.cpp" />
     <ClCompile Include="physics\MK2\SolarRigidBodyMK2.cpp" />
+    <ClCompile Include="platform\SolarPlatform.cpp" />
     <ClCompile Include="platform\win32\BlockingQueue.cpp" />
     <ClCompile Include="platform\win32\Clock.cpp" />
     <ClCompile Include="platform\win32\Network.cpp" />
     <ClCompile Include="platform\win32\RetainLock.cpp" />
     <ClCompile Include="platform\win32\Threading.cpp" />
+    <ClCompile Include="platform\win32\Win32Network.cpp" />
     <ClCompile Include="renderer\dx11\SolarMesh.cpp" />
     <ClCompile Include="renderer\dx11\SolarRenderTarget.cpp" />
     <ClCompile Include="renderer\dx11\SolarShader.cpp" />
@@ -139,6 +141,7 @@
     <ClCompile Include="Win32Platform.cpp" />
     <ClCompile Include="SolarOmen.cpp" />
     <ClCompile Include="renderer\SolarRendererMK1.cpp" />
+    <ClCompile Include="platform\win32\Win32Socket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\SolarArray.h" />
@@ -159,7 +162,6 @@
     <ClInclude Include="physics\SolarMatrix.h" />
     <ClInclude Include="platform\win32\BlockingQueue.h" />
     <ClInclude Include="platform\win32\Clock.h" />
-    <ClInclude Include="platform\win32\Network.h" />
     <ClInclude Include="platform\win32\RetainLock.h" />
     <ClInclude Include="platform\win32\Threading.h" />
     <ClInclude Include="renderer\dx11\D3D11Header.h" />
@@ -199,6 +201,7 @@
     <ClInclude Include="vendor\std_image\std_image.h" />
     <ClInclude Include="platform\SolarPlatform.h" />
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="platform\win32\Win32Socket.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\basic_pbr.pixl.hlsl">

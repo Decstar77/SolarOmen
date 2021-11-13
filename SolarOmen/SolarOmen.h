@@ -60,11 +60,11 @@ namespace cm
 		return  EntityType::ENVIRONMENT;
 	}
 
-
 	struct Camera
 	{
 		Transform transform;
 
+		// @NOTE: Temporary
 		real32 pitch;
 		real32 yaw;
 
@@ -72,28 +72,6 @@ namespace cm
 		real32 near_;
 		real32 yfov;
 		real32 aspect;
-
-		inline Ray ShootRayFromScreen(PlatformState* ws, const Vec2f& pixl_point)
-		{
-			real32 aspect = (real32)ws->client_width / (real32)ws->client_height;
-			Mat4f proj = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
-			Mat4f view = Inverse(transform.CalculateTransformMatrix());
-
-			Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)ws->client_width,
-				(real32)ws->client_height, pixl_point.x, pixl_point.y);
-
-			Vec4f view_coords = ToViewCoords(proj, normal_coords);
-
-			// @NOTE: This 1 ensure we a have something pointing in to the screen
-			view_coords = Vec4f(view_coords.x, view_coords.y, 1, 0);
-			Vec3f world_coords = ToWorldCoords(view, view_coords);
-
-			Ray ray;
-			ray.origin = transform.position;
-			ray.direction = Normalize(Vec3f(world_coords.x, world_coords.y, world_coords.z));
-
-			return ray;
-		}
 
 		inline Mat4f GetViewMatrix()
 		{
@@ -110,12 +88,62 @@ namespace cm
 		}
 	};
 
-	enum class RenderFlags : uint32
+	struct CameraComponent
+	{
+		bool32 active;
+
+		real32 pitch;
+		real32 yaw;
+
+		real32 far_;
+		real32 near_;
+		real32 yfov;
+		real32 aspect;
+
+		inline Camera ToPureCamera(const Transform& transform)
+		{
+			Camera result = {};
+			result.transform = transform;
+
+			result.pitch = this->pitch;
+			result.yaw = this->yaw;
+			result.far_ = this->far_;
+			result.near_ = this->near_;
+			result.yfov = this->yfov;
+			result.aspect = this->aspect;
+
+			return result;
+		}
+
+		inline Ray ShootRayFromScreen(PlatformState* ws, const Vec2f& pixl_point, const Transform& worldTransform)
+		{
+			real32 aspect = (real32)ws->client_width / (real32)ws->client_height;
+			Mat4f proj = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
+			Mat4f view = Inverse(worldTransform.CalculateTransformMatrix());
+
+			Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)ws->client_width,
+				(real32)ws->client_height, pixl_point.x, pixl_point.y);
+
+			Vec4f view_coords = ToViewCoords(proj, normal_coords);
+
+			// @NOTE: This 1 ensure we a have something pointing in to the screen
+			view_coords = Vec4f(view_coords.x, view_coords.y, 1, 0);
+			Vec3f world_coords = ToWorldCoords(view, view_coords);
+
+			Ray ray = {};
+			ray.origin = worldTransform.position;
+			ray.direction = Normalize(Vec3f(world_coords.x, world_coords.y, world_coords.z));
+
+			return ray;
+		}
+	};
+
+	enum class RenderFlag : uint32
 	{
 		NONE = 0,
-		ALPHA_TESTING = SetABit(1),
-		CAST_SHADOW = SetABit(2),
-		RECEIVES_SHADOW = SetABit(3)
+		REQUIRES_ALPHA_TESTING = SetABit(1),
+		NO_CAST_SHADOW = SetABit(2),
+		NO_RECEIVES_SHADOW = SetABit(3)
 	};
 
 	enum class ColliderType
@@ -129,14 +157,7 @@ namespace cm
 	struct CollisionComponent
 	{
 		bool32 active;
-		ColliderType type;
-		int32 count; // @SPEED: Could pack this into active ?
-		union
-		{
-			OBB box;
-			Sphere sphere;
-			Vec3f points[16];
-		};
+		int32 index;
 	};
 
 	struct Material
@@ -155,6 +176,16 @@ namespace cm
 
 		ModelId modelId;
 		Material material;
+
+		inline void SetFlag(const RenderFlag& flag)
+		{
+			flags = flags | (uint32)flag;
+		}
+
+		inline bool32 HasFlagSet(const RenderFlag& flag)
+		{
+			return flags & (uint32)flag;
+		}
 	};
 
 	enum class LightType
@@ -272,7 +303,7 @@ namespace cm
 		RigidBodyComponent rigidBody;
 		RenderComponent renderComp;
 		LightComponent lightComp;
-
+		CameraComponent cameraComp;
 
 		EntityType type;
 		union
@@ -465,6 +496,7 @@ namespace cm
 	public:
 		Entity* player;
 		Entity* gun;
+		Entity* playerCamera;
 
 		int32 entityCount;
 		int32 entityLoopIndex;
@@ -485,6 +517,9 @@ namespace cm
 
 		int32 entityFreeListCount;
 		EntityId entityFreeList[ENTITY_STORAGE_COUNT - 1];
+
+		Triangle meshColliderTriangleStorage[4096];
+		Array<Triangle> meshCollider;
 
 		Camera camera;
 		Vec3f camera_offset_player;
@@ -515,6 +550,7 @@ namespace cm
 			entity->active = true;
 			entity->transform = Transform();
 			entity->type = EntityType::ENVIRONMENT;
+			entity->name = "No name brand";
 			entityCount++;
 
 			return entity;

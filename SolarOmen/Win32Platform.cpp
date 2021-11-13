@@ -627,6 +627,9 @@ int main()
 	HWND console = GetConsoleWindow();
 	SetWindowPos(console, 0, 1920 / 2 + 1000, 1080 / 2 - 250, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 
+	Platform::CreateThreads();
+	PlatformNetwork::Initialize();
+
 	RECT client_rect;
 	client_rect.left = 0;
 	client_rect.right = (LONG)WINDOW_WIDTH;
@@ -664,10 +667,6 @@ int main()
 	win_state.client_width = client_rect.right - client_rect.left;
 	win_state.client_height = client_rect.bottom - client_rect.top;
 	win_state.aspect = (real32)win_state.client_width / (real32)win_state.client_height;
-
-	Platform::CreateThreads();
-	Platform::CreateNetworking();
-
 
 	if (window)
 	{
@@ -781,7 +780,7 @@ int main()
 		ShutdownRenderState(renderState);
 	}
 
-	Platform::ShudownNewtorking();
+	PlatformNetwork::Shutdown();
 	Platform::ShutdownThreads();
 
 	return 0;

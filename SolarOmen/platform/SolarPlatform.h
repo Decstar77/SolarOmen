@@ -7,7 +7,6 @@
 
 #include "win32/Clock.h"
 #include "win32/Threading.h"
-#include "win32/Network.h"
 
 #endif
 
@@ -42,6 +41,13 @@ namespace cm
 	{
 		CString path;
 		std::vector<PlatformFile> files;
+	};
+
+	class PlatformNetwork
+	{
+	public:
+		static void Initialize();
+		static void Shutdown();
 	};
 
 	CString PlatformOpenNFileDialogAndReturnPath();

@@ -12,11 +12,13 @@ namespace cm
 			SCREEN_SPACE_QUAD,
 			// @NOTE: External
 			CUBE,
+			PLANE,
 			SM_WEP_RIFLE_BASE_01,
 			SM_BLD_SECTION_DOOR_02,
 			CORRIDOR_01,
 			BOOMBOX,
 			FLOORTILE_EMPTY,
+			TEST_1,
 			COUNT,
 		};
 
@@ -84,11 +86,13 @@ namespace cm
 			"INVALID",
 			"SCREEN_SPACE_QUAD",
 			"CUBE",
+			"PLANE",
 			"SM_WEP_RIFLE_BASE_01",
 			"SM_BLD_SECTION_DOOR_02",
 			"CORRIDOR_01",
 			"BOOMBOX",
 			"FLOORTILE_EMPTY",
+			"TEST_1",
 			"COUNT"
 		};
 	};

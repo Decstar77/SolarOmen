@@ -30,6 +30,14 @@ namespace cm
 		Vec3f v0;
 		Vec3f v1;
 		Vec3f v2;
+
+		// @TODO: We could back this into the w component of each vec3 or store it with another vec3
+		inline Vec3f CacluateNormal()
+		{
+			Vec3f result = Normalize(Cross(v1 - v0, v2 - v0));
+
+			return result;
+		}
 	};
 
 	inline Triangle CreateTriangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2)
@@ -890,7 +898,6 @@ namespace cm
 		return result;
 	}
 
-	typedef std::vector<Triangle> MeshCollider;
 
 	//************************************
 	// Line segment tests
@@ -920,8 +927,6 @@ namespace cm
 	// Ray tests
 	//************************************
 	bool RaycastTriangle(const Ray& ray, const Triangle& triangle, real32* dist = nullptr);
-
-	bool RaycastMeshColldier(const Ray& ray, const MeshCollider& mesh_collider, real32* dist = nullptr);
 
 	bool RaycastPlane(const Ray& ray, const Plane& plane, real32* dist = nullptr);
 

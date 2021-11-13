@@ -527,7 +527,7 @@ namespace cm
 		desc.Height = textureData.height;
 		desc.MipLevels = 1;
 		desc.ArraySize = count;
-		desc.Format = GetTextureFormatToD3D(textureData.format);
+		desc.Format = DXGI_FORMAT_R16_TYPELESS;// GetTextureFormatToD3D(textureData.format);
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
 		desc.Usage = D3D11_USAGE_DEFAULT;
@@ -541,7 +541,8 @@ namespace cm
 		if (result.texture)
 		{
 			D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {};
-			view_desc.Format = DXGI_FORMAT_R32_FLOAT;
+			view_desc.Format = DXGI_FORMAT_R16_UNORM;
+			//view_desc.Format = DXGI_FORMAT_R32_FLOAT;
 			view_desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
 			view_desc.Texture2DArray.ArraySize = count;
 			view_desc.Texture2DArray.MostDetailedMip = 0;
@@ -553,7 +554,8 @@ namespace cm
 			for (int32 i = 0; i < count; i++)
 			{
 				D3D11_DEPTH_STENCIL_VIEW_DESC depth_view_dsc = {};
-				depth_view_dsc.Format = DXGI_FORMAT_D32_FLOAT;
+				depth_view_dsc.Format = DXGI_FORMAT_D16_UNORM;
+				//depth_view_dsc.Format = DXGI_FORMAT_D32_FLOAT;
 				depth_view_dsc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 				depth_view_dsc.Texture2DArray.MipSlice = 0;
 				depth_view_dsc.Texture2DArray.ArraySize = 1;
@@ -1056,7 +1058,7 @@ namespace cm
 		lightView = Inverse(lightTransform.CalculateTransformMatrix());
 
 		Vec3f cascadeExtents = max - min;
-		Mat4f lightProj = OrthographicLH(min.x, max.x, max.y, min.y, -10.1f, cascadeExtents.z);
+		Mat4f lightProj = OrthographicLH(min.x, max.x, max.y, min.y, -20.1f, cascadeExtents.z);
 
 		real32 shadowMapResolution = (real32)RenderingSettings::shadowQuality.GetResolution();
 
@@ -1235,6 +1237,8 @@ namespace cm
 				for (int32 i = 0; i < renderGroup->opaqueEntityCount; i++)
 				{
 					OpaqueRenderEntry* entry = &renderGroup->opaqueRenderEntries[i];
+					if (entry->renderComp.HasFlagSet(RenderFlag::NO_CAST_SHADOW))
+						continue;
 
 					Mat4f m = entry->transform.CalculateTransformMatrix();
 					ShaderConstBuffer* vC0 = &rs->vConstBuffers[0];

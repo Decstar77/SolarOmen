@@ -1,5 +1,4 @@
 Specular environment mapping -> reading through irradance probes
-CMS shadows - Change to global shadow matrix, slope scale depth, 16 bit depth buffer, 3x3 PCF
 
 Clean up
 Const buffers

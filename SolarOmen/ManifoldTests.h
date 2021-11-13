@@ -7,10 +7,10 @@ namespace cm
 	struct RaycastInfo
 	{
 		// @NOTE: Going to remove these at some point
-		Vec3f close_point;
-		Vec3f far_point;
+		Vec3f closePoint;
+		Vec3f farPoint;
 		Vec3f normal;
-		real32 penetration;
+		real32 t;
 	};
 
 	struct Manifold
@@ -34,6 +34,8 @@ namespace cm
 	bool RaycastSphere(const Ray& ray, const Sphere& sphere, RaycastInfo* info);
 
 	bool RaycastAABB(const Ray& ray, const AABB& aabb, RaycastInfo* info);
+
+	bool RaycastMeshCollider(const Ray& ray, const Array<Triangle>& triangles, RaycastInfo* info);
 
 	bool CheckManifoldSphere(const Sphere& a, const Sphere& b, Manifold* info);
 

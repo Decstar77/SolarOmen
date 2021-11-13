@@ -15,9 +15,9 @@ namespace cm
 
 			real32 t = nume / demon;
 
-			info->penetration = t;
+			info->t = t;
 			info->normal = plane.normal;
-			info->close_point = TravelDownRay(ray, t);
+			info->closePoint = TravelDownRay(ray, t);
 
 			result = t > 0.0f;
 		}
@@ -51,9 +51,9 @@ namespace cm
 
 		Vec3f n = Normalize(point - sphere_center);
 
-		info->close_point = point;
-		info->far_point = point - 2.0f * n;
-		info->penetration = t;
+		info->closePoint = point;
+		info->farPoint = point - 2.0f * n;
+		info->t = t;
 		info->normal = n;
 
 		return result;
@@ -93,12 +93,12 @@ namespace cm
 				tmin = (min.z > tmin) ? min.z : tmin;
 				tmax = (max.z < tmax) ? max.z : tmax;
 
-				info->close_point = TravelDownRay(ray, tmin);
-				info->far_point = TravelDownRay(ray, tmax);
-				info->penetration = tmin;
+				info->closePoint = TravelDownRay(ray, tmin);
+				info->farPoint = TravelDownRay(ray, tmax);
+				info->t = tmin;
 
-				Vec3f dmin = info->close_point - aabb.min;
-				Vec3f dmax = info->close_point - aabb.max;
+				Vec3f dmin = info->closePoint - aabb.min;
+				Vec3f dmax = info->closePoint - aabb.max;
 
 				Vec3f n1((real32)Equal(dmin.x, 0.0f), (real32)Equal(dmin.y, 0.0f), (real32)Equal(dmin.z, 0.0f));
 				Vec3f n2((real32)Equal(dmax.x, 0.0f), (real32)Equal(dmax.y, 0.0f), (real32)Equal(dmax.z, 0.0f));
@@ -107,6 +107,42 @@ namespace cm
 
 				result = true;
 			}
+		}
+
+		return result;
+	}
+
+	bool RaycastMeshCollider(const Ray& ray, const Array<Triangle>& triangles, RaycastInfo* info)
+	{
+		bool result = false;
+
+		int32 closeIndex = -1;
+		real32 min = REAL_MAX;
+		real32 max = REAL_MIN;
+		for (int32 i = 0; i < (int32)triangles.count; i++)
+		{
+			const Triangle& tri = triangles[i];
+
+			real32 t = FLT_MAX;
+			result = result || RaycastTriangle(ray, tri, &t);
+
+			if (t < min)
+			{
+				min = t;
+				closeIndex = i;
+			}
+			if (t > max)
+			{
+				max = t;
+			}
+		}
+
+		if (result)
+		{
+			info->t = min;
+			info->normal = triangles[closeIndex].CacluateNormal();
+			info->closePoint = TravelDownRay(ray, min);
+			info->farPoint = TravelDownRay(ray, max);
 		}
 
 		return result;

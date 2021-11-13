@@ -139,28 +139,32 @@ float ShadowCalculation(float3 worldPos, float3 worldNormal, float3 lightDir)
 	projCoords.y = -projCoords.y * 0.5f + 0.5f;
 
 	float currentDepth = projCoords.z;
-
-	//float bias = max(0.05 * (1.0 - dot(worldNormal, lightDir)), 0.005);
+	float bias = max(0.0005 * (1.0 - dot(worldNormal, lightDir)), 0.0005);
 	//bias *= 1.0 / (cascades[layer] * 0.5f);
-	float bias = 0.001;
+	//float bias = 0.001;
 
 	currentDepth -= bias;
 
-	float shadow = 1.0 - texture6.SampleCmpLevelZero(shadowPCFSampler, float3(projCoords.xy, layer), currentDepth);
+	float2 shadowMapSize;
+	float numSlices;
+	texture6.GetDimensions(shadowMapSize.x, shadowMapSize.y, numSlices);
+	float2 texelSize = float2(1, 1) / shadowMapSize;
 
-	//float closestDepth = texture6.Sample(pointSampler, float3(projCoords.xy, layer)).r;
-	//float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+	float shadow = 0;
+	shadow += currentDepth > texture6.Sample(pointSampler, float3(projCoords.xy + float2(-1, 1) * texelSize, layer)).r ? 1.0 : 0.0;
+	shadow += currentDepth > texture6.Sample(pointSampler, float3(projCoords.xy + float2(0, 1) * texelSize, layer)).r ? 1.0 : 0.0;
+	shadow += currentDepth > texture6.Sample(pointSampler, float3(projCoords.xy + float2(1, 1) * texelSize, layer)).r ? 1.0 : 0.0;
 
-	//float shadow = 0.0;
-	//for (int x = -1; x <= 1; ++x)
-	//{
-	//	for (int y = -1; y <= 1; ++y)
-	//	{
-	//		float closestDepth = texture6.Sample(pointSampler, float3(projCoords.xy + float2(x, y) * texelSize, layer)).r;
-	//		shadow += (currentDepth - bias) > closestDepth ? 1.0 : 0.0;
-	//	}
-	//}
-	//shadow /= 9;
+	shadow += currentDepth > texture6.Sample(pointSampler, float3(projCoords.xy + float2(-1, 0) * texelSize, layer)).r ? 1.0 : 0.0;
+	shadow += currentDepth > texture6.Sample(pointSampler, float3(projCoords.xy + float2(0, 0) * texelSize, layer)).r ? 1.0 : 0.0;
+	shadow += currentDepth > texture6.Sample(pointSampler, float3(projCoords.xy + float2(1, 0) * texelSize, layer)).r ? 1.0 : 0.0;
+
+	shadow += currentDepth > texture6.Sample(pointSampler, float3(projCoords.xy + float2(-1, -1) * texelSize, layer)).r ? 1.0 : 0.0;
+	shadow += currentDepth > texture6.Sample(pointSampler, float3(projCoords.xy + float2(0, -1) * texelSize, layer)).r ? 1.0 : 0.0;
+	shadow += currentDepth > texture6.Sample(pointSampler, float3(projCoords.xy + float2(1, -1) * texelSize, layer)).r ? 1.0 : 0.0;
+	shadow /= 9;
+
+	//float shadow= 1.0 - texture6.SampleCmpLevelZero(shadowPCFSampler, float3(projCoords.xy, layer), currentDepth);
 
 	return shadow;
 

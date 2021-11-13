@@ -298,11 +298,10 @@ namespace cm
 		direction.y = Sin(DegToRad(playerPart->pitch));
 		direction.z = Sin(DegToRad(playerPart->yaw)) * Cos(DegToRad(playerPart->pitch));
 
-		Vec3f cameraOffset = Vec3f(0, 0.75, 0);
-
-		Camera* camera = &gs->camera;
+		Entity* camera = gs->playerCamera;
 		Mat4f result = LookAtLH(playerEntity->transform.position, playerEntity->transform.position + direction, Vec3f(0, 1, 0));
 
+		Vec3f cameraOffset = Vec3f(0, 0.75, 0);
 		camera->transform.orientation = Mat4ToQuat(result);
 		camera->transform.position = playerEntity->transform.position + cameraOffset;
 		playerEntity->transform.orientation = camera->transform.orientation;
@@ -409,7 +408,24 @@ namespace cm
 		}
 #endif
 		{
+			MeshData* meshData = &as->meshesData[(uint32)ModelId::Value::PLANE];
+			int32 triCount = 0;
+			for (int32 i = 0; i < meshData->positionCount; i += 3)
+			{
+				Triangle* tri = &gs->meshColliderTriangleStorage[triCount];
+				tri->v0 = meshData->positions[i];
+				tri->v1 = meshData->positions[i + 1];
+				tri->v2 = meshData->positions[i + 2];
+				triCount++;
+			}
+
+			gs->meshCollider = Array<Triangle>(&gs->meshColliderTriangleStorage[0], triCount);
+			gs->meshCollider.count = triCount;
+		}
+
+		{
 			Entity* player = gs->CreateEntity();
+			player->name = "Player";
 			player->object_space_bounding_box = CreateAABBFromCenterRadius(0, Vec3f(0.5f, 1.4f, 0.5f));
 			player->transform = Transform();
 			player->transform.position.y = 0.8f;
@@ -418,10 +434,28 @@ namespace cm
 
 			gs->player = player;
 
+			Entity* camera = gs->CreateEntity();
+			camera->name = "Player camera";
+			camera->cameraComp.active = true;
+			camera->cameraComp.far_ = 100.0f;
+			camera->cameraComp.near_ = 0.3f;
+			camera->cameraComp.yfov = 45.0f;
+			camera->cameraComp.aspect = (real32)ws->client_width / (real32)ws->client_height;
+
+			gs->playerCamera = camera;
+
 			Entity* gun = gs->CreateEntity();
+			gun->name = "Player gun";
 			gun->renderComp.active = true;
 			gun->renderComp.modelId = ModelId::Value::SM_WEP_RIFLE_BASE_01;
 			gun->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
+			gun->renderComp.SetFlag(RenderFlag::NO_CAST_SHADOW);
+			gun->transform.GlobalRotateY(DegToRad(180.0f));
+			gun->transform.position.x = 0.35f;
+			gun->transform.position.y = -0.263f;
+			gun->transform.position.z = 0.63489f;
+
+			gun->SetParent(camera->GetId());
 
 			gs->gun = gun;
 		}
@@ -448,7 +482,7 @@ namespace cm
 		{
 			Entity* e = gs->CreateEntity();
 			e->renderComp.active = true;
-			e->renderComp.modelId = ModelId::Value::SM_BLD_SECTION_DOOR_02;
+			e->renderComp.modelId = ModelId::Value::TEST_1;
 			e->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
 			e->name = e->renderComp.modelId.ToString();
 		}
@@ -529,6 +563,15 @@ namespace cm
 		//Platform::AddWorkEntry(Platform::WorkEntry(JobPhysics, &ts->physicsSimulator));
 		//Platform::
 		UpdatePlayer(gs, as, input);
+
+		//Capsule cap = CreateCapsuleFromBaseTip(Vec3f(0, 0, 0), Vec3f(0, 1, 0), 0.25f);
+		//DEBUGDrawCapsule(cap);
+
+		for (int32 i = 0; i < gs->meshCollider.count; i++)
+		{
+			DEBUGDrawTriangleWithNormal(gs->meshCollider[i]);
+		}
+
 		//UpdatePlayerAction(gs, as, input, ws);
 		//UpdateGame(gs, input);
 	}
@@ -566,8 +609,8 @@ namespace cm
 		//renderGroup->pointLightCount = 1;
 		//renderGroup->pointLights[0].transform.position = Vec3f(5, 5, -5);
 
-		renderGroup->mainCamera = gs->camera;
-		renderGroup->playerCamera = gs->camera;
+		renderGroup->mainCamera = gs->playerCamera->cameraComp.ToPureCamera(gs->playerCamera->transform);
+		renderGroup->playerCamera = renderGroup->mainCamera;
 		renderGroup->player = *gs->player;
 	}
 

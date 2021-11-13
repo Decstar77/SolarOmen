@@ -254,45 +254,6 @@ namespace cm
 		return result;
 	}
 
-	bool RaycastMeshColldier(const Ray& ray, const MeshCollider& mesh_collider, real32* dist)
-	{
-		Assert(mesh_collider.size() > 0, "INVALID MESH COLLDIER");
-
-		bool result = false;
-
-		if (dist)
-		{
-			real32 min = FLT_MAX;
-			for (int32 i = 0; i < (int32)mesh_collider.size(); i++)
-			{
-				Triangle tri = mesh_collider.at(i);
-
-				real32 t = FLT_MAX;
-				result = result || RaycastTriangle(ray, tri, &t);
-
-				min = t < min ? t : min;
-			}
-
-			*dist = min;
-		}
-		else
-		{
-			for (int32 i = 0; i < (int32)mesh_collider.size(); i++)
-			{
-				Triangle tri = mesh_collider.at(i);
-
-				result = RaycastTriangle(ray, tri);
-
-				if (result)
-				{
-					break;
-				}
-			}
-		}
-
-		return result;
-	}
-
 	bool RaycastOBB(const Ray& ray, const OBB& obb, real32* dist)
 	{
 		real32 t[6] = {}; // tx_min, tx_max, ty_min, ty_max, tz_min, tz_max

@@ -30,6 +30,8 @@ namespace cm
 
 	void DEBUGDrawSphere(const Sphere& sphere);
 
+	void DEBUGDrawCapsule(const Capsule& capsule);
+
 	void DEBUGDrawTriangle(const Triangle& tri);
 
 	void DEBUGDrawTriangleWithNormal(const Triangle& tri);

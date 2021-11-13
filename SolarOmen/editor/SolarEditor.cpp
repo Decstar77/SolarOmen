@@ -247,7 +247,27 @@ namespace cm
 
 		while (Entity* entity = gs->GetNextEntity())
 		{
-			fileData->Add(entity->name);
+			fileData->Add("Entity:\n");
+			fileData->Add("\tname=").Add(entity->name).Add("\n");
+			fileData->Add("\tactive=").Add(entity->active).Add("\n");
+			fileData->Add("\tTransform:\n");
+			fileData->Add("\t\tposition=").Add(ToString(entity->transform.position)).Add("\n");
+			fileData->Add("\t\torientation=").Add(ToString(entity->transform.orientation)).Add("\n");
+			fileData->Add("\t\tscale=").Add(ToString(entity->transform.scale)).Add("\n");
+
+			if (entity->renderComp.active)
+			{
+				fileData->Add("\tRenderComponent:\n");
+				fileData->Add("\t\tflags=").Add(entity->renderComp.flags).Add("\n");
+				fileData->Add("\t\tmodel=").Add(entity->renderComp.modelId.ToString()).Add("\n");
+			}
+
+			if (entity->lightComp.active)
+			{
+				fileData->Add("\tLightComponent:\n");
+				fileData->Add("\t\tcolour=").Add(ToString(entity->lightComp.colour)).Add("\n");
+				fileData->Add("\t\tintensity=").Add(entity->lightComp.intensity).Add("\n");
+			}
 		}
 
 		SaveLargeStringToFile("../Assets/Raw/Worlds/demo.txt", fileData);

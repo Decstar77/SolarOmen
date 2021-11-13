@@ -16,6 +16,9 @@ namespace cm
 		case TextureFormat::R32_FLOAT: return DXGI_FORMAT_R32_FLOAT;
 		case TextureFormat::D32_FLOAT: return DXGI_FORMAT_D32_FLOAT;
 		case TextureFormat::R32_TYPELESS: return DXGI_FORMAT_R32_TYPELESS;
+		case TextureFormat::R16_UNORM: return DXGI_FORMAT_R16_UNORM;
+		case TextureFormat::D16_UNORM: return DXGI_FORMAT_D16_UNORM;
+		case TextureFormat::R16_TYPELESS: return DXGI_FORMAT_R16_TYPELESS;
 		case TextureFormat::R32G32_FLOAT: return DXGI_FORMAT_R32G32_FLOAT;
 		case TextureFormat::R32G32B32_FLOAT: return DXGI_FORMAT_R32G32B32_FLOAT;
 		case TextureFormat::R32G32B32A32_FLOAT: return DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -35,6 +38,9 @@ namespace cm
 		case TextureFormat::R32_FLOAT: return sizeof(real32);
 		case TextureFormat::D32_FLOAT: return sizeof(real32);
 		case TextureFormat::R32_TYPELESS: return sizeof(real32);
+		case TextureFormat::R16_UNORM: return sizeof(uint16);
+		case TextureFormat::D16_UNORM: return sizeof(uint16);
+		case TextureFormat::R16_TYPELESS: return sizeof(uint16);
 		case TextureFormat::R32G32_FLOAT: return sizeof(real32);
 		case TextureFormat::R32G32B32_FLOAT: return sizeof(real32);
 		case TextureFormat::R32G32B32A32_FLOAT: return sizeof(real32);
@@ -54,6 +60,9 @@ namespace cm
 		case TextureFormat::R32_FLOAT: return 1;
 		case TextureFormat::D32_FLOAT: return 1;
 		case TextureFormat::R32_TYPELESS: return 1;
+		case TextureFormat::R16_UNORM: return 1;
+		case TextureFormat::D16_UNORM: return 1;
+		case TextureFormat::R16_TYPELESS: return 1;
 		case TextureFormat::R32G32_FLOAT: return 2;
 		case TextureFormat::R32G32B32_FLOAT: return 3;
 		case TextureFormat::R32G32B32A32_FLOAT: return 4;
