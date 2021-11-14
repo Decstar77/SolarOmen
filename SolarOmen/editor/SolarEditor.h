@@ -3,7 +3,7 @@
 #include "../SolarOmen.h"
 #include "../renderer/SolarRenderer.h"
 
-#include "../editor/NodeWindow.h"
+
 
 #include "../vendor/imgui/imgui.h"
 #include "../vendor/imgui/imgui_impl_win32.h"
@@ -11,10 +11,20 @@
 #include "../vendor/imguizmo/ImGuizmo.h"
 #include "../vendor/imgui_node/imnodes.h"
 
+#include "NodeWindow.h"
+#include "Gizmos.h"
+
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace cm
 {
+	//class WorldWindow
+	//{
+	//public:
+	//	void Initialize();
+	//	void Show(Input* input, );
+	//};
+
 	struct EditorState
 	{
 		Camera camera;
@@ -22,14 +32,16 @@ namespace cm
 		bool32 vsync;
 		bool32 inGame;
 
-		WorldId currentWorld;
+		bool32 showPerformanceWindow;
+		bool32 showRenderSettingsWindow;
 
-		ImGuizmo::OPERATION op;
-		ImGuizmo::MODE md;
+		WorldId currentWorld;
 
 		real32 frameTimes[256];
 
 		Entity* selectedEntity;
+
+		Gizmo gizmo;
 
 		NodeWindow nodeWindow;
 	};

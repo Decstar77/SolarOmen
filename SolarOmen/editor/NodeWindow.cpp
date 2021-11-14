@@ -1,5 +1,5 @@
 #include "NodeWindow.h"
-
+#include "../vendor/imgui_node/imnodes.h"
 
 namespace cm
 {

@@ -211,6 +211,26 @@ namespace cm
 			return arr;
 		}
 
+		inline static uint64 GetTheAmountOfTransientMemoryUsed()
+		{
+			return instance->transientStorage.used;
+		}
+
+		inline static uint64 GetTheTotalAmountOfTransientMemoryAllocated()
+		{
+			return instance->transientStorage.size;
+		}
+
+		inline static uint64 GetTheAmountOfPermanentMemoryUsed()
+		{
+			return instance->permanentStorage.used;
+		}
+
+		inline static uint64 GetTheTotalAmountOfPermanentMemoryAllocated()
+		{
+			return instance->permanentStorage.size;
+		}
+
 		inline static void ReleaseAllTransientMemory()
 		{
 			instance->transientStorage.used = 0;

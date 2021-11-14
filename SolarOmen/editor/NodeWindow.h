@@ -1,8 +1,8 @@
 #pragma once
 
 #include "core/SolarCore.h"
-#include "../vendor/imgui_node/imnodes.h"
 #include "../SolarInput.h"
+
 namespace cm
 {
 	//namespace ed = ax::NodeEditor;

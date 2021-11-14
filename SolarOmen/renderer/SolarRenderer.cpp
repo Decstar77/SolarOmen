@@ -1076,8 +1076,8 @@ namespace cm
 		//Mat4f lightProj = OrthographicLH(-10.0f, 10.0f, 10.0f, -10.0f, 0.5f, 10.0f);
 
 
-		DEBUGDrawFrustum(CreateFrustrum(lightProj, lightView));
-		DEBUGDrawFrustum(frustrum);
+		//DEBUGDrawFrustum(CreateFrustrum(lightProj, lightView));
+		//DEBUGDrawFrustum(frustrum);
 
 		return lightView * lightProj;
 	}

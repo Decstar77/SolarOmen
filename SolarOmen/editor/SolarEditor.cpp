@@ -9,7 +9,6 @@ namespace cm
 		ImGui::StyleColorsDark();
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
-		colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.94f);
 		colors[ImGuiCol_TitleBgActive] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 		colors[ImGuiCol_Header] = ImVec4(1.00f, 1.00f, 1.00f, 0.31f);
 
@@ -27,6 +26,9 @@ namespace cm
 		es->vsync = true;
 		es->inGame = false;
 		//es->currentGameFile = {};
+
+		es->gizmo.mode = GizmoMode::Value::WORLD;
+		es->gizmo.operation = GizmoOperation::Value::TRANSLATE;
 
 		es->currentWorld = WorldId::Value::DEMO;
 
@@ -110,100 +112,6 @@ namespace cm
 		}
 	}
 
-
-	void OperateGizmo(EditorState* es, GameState* gs, PlatformState* ws, Input* input)
-	{
-		ImGuizmo::Enable(true);
-		ImGuiIO& io = ImGui::GetIO();
-		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-
-		if (IsKeyJustDown(input, e) && !input->mb1)
-		{
-			es->op = ImGuizmo::OPERATION::SCALE;
-		}
-		if (IsKeyJustDown(input, r) && !input->mb1)
-		{
-			es->op = ImGuizmo::OPERATION::ROTATE;
-		}
-		if (IsKeyJustDown(input, t) && !input->mb1)
-		{
-			es->op = ImGuizmo::OPERATION::TRANSLATE;
-		}
-
-		if (IsKeyJustDown(input, tlda) && !input->mb1)
-		{
-			es->md = (es->md == ImGuizmo::MODE::LOCAL) ? ImGuizmo::MODE::WORLD : ImGuizmo::MODE::LOCAL;
-		}
-
-		bool snapping = true;
-
-		Vec3f snap_amount = Vec3f(VOXEL_IMPORT_SCALE);
-		if (es->op == ImGuizmo::OPERATION::ROTATE)
-		{
-			snap_amount = Vec3f(15);
-		}
-		if (input->ctrl)
-		{
-			snapping = false;
-
-		}
-
-		Mat4f view = Inverse(es->camera.transform.CalculateTransformMatrix());
-		Mat4f proj = PerspectiveLH(DegToRad(gs->camera.yfov), ws->aspect, gs->camera.near_, gs->camera.far_);
-
-		Mat4f world_mat = es->selectedEntity->transform.CalculateTransformMatrix();
-		Mat4f delta;
-#if 0
-		if (es->selectedCollider)
-		{
-			world_mat = es->selectedCollider->mat;
-			world_mat[3][3] = 1;
-			world_mat = ScaleCardinal(world_mat, es->selectedCollider->extents);
-
-			AABB box = CreateAABBContainingOBB(*es->selectedCollider);
-			float bounds[] = { box.min.x, box.min.y, box.min.z, box.max.x, box.max.y ,box.max.z };
-
-			ImGuizmo::Manipulate(view.ptr, proj.ptr, es->op, es->md, world_mat.ptr, nullptr, 0, 0);
-
-			Vec3f pos;
-			Vec3f euler;
-			Vec3f scale;
-			ImGuizmo::DecomposeMatrixToComponents(world_mat.ptr, pos.ptr, euler.ptr, scale.ptr);
-
-			es->selectedCollider->center = pos;
-			es->selectedCollider->basis = RemoveScaleFromRotationMatrix(Mat3f(world_mat));
-			es->selectedCollider->extents = scale;
-		}
-#endif
-		{
-			ImGuizmo::Manipulate(view.ptr, proj.ptr, es->op, es->md, world_mat.ptr, delta.ptr, snapping ? (snap_amount.ptr) : nullptr);
-
-			Vec3f pos;
-			Vec3f euler;
-			Vec3f scale;
-			ImGuizmo::DecomposeMatrixToComponents(world_mat.ptr, pos.ptr, euler.ptr, scale.ptr);
-			Quatf qori = EulerToQuat(euler);
-
-			// @NOTE: These equals are done to prevent floating point errors that trick 
-			//		: the undo system for the game state to think that a change has occurred
-
-			if (!Equal(pos, es->selectedEntity->transform.position))
-			{
-				es->selectedEntity->transform.position = pos;
-			}
-
-			if (!Equal(qori, es->selectedEntity->transform.orientation))
-			{
-				es->selectedEntity->transform.orientation = qori;
-			}
-
-			if (!Equal(scale, es->selectedEntity->transform.scale))
-			{
-				es->selectedEntity->transform.scale = scale;
-			}
-		}
-	}
-
 	static void DisplayTransform(Transform* transform, const real32 delta = 0.25f)
 	{
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(0.0, 0.94f, 0.7f));
@@ -226,6 +134,259 @@ namespace cm
 		if (ImGui::Button("Reset transform"))
 		{
 			*transform = Transform();
+		}
+	}
+
+	static void DoDisplayEntity(EditorState* es, Entity* entity)
+	{
+		ImGui::PushID(entity->GetId().index);
+		if (ImGui::TreeNode(entity->name.GetCStr()))
+		{
+			ImGui::Text(entity->GetId().ToString().GetCStr());
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Select"))
+			{
+				es->selectedEntity = entity;
+			}
+
+			//DisplayTransform(&entity->transform);
+
+			for (Entity* child = entity->GetFirstChild(); child != nullptr; child = entity->GetSibling())
+			{
+				DoDisplayEntity(es, child);
+			}
+
+			//Entity* parent = entity->GetFirstChild();
+			//if (parent)
+			//{
+			//	DoDisplayEntity(es, parent);
+			//}
+
+			ImGui::TreePop();
+		}
+		ImGui::PopID();
+	}
+
+	static void DisplayWorldWindow(EditorState* es, GameState* gs)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+		ImGui::SetNextWindowPos({ 0,18 });
+		ImGui::SetNextWindowSize({ 376, 731 });
+		ImGui::Begin("World name", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+		gs->BeginEntityLoop();
+		while (Entity* entity = gs->GetNextEntity())
+		{
+			Entity* parent = entity->GetParent();
+			if (!parent)
+			{
+				DoDisplayEntity(es, entity);
+			}
+		}
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
+	template<typename T>
+	T DisplayFancyEnum(const char* name, const T& t)
+	{
+		uint32 count = (uint32)T::Value::COUNT;
+		Array<T> values = GameMemory::PushTransientArray<T>(count);
+		Array<CString> strings = GameMemory::PushTransientArray<CString>(count);
+		Array<const char*> items = GameMemory::PushTransientArray<const char*>(count);
+		int32 currentItem = -1;
+		for (uint32 i = 0; i < count; i++)
+		{
+			values[i] = T::ValueOf(i);
+			strings[i] = values[i].ToString();
+			items[i] = strings[i].GetCStr();
+			if (t == values[i])
+			{
+				currentItem = i;
+			}
+		}
+
+		Assert(currentItem != -1, "Fancy enum broke !");
+
+		if (ImGui::Combo(name, &currentItem, items.data, count))
+		{
+			return T::ValueOf(currentItem);
+		}
+
+		return t;
+	}
+
+	static void DisplayEntityInspector(Entity* entity)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+
+		ImGui::SetNextWindowPos({ 1900 - 376, 18 });
+		ImGui::SetNextWindowSize({ 376, 731 });
+		ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+		char nameBuf[128] = {};
+		for (int32 i = 0; i < entity->name.GetLength() && i < 128; i++)
+		{
+			nameBuf[i] = entity->name[i];
+		}
+
+		if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
+		{
+			entity->name = CString(nameBuf);
+		}
+
+		ImGui::SameLine();
+		ImGui::Checkbox("Active", &entity->active);
+
+		if (ImGui::CollapsingHeader("Local Transform"))
+		{
+			DisplayTransform(&entity->transform);
+		}
+
+		if (entity->lightComp.active && ImGui::CollapsingHeader("Light Component"))
+		{
+			LightComponent* light = &entity->lightComp;
+			//light->active;
+			light->type = DisplayFancyEnum<LightType>("Type", light->type);
+			ImGui::ColorEdit3("Colour", light->colour.ptr);
+			ImGui::DragFloat("Intensity", &light->intensity, 0.1f, 0.0f, 100.0f, "%.3f");
+		}
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
+	static void DisplayPerformanceWindow(EditorState* es, GameState* gs)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+		ImGui::Begin("Performance", &es->showPerformanceWindow);
+
+		ImGui::Checkbox("Vsync", &es->vsync);
+
+		CString stringBuffer;
+		if (ImGui::CollapsingHeader("Permanent Memory"))
+		{
+			ImGui::Text("Current permanent memory allocated MB:");
+			ImGui::SameLine();
+			uint64 permanentTotalMB = GameMemory::GetTheTotalAmountOfPermanentMemoryAllocated() / 1000000;
+			stringBuffer.Clear();
+			stringBuffer.Add(permanentTotalMB);
+			ImGui::Text(stringBuffer.GetCStr());
+
+			ImGui::Text("Current permanent memory used MB:");
+			ImGui::SameLine();
+			uint64 permanentBytes = GameMemory::GetTheAmountOfPermanentMemoryUsed();
+			uint32 permanentUsedMB = (uint32)(permanentBytes / 1000000);
+			stringBuffer.Clear();
+			stringBuffer.Add(permanentUsedMB);
+			ImGui::Text(stringBuffer.GetCStr());
+
+			ImGui::Text("Current permanent memory available MB:");
+			ImGui::SameLine();
+			uint64 permanentAvaialbeMB =
+				(GameMemory::GetTheTotalAmountOfPermanentMemoryAllocated() -
+					GameMemory::GetTheAmountOfPermanentMemoryUsed()) / 1000000;
+			stringBuffer.Clear();
+			stringBuffer.Add(permanentAvaialbeMB);
+			ImGui::Text(stringBuffer.GetCStr());
+
+			ImGui::Text("Current permanent memory used %%:");
+			ImGui::SameLine();
+			real64 permanentPercent = (real64)permanentBytes / (real64)GameMemory::GetTheTotalAmountOfPermanentMemoryAllocated();
+			stringBuffer.Clear();
+			stringBuffer.Add((real32)permanentPercent);
+			ImGui::Text(stringBuffer.GetCStr());
+		}
+		if (ImGui::CollapsingHeader("Transient Memory"))
+		{
+			ImGui::Text("Current transient memory allocated MB:");
+			ImGui::SameLine();
+			uint64 transientTotalMB = GameMemory::GetTheTotalAmountOfTransientMemoryAllocated() / 1000000;
+			stringBuffer.Clear();
+			stringBuffer.Add(transientTotalMB);
+			ImGui::Text(stringBuffer.GetCStr());
+
+			ImGui::Text("Current transient memory used MB:");
+			ImGui::SameLine();
+			uint64 transientBytes = GameMemory::GetTheAmountOfTransientMemoryUsed();
+			uint32 transientMB = (uint32)(transientBytes / 1000000);
+			stringBuffer.Clear();
+			stringBuffer.Add(transientMB);
+			ImGui::Text(stringBuffer.GetCStr());
+
+			ImGui::Text("Current transient memory available MB:");
+			ImGui::SameLine();
+			uint64 transientAvaialbeMB =
+				(GameMemory::GetTheTotalAmountOfTransientMemoryAllocated() -
+					GameMemory::GetTheAmountOfTransientMemoryUsed()) / 1000000;
+			stringBuffer.Clear();
+			stringBuffer.Add(transientAvaialbeMB);
+			ImGui::Text(stringBuffer.GetCStr());
+
+			ImGui::Text("Current transient memory used %%:");
+			ImGui::SameLine();
+			real64 transientPercent = (real64)transientBytes / (real64)GameMemory::GetTheTotalAmountOfTransientMemoryAllocated();
+			stringBuffer.Clear();
+			stringBuffer.Add((real32)transientPercent);
+			ImGui::Text(stringBuffer.GetCStr());
+		}
+		if (ImGui::CollapsingHeader("Frame Timings"))
+		{
+			ImGui::Text("Frame time:");
+			ImGui::SameLine();
+			ImGui::Text(CString("").Add(gs->dt * 1000).GetCStr());
+
+			for (int32 i = 0; i < ArrayCount(es->frameTimes) - 1; i++)
+			{
+				es->frameTimes[i] = es->frameTimes[i + 1];
+			}
+			es->frameTimes[ArrayCount(es->frameTimes) - 1] = gs->dt * 1000;
+
+			ImGui::PlotLines("Frame time", es->frameTimes, ArrayCount(es->frameTimes), 0, 0, 0, 30, ImVec2(ImGui::GetWindowSize().x, 64), 4);
+		}
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
+	static void DisplayContentWindow(EditorState* es, GameState* gs)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+		ImGui::SetNextWindowPos({ 0,18 + 731 });
+		ImGui::SetNextWindowSize({ 1900, 230 });
+		ImGui::Begin("Content", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
+	static void DisplayToolBar(EditorState* es)
+	{
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("New")) {}
+				if (ImGui::MenuItem("Open", "Ctrl+O")) {
+					//CString path = PlatformOpenNFileDialogAndReturnPath();
+					//LoadAGameWorld(gs, rs, as, es, path);
+				}
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("View"))
+			{
+				if (ImGui::MenuItem("Performance")) { es->showPerformanceWindow = true; }
+				if (ImGui::MenuItem("Render Settings")) { es->showRenderSettingsWindow = true; }
+				//if (ImGui::MenuItem("Main window")) { es->windowOpen = true; }
+				//if (ImGui::MenuItem("Physics")) { es->physicsWindowOpen = true; }
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMainMenuBar();
 		}
 	}
 
@@ -296,12 +457,27 @@ namespace cm
 			{
 				if (es->selectedEntity)
 				{
-					OperateGizmo(es, gs, ws, input);
+					es->gizmo.Operate(es->camera, es->selectedEntity, input);
 				}
 
+				DisplayToolBar(es);
+				DisplayWorldWindow(es, gs);
+
+				if (es->selectedEntity)
+				{
+					DisplayEntityInspector(es->selectedEntity);
+				}
+
+				if (es->showPerformanceWindow)
+				{
+					DisplayPerformanceWindow(es, gs);
+				}
 
 				//es->nodeWindow.Show(input);
+				//DisplayContentWindow(es, gs);
 
+#if 0
+				//es->nodeWindow.Show(input);
 				ImGui::Begin("Editor");
 
 				if (ImGui::Button("Save"))
@@ -358,6 +534,7 @@ namespace cm
 				ImGui::Image(rs->reductionTargets[2].shaderView, ImVec2(size, size));
 
 				ImGui::End();
+#endif
 			}
 
 

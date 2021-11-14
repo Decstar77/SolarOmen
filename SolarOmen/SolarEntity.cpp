@@ -18,6 +18,11 @@ namespace cm
 		return nullptr;
 	}
 
+	CString EntityId::ToString()
+	{
+		return CString("Index=").Add(index).Add(" Generation=").Add(generation);
+	}
+
 	EntityId Entity::GetId()
 	{
 		return id;
@@ -47,6 +52,39 @@ namespace cm
 			this->transform.orientation, this->transform.scale);
 
 		return result;
+	}
+
+	Entity* Entity::GetParent()
+	{
+		return parent.Get();
+	}
+
+	Entity* Entity::GetFirstChild()
+	{
+		return child.Get();
+	}
+
+	Entity* Entity::GetSibling()
+	{
+		return sibling.Get();
+	}
+
+	Array<Entity*> Entity::GetChildren()
+	{
+		// @TODO: When we do dirty and stuff we could probably cache the count somewhere
+		Array<Entity*> children = GameMemory::PushTransientArray<Entity*>(128);
+
+		Entity* child = GetFirstChild();
+		while (child)
+		{
+			int32 index = children.count;
+			children[index] = child;
+			children.count++;
+
+			child = child->GetSibling();
+		}
+
+		return children;
 	}
 
 	void Entity::SetParent(EntityId entity)
@@ -108,11 +146,11 @@ namespace cm
 			this->parent = parent->id;
 
 			// @NOTE: The new parent has child, so place me(this) at the back
-			if (Entity* child = entity.Get())
+			if (Entity* child = parent->GetFirstChild())
 			{
 				while (child)
 				{
-					Entity* next = child->sibling.Get();
+					Entity* next = child->GetSibling();
 					if (next != nullptr)
 					{
 						child = next;

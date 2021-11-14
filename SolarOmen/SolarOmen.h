@@ -15,6 +15,7 @@ namespace cm
 		int32 generation;
 
 		struct Entity* Get();
+		CString ToString();
 
 		inline bool operator==(const EntityId& rhs) const
 		{
@@ -73,14 +74,14 @@ namespace cm
 		real32 yfov;
 		real32 aspect;
 
-		inline Mat4f GetViewMatrix()
+		inline Mat4f GetViewMatrix() const
 		{
 			Mat4f view = Inverse(transform.CalculateTransformMatrix());
 
 			return view;
 		}
 
-		inline Mat4f GetProjectionMatrix()
+		inline Mat4f GetProjectionMatrix() const
 		{
 			Mat4f projection = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
 
@@ -188,12 +189,80 @@ namespace cm
 		}
 	};
 
-	enum class LightType
+	class LightType
 	{
-		POINT,
-		DIRECTIONAL,
-		SPOT,
-		AREA
+	public:
+		enum class Value
+		{
+			POINT = 0,
+			DIRECTIONAL,
+			SPOT,
+			AREA,
+			COUNT,
+		};
+
+		LightType()
+		{
+			value = Value::POINT;
+		}
+
+		LightType(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline static LightType ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (LightType::Value)v;
+		}
+
+		inline static LightType ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::POINT;
+		}
+
+		inline bool operator==(const LightType& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const LightType& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+		inline operator uint32() const
+		{
+			return (uint32)value;
+		}
+
+	private:
+		Value value;
+
+		inline static CString __STRINGS__[] = {
+
+			"POINT",
+			"DIRECTIONAL",
+			"SPOT",
+			"AREA"
+		};
 	};
 
 	struct LightComponent
@@ -317,6 +386,11 @@ namespace cm
 		bool32 IsSameEntity(Entity* other);
 		bool32 IsPhsyicsEnabled();
 		AABB GetBoundingBox();
+
+		Entity* GetParent();
+		Entity* GetFirstChild();
+		Entity* GetSibling();
+		Array<Entity*> GetChildren();
 		void SetParent(EntityId entity);
 
 		Transform GetLocalTransform();

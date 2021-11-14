@@ -93,6 +93,7 @@
     <ClCompile Include="core\SolarArray.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="Editor.cpp" />
+    <ClCompile Include="editor\Gizmos.cpp" />
     <ClCompile Include="FileParsers.cpp" />
     <ClCompile Include="ManifoldTests.cpp" />
     <ClCompile Include="editor\NodeWindow.cpp" />
@@ -149,6 +150,7 @@
     <ClInclude Include="core\Defines.h" />
     <ClInclude Include="core\SolarCore.h" />
     <ClInclude Include="Editor.h" />
+    <ClInclude Include="editor\Gizmos.h" />
     <ClInclude Include="FileParsers.h" />
     <ClInclude Include="ManifoldTests.h" />
     <ClInclude Include="editor\NodeWindow.h" />

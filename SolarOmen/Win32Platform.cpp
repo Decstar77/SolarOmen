@@ -604,11 +604,7 @@ namespace cm
 		UpdateGame(gameWork->gs, gameWork->as, gameWork->ws, gameWork->input);
 		ConstructRenderGroup(gameWork->gs, gameWork->renderGroup);
 	}
-
-
 }
-
-
 
 
 using namespace cm;

@@ -9,7 +9,7 @@ namespace cm
 	{
 		Entity* entity = gs->CreateEntity();
 		entity->lightComp.active = true;
-		entity->lightComp.type = LightType::POINT;
+		entity->lightComp.type = LightType::Value::POINT;
 		entity->lightComp.colour = colour;
 		entity->lightComp.intensity = 1;
 
@@ -22,7 +22,7 @@ namespace cm
 	{
 		Entity* entity = gs->CreateEntity();
 		entity->lightComp.active = true;
-		entity->lightComp.type = LightType::DIRECTIONAL;
+		entity->lightComp.type = LightType::Value::DIRECTIONAL;
 		entity->lightComp.colour = colour;
 		entity->lightComp.intensity = 10;
 
@@ -467,7 +467,7 @@ namespace cm
 			e1->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
 			e1->name = e1->renderComp.modelId.ToString();
 			e1->transform.position.x = 3;
-			e1->transform.GlobalRotateY(DegToRad(45.0f));
+			//e1->transform.GlobalRotateY(DegToRad(45.0f));
 
 			Entity* e2 = gs->CreateEntity();
 			e2->renderComp.active = true;
@@ -477,8 +477,10 @@ namespace cm
 
 			e2->transform.position.x = 3;
 			e2->SetParent(e1->GetId());
+			int a = 2;
 		}
 
+		if (0)
 		{
 			Entity* e = gs->CreateEntity();
 			e->renderComp.active = true;
@@ -487,6 +489,7 @@ namespace cm
 			e->name = e->renderComp.modelId.ToString();
 		}
 
+		if (0)
 		{
 			Entity* e = gs->CreateEntity();
 			e->renderComp.active = true;
@@ -496,6 +499,7 @@ namespace cm
 			e->transform.scale = Vec3f(1, 1, 1);
 			e->name = e->renderComp.modelId.ToString();
 		}
+
 
 		{
 			Entity* e = CreateDirectionalLight(gs);
@@ -556,8 +560,49 @@ namespace cm
 		ps->Update();
 	}
 
+	struct HermiteCurve
+	{
+		Vec3f p0;
+		Vec3f v0;
+		Vec3f p1;
+		Vec3f v1;
+
+		Vec3f Evaulate(real32 t)
+		{
+			real32 t2 = t * t;
+			real32 t3 = t * t * t;
+
+			real32 h0 = 1.0f - 3.0f * t2 + 2.0f * t3;
+			real32 h1 = t - 2.0f * t2 + t3;
+			real32 h2 = -t2 + t3;
+			real32 h3 = 3.0f * t2 - 2.0f * t3;
+
+			Vec3f result = h0 * p0 + h1 * v0 + h2 * v1 + h3 * p1;
+
+			return result;
+		}
+	};
+
 	void UpdateGame(GameState* gs, AssetState* as, PlatformState* ws, Input* input)
 	{
+		HermiteCurve curve = {};
+		curve.p0 = Vec3f(0, 1, 1);
+		curve.v0 = Vec3f(3, 0, 0);
+
+		curve.p1 = Vec3f(1, 0, 0);
+		curve.v1 = Vec3f(5, 0, 0);
+
+
+		Vec3f last = curve.Evaulate(0);
+		for (real32 t = 0.01f; t <= 1.0f; t += 0.01f)
+		{
+			Vec3f next = curve.Evaulate(t);
+
+			DEBUGDrawLine(last, next);
+			last = next;
+		}
+
+
 		//ts->physicsSimulator.dt = input->dt;
 		//ts->physicsSimulator.Update();
 		//Platform::AddWorkEntry(Platform::WorkEntry(JobPhysics, &ts->physicsSimulator));
@@ -569,7 +614,7 @@ namespace cm
 
 		for (uint32 i = 0; i < gs->meshCollider.count; i++)
 		{
-			DEBUGDrawTriangleWithNormal(gs->meshCollider[i]);
+			//DEBUGDrawTriangleWithNormal(gs->meshCollider[i]);
 		}
 
 		//UpdatePlayerAction(gs, as, input, ws);
@@ -599,7 +644,7 @@ namespace cm
 
 			if (entity->lightComp.active)
 			{
-				if (entity->lightComp.type == LightType::DIRECTIONAL)
+				if (entity->lightComp.type == LightType::Value::DIRECTIONAL)
 				{
 					renderGroup->mainDirectionalLight = *entity;
 				}
