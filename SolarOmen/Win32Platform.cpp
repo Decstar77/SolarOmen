@@ -575,7 +575,7 @@ namespace cm
 
 		ManagedArray<real32> reals = GameMemory::GetManagedArray<real32>();
 #endif
-#if 1
+#if 0
 		// @NOTE: Stack allocated
 		int32 entity_storage[2];
 		Array<int32> entities = Array<int32>(entity_storage, 0);
@@ -583,9 +583,29 @@ namespace cm
 
 		// @NOTE: Heap allocated
 		Array<int32> arr = GameMemory::PushTransientArray<int32>(10);
-
 #endif
+#if 0
+		int32 qs[5];
+		CircularQueue<int32> q = CircularQueue<int32>(qs, 5);
+		q.Push(4);
+		q.Push(4);
+		q.Push(4);
+		q.Push(4);
+		q.Push(4);
 
+		q.Pop();
+		q.Pop();
+
+		q.Push(5);
+		q.Push(5);
+		q.Push(5);
+		q.Push(5);
+
+		q.Pop();
+		q.Pop();
+		q.Pop();
+		q.Pop();
+#endif 
 		int a = 2;
 	}
 

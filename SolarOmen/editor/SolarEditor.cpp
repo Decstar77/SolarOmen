@@ -33,6 +33,7 @@ namespace cm
 		es->currentWorld = WorldId::Value::DEMO;
 
 		es->nodeWindow.Initialize();
+		es->undoSystem.Initialize();
 	}
 
 	inline static void DrawEditorFrame()
@@ -112,10 +113,13 @@ namespace cm
 		}
 	}
 
-	static void DisplayTransform(Transform* transform, const real32 delta = 0.25f)
+	static bool32 DisplayTransform(Transform* transform, const real32 delta = 0.25f)
 	{
+		bool32 changed = false;
+
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(0.0, 0.94f, 0.7f));
 		ImGui::DragFloat3("Position", transform->position.ptr, delta);
+		changed |= ImGui::IsItemDeactivatedAfterEdit();
 		ImGui::PopStyleColor(1);
 
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(140.0f / 360.0f, 0.94f, 0.7f));
@@ -124,17 +128,22 @@ namespace cm
 		if (ImGui::DragFloat3("Orientation", ori.ptr, delta))
 		{
 			transform->orientation = EulerToQuat(ori);
+			changed |= ImGui::IsItemDeactivatedAfterEdit();
 		}
 		ImGui::PopStyleColor(1);
 
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(207.0f / 360.0f, 0.94f, 0.7f));
 		ImGui::DragFloat3("Scale", transform->scale.ptr, delta, 0.1f, 1000.0f);
+		changed |= ImGui::IsItemDeactivatedAfterEdit();
 		ImGui::PopStyleColor(1);
 
 		if (ImGui::Button("Reset transform"))
 		{
 			*transform = Transform();
+			changed = true;
 		}
+
+		return changed;
 	}
 
 	static void DoDisplayEntity(EditorState* es, Entity* entity)
@@ -146,7 +155,16 @@ namespace cm
 			ImGui::SameLine();
 			if (ImGui::SmallButton("Select"))
 			{
-				es->selectedEntity = entity;
+				if (entity != es->selectedEntity)
+				{
+					UndoEntry entry = {};
+					entry.action = UndoAction::Value::SELECTION_CHANGE;
+					entry.selectionChange.current = entity->GetId();
+					entry.selectionChange.previous = es->selectedEntity ? es->selectedEntity->GetId() : EntityId();
+
+					es->selectedEntity = entity;
+					es->undoSystem.Do(entry);
+				}
 			}
 
 			//DisplayTransform(&entity->transform);
@@ -172,7 +190,7 @@ namespace cm
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
 		ImGui::SetNextWindowPos({ 0,18 });
 		ImGui::SetNextWindowSize({ 376, 731 });
-		ImGui::Begin("World name", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+		ImGui::Begin("World name", &es->showWorldWindow, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
 		gs->BeginEntityLoop();
 		while (Entity* entity = gs->GetNextEntity())
@@ -189,7 +207,7 @@ namespace cm
 	}
 
 	template<typename T>
-	T DisplayFancyEnum(const char* name, const T& t)
+	bool32 DisplayFancyEnum(const char* name, T* t)
 	{
 		uint32 count = (uint32)T::Value::COUNT;
 		Array<T> values = GameMemory::PushTransientArray<T>(count);
@@ -201,7 +219,7 @@ namespace cm
 			values[i] = T::ValueOf(i);
 			strings[i] = values[i].ToString();
 			items[i] = strings[i].GetCStr();
-			if (t == values[i])
+			if (*t == values[i])
 			{
 				currentItem = i;
 			}
@@ -209,15 +227,19 @@ namespace cm
 
 		Assert(currentItem != -1, "Fancy enum broke !");
 
+		bool32 changed = false;
+
 		if (ImGui::Combo(name, &currentItem, items.data, count))
 		{
-			return T::ValueOf(currentItem);
+			T newT = T::ValueOf(currentItem);
+			changed = *t != newT;
+			*t = newT;
 		}
 
-		return t;
+		return changed;
 	}
 
-	static void DisplayEntityInspector(Entity* entity)
+	static bool32 DisplayEntityInspector(Entity* entity)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
 
@@ -225,6 +247,7 @@ namespace cm
 		ImGui::SetNextWindowSize({ 376, 731 });
 		ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
+		bool32 changed = false;
 		char nameBuf[128] = {};
 		for (int32 i = 0; i < entity->name.GetLength() && i < 128; i++)
 		{
@@ -233,28 +256,35 @@ namespace cm
 
 		if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
 		{
+			changed = true;
 			entity->name = CString(nameBuf);
 		}
 
 		ImGui::SameLine();
-		ImGui::Checkbox("Active", &entity->active);
+		changed |= ImGui::Checkbox("Active", &entity->active);
 
 		if (ImGui::CollapsingHeader("Local Transform"))
 		{
-			DisplayTransform(&entity->transform);
+			changed |= DisplayTransform(&entity->transform);
 		}
 
 		if (entity->lightComp.active && ImGui::CollapsingHeader("Light Component"))
 		{
 			LightComponent* light = &entity->lightComp;
-			//light->active;
-			light->type = DisplayFancyEnum<LightType>("Type", light->type);
+
+			changed |= DisplayFancyEnum<LightType>("Type", &light->type);
+
 			ImGui::ColorEdit3("Colour", light->colour.ptr);
+			changed |= ImGui::IsItemDeactivatedAfterEdit();
+
 			ImGui::DragFloat("Intensity", &light->intensity, 0.1f, 0.0f, 100.0f, "%.3f");
+			changed |= ImGui::IsItemDeactivatedAfterEdit();
 		}
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+
+		return changed;
 	}
 
 	static void DisplayPerformanceWindow(EditorState* es, GameState* gs)
@@ -350,6 +380,27 @@ namespace cm
 		ImGui::PopStyleVar();
 	}
 
+	static void DisplayDebugWindow(EditorState* es)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+		ImGui::Begin("Debug", &es->showDebugWindow);
+
+		/*	for (int32 i = 0; i < es->undoActions.undoStates.count; i++)
+			{
+				CString name = es->undoActions.undoStates.data[i].ToString();
+				ImGui::Text(name.GetCStr());
+			}
+			ImGui::Text("=========================================");
+			for (int32 i = 0; i < es->undoActions.redoStates.count; i++)
+			{
+				CString name = es->undoActions.redoStates.data[i].ToString();
+				ImGui::Text(name.GetCStr());
+			}*/
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
 	static void DisplayContentWindow(EditorState* es, GameState* gs)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
@@ -379,8 +430,10 @@ namespace cm
 
 			if (ImGui::BeginMenu("View"))
 			{
-				if (ImGui::MenuItem("Performance")) { es->showPerformanceWindow = true; }
+				if (ImGui::MenuItem("World Window")) { es->showWorldWindow = true; }
 				if (ImGui::MenuItem("Render Settings")) { es->showRenderSettingsWindow = true; }
+				if (ImGui::MenuItem("Performance")) { es->showPerformanceWindow = true; }
+				if (ImGui::MenuItem("Debug")) { es->showDebugWindow = true; }
 				//if (ImGui::MenuItem("Main window")) { es->windowOpen = true; }
 				//if (ImGui::MenuItem("Physics")) { es->physicsWindowOpen = true; }
 				ImGui::EndMenu();
@@ -455,93 +508,85 @@ namespace cm
 			}
 			else
 			{
+				if (input->ctrl && input->shift && IsKeyJustDown(input, z))
+				{
+					UndoEntry entry = es->undoSystem.Redo();
+
+					switch (entry.action.GetRawValue())
+					{
+					case UndoAction::Value::INVALID: break;
+					case UndoAction::Value::SELECTION_CHANGE:
+					{
+						es->selectedEntity = entry.selectionChange.current.Get();
+					} break;
+					case UndoAction::Value::ENTITY_CHANGE: {
+						*es->selectedEntity = entry.entityChange.current;
+					}break;
+					}
+				}
+				else if (input->ctrl && IsKeyJustDown(input, z))
+				{
+					UndoEntry entry = es->undoSystem.Undo();
+
+					switch (entry.action.GetRawValue())
+					{
+					case UndoAction::Value::INVALID: break;
+					case UndoAction::Value::SELECTION_CHANGE:
+					{
+						es->selectedEntity = entry.selectionChange.previous.Get();
+					} break;
+					case UndoAction::Value::ENTITY_CHANGE: {
+						*es->selectedEntity = entry.entityChange.previous;
+					}break;
+					}
+				}
+
 				if (es->selectedEntity)
 				{
 					es->gizmo.Operate(es->camera, es->selectedEntity, input);
 				}
 
 				DisplayToolBar(es);
-				DisplayWorldWindow(es, gs);
+
+				if (es->showWorldWindow)
+				{
+					DisplayWorldWindow(es, gs);
+				}
 
 				if (es->selectedEntity)
 				{
-					DisplayEntityInspector(es->selectedEntity);
-				}
+					if (IsKeyJustDown(input, mb1))
+					{
+						es->tempEntity = *es->selectedEntity;
+					}
 
+					if (DisplayEntityInspector(es->selectedEntity))
+					{
+						UndoEntry entry = {};
+						entry.action = UndoAction::Value::ENTITY_CHANGE;
+						entry.entityChange.current = *es->selectedEntity;
+						entry.entityChange.previous = es->tempEntity;
+						es->undoSystem.Do(entry);
+					}
+				}
 				if (es->showPerformanceWindow)
 				{
 					DisplayPerformanceWindow(es, gs);
 				}
 
+				if (es->showDebugWindow)
+				{
+					DisplayDebugWindow(es);
+				}
+
+
 				//es->nodeWindow.Show(input);
 				//DisplayContentWindow(es, gs);
-
-#if 0
-				//es->nodeWindow.Show(input);
-				ImGui::Begin("Editor");
-
-				if (ImGui::Button("Save"))
-				{
-					SaveGameStateTextFile(gs);
-				}
-
-				if (ImGui::CollapsingHeader("Entities"))
-				{
-					gs->BeginEntityLoop();
-					while (Entity* entity = gs->GetNextEntity())
-					{
-						if (ImGui::TreeNode(entity->name.GetCStr()))
-						{
-							if (ImGui::Button("Select"))
-							{
-								es->selectedEntity = entity;
-							}
-
-							DisplayTransform(&entity->transform);
-							ImGui::TreePop();
-						}
-					}
-				}
-
-				if (ImGui::CollapsingHeader("Player"))
-				{
-					if (ImGui::Button("Rotate Y"))
-					{
-						gs->camera.transform.GlobalRotateY(0.314159f / 2.0f);
-					}
-				}
-
-				if (ImGui::CollapsingHeader("Performance"))
-				{
-					ImGui::Checkbox("Vsync", &es->vsync);
-
-					ImGui::Text("Start up time: ");
-					ImGui::SameLine();
-					ImGui::Text(CString("").Add(gs->dt * 1000).GetCStr());
-					//ImGui::Text(("Last frame time: " + std::to_string(input->dt * 1000)).c_str());
-
-					for (int32 i = 0; i < ArrayCount(es->frameTimes) - 1; i++)
-					{
-						es->frameTimes[i] = es->frameTimes[i + 1];
-					}
-					es->frameTimes[ArrayCount(es->frameTimes) - 1] = gs->dt * 1000;
-
-					ImGui::PlotLines("Frame time", es->frameTimes, ArrayCount(es->frameTimes), 0, 0, 0, 30, ImVec2(128, 64), 4);
-				}
-
-				float size = 512;
-				//ImGui::Image(rs->shadowCascades.shaderView, ImVec2(size, size));
-				ImGui::Image(rs->reductionTargets[2].shaderView, ImVec2(size, size));
-
-				ImGui::End();
-#endif
 			}
 
 
 
 			renderGroup->mainCamera = es->camera;
-
-
 			//ImGui::ShowDemoWindow();
 		}
 		else

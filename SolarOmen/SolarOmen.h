@@ -407,12 +407,12 @@ namespace cm
 	private:
 		friend class GameState;
 		friend struct EntityId;
-#pragma warning( disable : 4099 )
+
 		Entity()
 		{
 			// @NOTE: All handeled in game create entity function
 		}
-#pragma warning( default : 4099 )
+
 	};
 
 

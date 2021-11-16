@@ -371,6 +371,11 @@ namespace cm
 			return true;
 		}
 
+		inline bool operator!=(const CString& other) const
+		{
+			return !(*this == other);
+		}
+
 		inline bool operator==(const char* other)
 		{
 			int32 index = 0;

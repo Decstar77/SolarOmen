@@ -4,3 +4,4 @@
 #include "SolarString.h"
 #include "SolarMath.h"
 #include "SolarArray.h"
+#include "SolarQueue.h"

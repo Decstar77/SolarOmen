@@ -91,6 +91,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="core\SolarArray.cpp" />
+    <ClCompile Include="core\SolarQueue.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="editor\Gizmos.cpp" />
@@ -149,6 +150,7 @@
     <ClInclude Include="core\SolarMath.h" />
     <ClInclude Include="core\Defines.h" />
     <ClInclude Include="core\SolarCore.h" />
+    <ClInclude Include="core\SolarQueue.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="editor\Gizmos.h" />
     <ClInclude Include="FileParsers.h" />
