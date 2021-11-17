@@ -135,6 +135,7 @@ namespace cm
 		inline void Do(const UndoEntry& t)
 		{
 			undoStates.Push(t);
+			redoStates.count = 0;
 		}
 
 		inline UndoEntry Undo()

@@ -25,31 +25,17 @@ namespace cm
 	// Triangle 
 	//************************************
 
-	struct Triangle
+	class Triangle
 	{
+	public:
 		Vec3f v0;
 		Vec3f v1;
 		Vec3f v2;
 
 		// @TODO: We could back this into the w component of each vec3 or store it with another vec3
-		inline Vec3f CacluateNormal()
-		{
-			Vec3f result = Normalize(Cross(v1 - v0, v2 - v0));
-
-			return result;
-		}
+		Vec3f CacluateNormal() const;
+		static Triangle Create(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2);
 	};
-
-	inline Triangle CreateTriangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2)
-	{
-		Triangle tri;
-
-		tri.v0 = v0;
-		tri.v1 = v1;
-		tri.v2 = v2;
-
-		return tri;
-	}
 
 	//************************************
 	// Plane
@@ -898,6 +884,12 @@ namespace cm
 		return result;
 	}
 
+	class MeshCollider
+	{
+	public:
+		Array<Triangle> triangles;
+		AABB boundingBox;
+	};
 
 	//************************************
 	// Line segment tests

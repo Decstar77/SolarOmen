@@ -1,6 +1,6 @@
 #pragma once
 #include "../SolarAssets.h"
-#include "../platform/SolarPlatform.h"
+#include "core/SolarPlatform.h"
 
 namespace cm
 {

@@ -46,10 +46,12 @@ namespace cm
 		return flags & (int32)EntityFlag::SIMULATE_PHYSICS;
 	}
 
-	AABB Entity::GetBoundingBox()
+	AABB Entity::GetWorldBoundingBox()
 	{
-		AABB result = UpdateAABB(this->object_space_bounding_box, this->transform.position,
-			this->transform.orientation, this->transform.scale);
+		Transform worldTransform = GetWorldTransform();
+
+		AABB result = UpdateAABB(this->boundingBoxLocal, worldTransform.position,
+			worldTransform.orientation, worldTransform.scale);
 
 		return result;
 	}
@@ -203,5 +205,39 @@ namespace cm
 		//}
 		//
 		//return me;
+	}
+
+	void Entity::SetCollider(const ModelId& mesh, bool32 setActive)
+	{
+		Assert(mesh.IsValid(), "Invalid mesh collider");
+
+		collisionComp.active = setActive;
+		collisionComp.type = ColliderType::MESH;
+		collisionComp.meshIndex = (int32)mesh;
+
+		boundingBoxLocal = collisionComp.GetBoundingBox();
+	}
+
+
+	AABB CollisionComponent::GetBoundingBox()
+	{
+		AABB box = {};
+		switch (type)
+		{
+		case ColliderType::SPHERE: Assert(0, ""); break;
+		case ColliderType::BOX: Assert(0, ""); break;
+		case ColliderType::MESH:
+		{
+			GameState* gs = GameState::Get();
+			Assert(meshIndex >= 0 && meshIndex < gs->meshColliderCount, "Collision mesh index is invalid");
+			if (meshIndex >= 0 && meshIndex < gs->meshColliderCount)
+			{
+				box = gs->meshColliders[meshIndex].boundingBox;
+			}
+			break;
+		}
+		}
+
+		return box;
 	}
 }

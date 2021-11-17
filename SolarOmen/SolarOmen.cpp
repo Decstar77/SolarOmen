@@ -13,7 +13,7 @@ namespace cm
 		entity->lightComp.colour = colour;
 		entity->lightComp.intensity = 1;
 
-		entity->object_space_bounding_box = CreateAABBFromCenterRadius(Vec3f(0), Vec3f(0.1f));
+		entity->boundingBoxLocal = CreateAABBFromCenterRadius(Vec3f(0), Vec3f(0.1f));
 
 		return entity;
 	}
@@ -26,7 +26,7 @@ namespace cm
 		entity->lightComp.colour = colour;
 		entity->lightComp.intensity = 10;
 
-		entity->object_space_bounding_box = CreateAABBFromCenterRadius(Vec3f(0), Vec3f(0.1f));
+		entity->boundingBoxLocal = CreateAABBFromCenterRadius(Vec3f(0), Vec3f(0.1f));
 
 		return entity;
 	}
@@ -408,25 +408,47 @@ namespace cm
 		}
 #endif
 		{
-			MeshData* meshData = &as->meshesData[(uint32)ModelId::Value::PLANE];
-			int32 triCount = 0;
-			for (int32 i = 0; i < meshData->positionCount; i += 3)
+			for (int32 modelIndex = 0; modelIndex < as->meshCount; modelIndex++)
 			{
-				Triangle* tri = &gs->meshColliderTriangleStorage[triCount];
-				tri->v0 = meshData->positions[i];
-				tri->v1 = meshData->positions[i + 1];
-				tri->v2 = meshData->positions[i + 2];
-				triCount++;
-			}
+				int32 index = gs->meshColliderCount;
+				gs->meshColliderCount++;
 
-			gs->meshCollider = Array<Triangle>(&gs->meshColliderTriangleStorage[0], triCount);
-			gs->meshCollider.count = triCount;
+				MeshCollider* collider = &gs->meshColliders[index];
+
+				MeshData* meshData = &as->meshesData[modelIndex];
+				int32 triCount = (int32)Ceil(meshData->positionCount / 3.0f);
+
+				Vec3f min = Vec3f(REAL_MAX);
+				Vec3f max = Vec3f(REAL_MIN);
+
+				collider->triangles = GameMemory::PushPermanentArray<Triangle>(triCount);
+				for (int32 triangleIndex = 0; triangleIndex < meshData->positionCount; triangleIndex += 3)
+				{
+					index = collider->triangles.count;
+					Triangle* tri = &collider->triangles[index];
+					tri->v0 = meshData->positions[triangleIndex];
+					tri->v1 = meshData->positions[triangleIndex + 1];
+					tri->v2 = meshData->positions[triangleIndex + 2];
+
+					min = Min(min, tri->v0);
+					min = Min(min, tri->v1);
+					min = Min(min, tri->v2);
+
+					max = Max(max, tri->v0);
+					max = Max(max, tri->v1);
+					max = Max(max, tri->v2);
+
+					collider->triangles.count++;
+				}
+
+				collider->boundingBox = CreateAABBFromMinMax(min, max);
+			}
 		}
 
 		{
 			Entity* player = gs->CreateEntity();
 			player->name = "Player";
-			player->object_space_bounding_box = CreateAABBFromCenterRadius(0, Vec3f(0.5f, 1.4f, 0.5f));
+			player->boundingBoxLocal = CreateAABBFromCenterRadius(0, Vec3f(0.5f, 1.4f, 0.5f));
 			player->transform = Transform();
 			player->transform.position.y = 0.8f;
 			player->transform.position.z = -3;
@@ -464,6 +486,7 @@ namespace cm
 			Entity* e1 = gs->CreateEntity();
 			e1->renderComp.active = true;
 			e1->renderComp.modelId = ModelId::Value::CUBE;
+			e1->SetCollider(ModelId::Value::CUBE);
 			e1->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
 			e1->name = e1->renderComp.modelId.ToString();
 			e1->transform.position.x = 3;
@@ -472,6 +495,7 @@ namespace cm
 			Entity* e2 = gs->CreateEntity();
 			e2->renderComp.active = true;
 			e2->renderComp.modelId = ModelId::Value::CUBE;
+			e2->SetCollider(ModelId::Value::CUBE);
 			e2->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
 			e2->name = e2->renderComp.modelId.ToString();
 
@@ -583,15 +607,46 @@ namespace cm
 		}
 	};
 
+	struct BezierCurve
+	{
+		Vec3f p0;
+		Vec3f p1;
+		Vec3f p2;
+		Vec3f p3;
+
+		Vec3f Evaulate(real32 t)
+		{
+			real32 t2 = t * t;
+			real32 t3 = t * t * t;
+
+			Vec3f c0 = p0;
+			Vec3f c1 = -3.0f * p0 + 3.0f * p1;
+			Vec3f c2 = 3.0f * p0 - 6.0f * p1 + 3.0f * p2;
+			Vec3f c3 = -1.0f * p0 + 3.0f * p1 - 3.0f * p2 + p3;
+
+			Vec3f result = c0 + c1 * t + c2 * t2 + c3 * t3;
+
+			return result;
+		}
+	};
+
 	void UpdateGame(GameState* gs, AssetState* as, PlatformState* ws, Input* input)
 	{
-		HermiteCurve curve = {};
-		curve.p0 = Vec3f(0, 1, 1);
-		curve.v0 = Vec3f(3, 0, 0);
+		//HermiteCurve curve = {};
+		//curve.p0 = Vec3f(0, 1, 1);
+		//curve.v0 = Vec3f(3, 0, 0);
+		//curve.p1 = Vec3f(1, 0, 0);
+		//curve.v1 = Vec3f(5, 0, 0);
+		BezierCurve curve = {};
+		curve.p0 = Vec3f(0, 1, 0);
+		curve.p1 = Vec3f(1, 1, 0);
+		curve.p2 = Vec3f(0, 0, 0);
+		curve.p3 = Vec3f(1, 0, 0);
 
-		curve.p1 = Vec3f(1, 0, 0);
-		curve.v1 = Vec3f(5, 0, 0);
-
+		DEBUGDrawPoint(curve.p0);
+		DEBUGDrawPoint(curve.p1);
+		DEBUGDrawPoint(curve.p2);
+		DEBUGDrawPoint(curve.p3);
 
 		Vec3f last = curve.Evaulate(0);
 		for (real32 t = 0.01f; t <= 1.0f; t += 0.01f)
@@ -603,6 +658,8 @@ namespace cm
 		}
 
 
+
+
 		//ts->physicsSimulator.dt = input->dt;
 		//ts->physicsSimulator.Update();
 		//Platform::AddWorkEntry(Platform::WorkEntry(JobPhysics, &ts->physicsSimulator));
@@ -612,10 +669,19 @@ namespace cm
 		//Capsule cap = CreateCapsuleFromBaseTip(Vec3f(0, 0, 0), Vec3f(0, 1, 0), 0.25f);
 		//DEBUGDrawCapsule(cap);
 
-		for (uint32 i = 0; i < gs->meshCollider.count; i++)
-		{
-			//DEBUGDrawTriangleWithNormal(gs->meshCollider[i]);
-		}
+		//gs->BeginEntityLoop();
+		//while (Entity* entity = gs->GetNextEntity())
+		//{
+		//	if (entity->collisionComp.active)
+		//	{
+		//		MeshCollider* collider = &gs->meshColliders[entity->collisionComp.meshIndex];
+		//		for (uint32 i = 0; i < collider->triangles.count; i++)
+		//		{
+		//			DEBUGDrawTriangleWithNormal(collider->triangles[i]);
+		//		}
+		//	}
+		//}
+
 
 		//UpdatePlayerAction(gs, as, input, ws);
 		//UpdateGame(gs, input);

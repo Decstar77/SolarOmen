@@ -1,11 +1,13 @@
 #pragma once
-#include "platform/SolarPlatform.h"
+#include "core/SolarPlatform.h"
 #include "SolarAudio.h"
 #include "FileParsers.h"
 #include "SolarAssets.h"
-#include "SolarInput.h"
 #include "core/SolarMemory.h"
 #include "Physics/SolarPhysics.h"
+#include "SimpleColliders.h"
+#include "ManifoldTests.h"
+#include "components/SolarCamera.h"
 
 namespace cm
 {
@@ -61,83 +63,7 @@ namespace cm
 		return  EntityType::ENVIRONMENT;
 	}
 
-	struct Camera
-	{
-		Transform transform;
 
-		// @NOTE: Temporary
-		real32 pitch;
-		real32 yaw;
-
-		real32 far_;
-		real32 near_;
-		real32 yfov;
-		real32 aspect;
-
-		inline Mat4f GetViewMatrix() const
-		{
-			Mat4f view = Inverse(transform.CalculateTransformMatrix());
-
-			return view;
-		}
-
-		inline Mat4f GetProjectionMatrix() const
-		{
-			Mat4f projection = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
-
-			return projection;
-		}
-	};
-
-	struct CameraComponent
-	{
-		bool32 active;
-
-		real32 pitch;
-		real32 yaw;
-
-		real32 far_;
-		real32 near_;
-		real32 yfov;
-		real32 aspect;
-
-		inline Camera ToPureCamera(const Transform& transform)
-		{
-			Camera result = {};
-			result.transform = transform;
-
-			result.pitch = this->pitch;
-			result.yaw = this->yaw;
-			result.far_ = this->far_;
-			result.near_ = this->near_;
-			result.yfov = this->yfov;
-			result.aspect = this->aspect;
-
-			return result;
-		}
-
-		inline Ray ShootRayFromScreen(PlatformState* ws, const Vec2f& pixl_point, const Transform& worldTransform)
-		{
-			real32 aspect = (real32)ws->client_width / (real32)ws->client_height;
-			Mat4f proj = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
-			Mat4f view = Inverse(worldTransform.CalculateTransformMatrix());
-
-			Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)ws->client_width,
-				(real32)ws->client_height, pixl_point.x, pixl_point.y);
-
-			Vec4f view_coords = ToViewCoords(proj, normal_coords);
-
-			// @NOTE: This 1 ensure we a have something pointing in to the screen
-			view_coords = Vec4f(view_coords.x, view_coords.y, 1, 0);
-			Vec3f world_coords = ToWorldCoords(view, view_coords);
-
-			Ray ray = {};
-			ray.origin = worldTransform.position;
-			ray.direction = Normalize(Vec3f(world_coords.x, world_coords.y, world_coords.z));
-
-			return ray;
-		}
-	};
 
 	enum class RenderFlag : uint32
 	{
@@ -151,14 +77,25 @@ namespace cm
 	{
 		SPHERE,
 		BOX,
-		CAPSULE,
-		CONVEX_SHAPE
+		MESH
 	};
 
-	struct CollisionComponent
+	class CollisionComponent
 	{
+	public:
 		bool32 active;
-		int32 index;
+		ColliderType type;
+
+		union
+		{
+			Sphere sphere;
+			OBB box;
+			int32 meshIndex;
+		};
+
+		AABB GetBoundingBox();
+
+		CollisionComponent() {}
 	};
 
 	struct Material
@@ -360,15 +297,20 @@ namespace cm
 		int32 meshId;
 	};
 
+	struct TransformComponent
+	{
+		EntityId id;
+	};
+
 	struct Entity
 	{
 		CString name;
 
 		bool32 active;
 		Transform transform;
-		AABB object_space_bounding_box;
+		AABB boundingBoxLocal;
 
-		//CollisionComponent collision;
+		CollisionComponent collisionComp;
 		RigidBodyComponent rigidBody;
 		RenderComponent renderComp;
 		LightComponent lightComp;
@@ -385,7 +327,7 @@ namespace cm
 		bool32 IsValid();
 		bool32 IsSameEntity(Entity* other);
 		bool32 IsPhsyicsEnabled();
-		AABB GetBoundingBox();
+		AABB GetWorldBoundingBox();
 
 		Entity* GetParent();
 		Entity* GetFirstChild();
@@ -395,6 +337,10 @@ namespace cm
 
 		Transform GetLocalTransform();
 		Transform GetWorldTransform();
+
+		void SetCollider(const Sphere& sphere, bool32 setActive = true);
+		void SetCollider(const OBB& box, bool32 setActive = true);
+		void SetCollider(const ModelId& mesh, bool32 setActive = true);
 
 	private:
 		EntityId id;
@@ -577,6 +523,9 @@ namespace cm
 		int32 entityLoopCount;
 		Entity entites[ENTITY_STORAGE_COUNT];
 
+		int32 meshColliderCount;
+		MeshCollider meshColliders[ENTITY_STORAGE_COUNT];
+
 		int32 particleEmitterCount;
 		int32 particleSlot[MAX_PARTICLE_EMITTERS];
 		Particle partices[MAX_PARTICLE_EMITTERS * MAX_PARTICLES_PER_EMITTER];
@@ -591,9 +540,6 @@ namespace cm
 
 		int32 entityFreeListCount;
 		EntityId entityFreeList[ENTITY_STORAGE_COUNT - 1];
-
-		Triangle meshColliderTriangleStorage[4096];
-		Array<Triangle> meshCollider;
 
 		Camera camera;
 		Vec3f camera_offset_player;
@@ -779,7 +725,7 @@ namespace cm
 	{
 		if (sector)
 		{
-			AABB entityBoundingBox = entity->GetBoundingBox();
+			AABB entityBoundingBox = entity->GetWorldBoundingBox();
 
 			if (CheckIntersectionAABB(entityBoundingBox, sector->boundingBox))
 			{

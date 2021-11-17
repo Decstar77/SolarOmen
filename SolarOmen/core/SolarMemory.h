@@ -204,6 +204,14 @@ namespace cm
 		}
 
 		template<typename T>
+		inline static Array<T> PushPermanentArray(uint32 capcity)
+		{
+			Array<T> arr = Array<T>((T*)instance->PermanentPushSize(sizeof(T) * capcity), capcity);
+
+			return arr;
+		}
+
+		template<typename T>
 		inline static Array<T> PushTransientArray(uint32 capcity)
 		{
 			Array<T> arr = Array<T>((T*)instance->TransientPushSize(sizeof(T) * capcity), capcity);

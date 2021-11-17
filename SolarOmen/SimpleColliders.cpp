@@ -753,4 +753,24 @@ namespace cm
 
 		//    return t >= 0 && t * t <= LengthSq(line);
 	}
+
+	// @TODO: We could back this into the w component of each vec3 or store it with another vec3
+
+	Vec3f Triangle::CacluateNormal() const
+	{
+		Vec3f result = Normalize(Cross(v1 - v0, v2 - v0));
+
+		return result;
+	}
+
+	Triangle Triangle::Create(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2)
+	{
+		Triangle tri = {};
+
+		tri.v0 = v0;
+		tri.v1 = v1;
+		tri.v2 = v2;
+
+		return tri;
+	}
 }

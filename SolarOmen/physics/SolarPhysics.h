@@ -1,6 +1,6 @@
 #pragma once
-#include "../core/SolarCore.h"
-#include "../platform/SolarPlatform.h"
+#include "core/SolarCore.h"
+#include "core/SolarPlatform.h"
 #include "SolarBody.h"
 namespace cm
 {
@@ -47,7 +47,7 @@ namespace cm
 	struct Input;
 	class GameState;
 	struct TransientState;
-	struct CollisionComponent;
+	class CollisionComponent;
 	struct Manifold;
 	void UpdatePhsyics(GameState* gs, TransientState* ts, Input* input);
 	//void TestSignedVolumeProjection();

@@ -1,4 +1,5 @@
 #include "SolarEditor.h"
+#include "Debug.h"
 
 namespace cm
 {
@@ -443,6 +444,64 @@ namespace cm
 		}
 	}
 
+	// @SPEED: Convert the ray into mesh local space rather that mesh to world
+	// @SPEED: BVH/Spacial partian!!
+	Entity* RayPickEntity(const Camera& camera, GameState* gs, PlatformState* ws, Input* input)
+	{
+		Ray ray = camera.ShootRayFromScreen(ws, input->mouse_pixl, camera.transform);
+
+		Entity* closestEntity = nullptr;
+		real32 closestDist = REAL_MAX;
+
+		gs->BeginEntityLoop();
+		while (Entity* entity = gs->GetNextEntity())
+		{
+			Mat4f entityTransformMatrix = entity->GetWorldTransform().CalculateTransformMatrix();
+			AABB wbb = entity->GetWorldBoundingBox();
+			RaycastInfo info = {};
+			if (RaycastAABB(ray, wbb, &info))
+			{
+				if (info.t < closestDist)
+				{
+					bool32 castingAgainstMesh = false;
+					if (entity->renderComp.active)
+					{
+						if (entity->renderComp.modelId.IsValid())
+						{
+							castingAgainstMesh = true;
+							MeshCollider* collider = &gs->meshColliders[entity->renderComp.modelId];
+							for (uint32 i = 0; i < collider->triangles.count; i++)
+							{
+								Triangle triangle = collider->triangles[i];
+								triangle.v0 = Vec3f(Vec4f(triangle.v0, 1.0f) * entityTransformMatrix);
+								triangle.v1 = Vec3f(Vec4f(triangle.v1, 1.0f) * entityTransformMatrix);
+								triangle.v2 = Vec3f(Vec4f(triangle.v2, 1.0f) * entityTransformMatrix);
+
+								real32 triDist;
+								if (RaycastTriangle(ray, triangle, &triDist))
+								{
+									if (triDist < closestDist)
+									{
+										closestDist = triDist;
+										closestEntity = entity;
+									}
+								}
+							}
+						}
+					}
+
+					if (!castingAgainstMesh)
+					{
+						closestDist = info.t;
+						closestEntity = entity;
+					}
+				}
+			}
+		}
+
+		return closestEntity;
+	}
+
 	template<uint32 size>
 	static void SaveLargeStringToFile(const CString& fileName, LargeString<size>* fileData)
 	{
@@ -579,6 +638,22 @@ namespace cm
 					DisplayDebugWindow(es);
 				}
 
+				ImGuiIO& io = ImGui::GetIO();
+				if (!io.WantCaptureMouse)
+				{
+					if (IsKeyJustDown(input, mb1))
+					{
+						Entity* newEntity = RayPickEntity(es->camera, gs, ws, input);
+
+						UndoEntry entry = {};
+						entry.action = UndoAction::Value::SELECTION_CHANGE;
+						entry.selectionChange.previous = es->selectedEntity ? es->selectedEntity->GetId() : EntityId();
+						entry.selectionChange.current = newEntity ? newEntity->GetId() : EntityId();
+
+						es->selectedEntity = newEntity;
+						es->undoSystem.Do(entry);
+					}
+				}
 
 				//es->nodeWindow.Show(input);
 				//DisplayContentWindow(es, gs);

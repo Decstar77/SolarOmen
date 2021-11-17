@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/SolarCore.h"
-#include "../SolarInput.h"
 
 namespace cm
 {

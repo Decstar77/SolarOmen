@@ -1,4 +1,4 @@
-#include "../SolarPlatform.h"
+#include "core/SolarPlatform.h"
 
 #include "Win32Socket.h"
 

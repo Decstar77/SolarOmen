@@ -5,3 +5,4 @@
 #include "SolarMath.h"
 #include "SolarArray.h"
 #include "SolarQueue.h"
+#include "SolarInput.h"

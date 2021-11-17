@@ -1,7 +1,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include "platform/SolarPlatform.h"
+#include "core/SolarPlatform.h"
 #include "Debug.h"
 #include "SolarOmen.h"
 #include "renderer/SolarRenderer.h"

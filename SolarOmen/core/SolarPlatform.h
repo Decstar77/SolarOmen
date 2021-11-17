@@ -1,19 +1,16 @@
 #pragma once
 #include "core/SolarCore.h"
-#include "../SimpleColliders.h"
-#include "../ManifoldTests.h"
 
 #if _WIN32
 
-#include "win32/Clock.h"
-#include "win32/Threading.h"
+#include "../platform/win32/Clock.h"
+#include "../platform/win32/Threading.h"
 
 #endif
 
 
 namespace cm
 {
-	// @NOTE: Going to use some c++ destructor crazyy stuff here
 #define PROFILE_FUNCTION() ProfileClock __PROFILE_CLOCK__(__func__)
 
 	struct PlatformState
@@ -51,16 +48,11 @@ namespace cm
 	};
 
 	CString PlatformOpenNFileDialogAndReturnPath();
-
 	int32 PlatformCompareFileTimes(uint64 fileTime1, uint64 fileTime2);
 
 	PlatformFolder DEBUGLoadEnitreFolder(const CString& file, const CString& fileTypes, bool32 metaDataOnly);
-
 	PlatformFile DEBUGLoadEntireFile(const CString& file, bool32 metaDataOnly);
-
 	void DEBUGFreeFile(PlatformFile* file);
-
 	void DEBUGFreeFolder(PlatformFolder* folder);
-
 	bool32 DEBUGWriteFile(PlatformFile file, const CString& name);
 }

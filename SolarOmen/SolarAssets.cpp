@@ -1,5 +1,5 @@
 #include "SolarAssets.h"
-#include "platform/SolarPlatform.h"
+#include "core/SolarPlatform.h"
 
 #if USE_RAW_ASSETS
 #include "serialization/RawLoaders.h"

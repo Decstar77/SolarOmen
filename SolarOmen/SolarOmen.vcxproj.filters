@@ -165,7 +165,7 @@
     <ClCompile Include="platform\win32\Win32Network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="platform\SolarPlatform.cpp">
+    <ClCompile Include="core\SolarPlatform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="platform\win32\Win32Socket.cpp">
@@ -177,6 +177,9 @@
     <ClCompile Include="core\SolarQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="components\SolarCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\SolarMath.h">
@@ -185,7 +188,7 @@
     <ClInclude Include="SolarOmen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="platform\SolarPlatform.h">
+    <ClInclude Include="core\SolarPlatform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="renderer\SolarRendererMK1.h">
@@ -263,7 +266,7 @@
     <ClInclude Include="core\SolarMemory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SolarInput.h">
+    <ClInclude Include="core\SolarInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="platform\win32\Clock.h">
@@ -354,6 +357,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\SolarQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="components\SolarCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

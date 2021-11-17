@@ -2,7 +2,7 @@
 #include "../SolarAssets.h"
 #include "../SolarOmen.h"
 #include "../SolarSettings.h"
-#include "../platform/SolarPlatform.h"
+#include "core/SolarPlatform.h"
 #include "dx11/SolarShader.h"
 
 namespace cm

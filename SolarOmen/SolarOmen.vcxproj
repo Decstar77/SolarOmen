@@ -59,6 +59,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>$(SolutionDir)SolarOmen\vendor\assimp\include;$(SolutionDir)SolarOmen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>26495</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -79,6 +80,7 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>$(SolutionDir)SolarOmen\vendor\assimp\include;$(SolutionDir)SolarOmen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>26495</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -90,6 +92,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="components\SolarCamera.cpp" />
     <ClCompile Include="core\SolarArray.cpp" />
     <ClCompile Include="core\SolarQueue.cpp" />
     <ClCompile Include="Debug.cpp" />
@@ -108,7 +111,7 @@
     <ClCompile Include="physics\SolarPhysics.cpp" />
     <ClCompile Include="physics\MK2\SolarPhysicsMK2.cpp" />
     <ClCompile Include="physics\MK2\SolarRigidBodyMK2.cpp" />
-    <ClCompile Include="platform\SolarPlatform.cpp" />
+    <ClCompile Include="core\SolarPlatform.cpp" />
     <ClCompile Include="platform\win32\BlockingQueue.cpp" />
     <ClCompile Include="platform\win32\Clock.cpp" />
     <ClCompile Include="platform\win32\Network.cpp" />
@@ -146,6 +149,7 @@
     <ClCompile Include="platform\win32\Win32Socket.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="components\SolarCamera.h" />
     <ClInclude Include="core\SolarArray.h" />
     <ClInclude Include="core\SolarMath.h" />
     <ClInclude Include="core\Defines.h" />
@@ -183,7 +187,7 @@
     <ClInclude Include="SolarAudio.h" />
     <ClInclude Include="editor\SolarEditor.h" />
     <ClInclude Include="SolarSettings.h" />
-    <ClInclude Include="SolarInput.h" />
+    <ClInclude Include="core\SolarInput.h" />
     <ClInclude Include="core\SolarMemory.h" />
     <ClInclude Include="SolarOmen.h" />
     <ClInclude Include="physics\SolarPhysics.h" />
@@ -202,7 +206,7 @@
     <ClInclude Include="vendor\imgui_node\imnodes.h" />
     <ClInclude Include="vendor\imgui_node\imnodes_internal.h" />
     <ClInclude Include="vendor\std_image\std_image.h" />
-    <ClInclude Include="platform\SolarPlatform.h" />
+    <ClInclude Include="core\SolarPlatform.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="platform\win32\Win32Socket.h" />
   </ItemGroup>
