@@ -446,9 +446,9 @@ namespace cm
 
 	// @SPEED: Convert the ray into mesh local space rather that mesh to world
 	// @SPEED: BVH/Spacial partian!!
-	Entity* RayPickEntity(const Camera& camera, GameState* gs, PlatformState* ws, Input* input)
+	Entity* RayPickEntity(const Camera& camera, GameState* gs)
 	{
-		Ray ray = camera.ShootRayFromScreen(ws, input->mouse_pixl, camera.transform);
+		Ray ray = camera.ShootRayFromScreen();
 
 		Entity* closestEntity = nullptr;
 		real32 closestDist = REAL_MAX;
@@ -602,7 +602,7 @@ namespace cm
 
 				if (es->selectedEntity)
 				{
-					es->gizmo.Operate(es->camera, es->selectedEntity, input);
+					es->gizmo.Operate(es->camera, es->selectedEntity);
 				}
 
 				DisplayToolBar(es);
@@ -643,7 +643,7 @@ namespace cm
 				{
 					if (IsKeyJustDown(input, mb1))
 					{
-						Entity* newEntity = RayPickEntity(es->camera, gs, ws, input);
+						Entity* newEntity = RayPickEntity(es->camera, gs);
 
 						UndoEntry entry = {};
 						entry.action = UndoAction::Value::SELECTION_CHANGE;

@@ -3,11 +3,12 @@
 
 namespace cm
 {
-	struct Input
+	class Input
 	{
+	public:
 		Input* old_input;
 
-		Vec2f mouse_pixl;
+		Vec2f mousePositionPixelCoords;
 		Vec2f mouse_norm;
 
 		Vec2f mouseDelta;
@@ -68,6 +69,19 @@ namespace cm
 				bool32 space;
 			};
 		};
+
+		inline static Input* Get()
+		{
+			return current;
+		}
+
+		inline static void Initialize(Input* newInput)
+		{
+			current = newInput;
+		}
+
+	private:
+		inline static Input* current = nullptr;
 	};
 
 #define IsKeyJustDown(input, key) (input->##key && !input->old_input->##key)

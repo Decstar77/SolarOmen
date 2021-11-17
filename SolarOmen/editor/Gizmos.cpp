@@ -81,14 +81,14 @@ namespace cm
 		return Value::WORLD;
 	}
 
-	void Gizmo::Operate(const Camera& camera, Entity* entity, Input* input)
+	void Gizmo::Operate(const Camera& camera, Entity* entity)
 	{
 		ImGuizmo::Enable(true);
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-		CheckOperationAndMode(input);
-		CheckSnapping(input);
+		CheckOperationAndMode();
+		CheckSnapping();
 
 		Mat4f view = camera.GetViewMatrix();
 		Mat4f proj = camera.GetProjectionMatrix();
@@ -133,8 +133,10 @@ namespace cm
 		}
 	}
 
-	void Gizmo::CheckOperationAndMode(Input* input)
+	void Gizmo::CheckOperationAndMode()
 	{
+		Input* input = Input::Get();
+
 		if (IsKeyJustDown(input, e) && !input->mb1)
 		{
 			this->operation = GizmoOperation::Value::SCALE;
@@ -154,8 +156,10 @@ namespace cm
 		}
 	}
 
-	void Gizmo::CheckSnapping(Input* input)
+	void Gizmo::CheckSnapping()
 	{
+		Input* input = Input::Get();
+
 		Vec3f snapAmount = Vec3f(VOXEL_IMPORT_SCALE);
 		if (this->operation == GizmoOperation::Value::ROTATE)
 		{

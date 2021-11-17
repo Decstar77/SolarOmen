@@ -44,7 +44,7 @@ namespace cm
 	//};
 
 	struct Entity;
-	struct Input;
+	class Input;
 	class GameState;
 	struct TransientState;
 	class CollisionComponent;

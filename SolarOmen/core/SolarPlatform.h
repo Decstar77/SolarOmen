@@ -13,8 +13,9 @@ namespace cm
 {
 #define PROFILE_FUNCTION() ProfileClock __PROFILE_CLOCK__(__func__)
 
-	struct PlatformState
+	class PlatformState
 	{
+	public:
 		int64 window;
 		int64 console;
 		bool32 rawInput;
@@ -22,6 +23,19 @@ namespace cm
 		int32 client_width;
 		int32 client_height;
 		real32 aspect;
+
+		inline static PlatformState* Get()
+		{
+			return platformState;
+		}
+
+		inline static void Initailize(PlatformState* state)
+		{
+			platformState = state;
+		}
+
+	private:
+		inline static PlatformState* platformState = nullptr;
 	};
 
 	struct PlatformFile

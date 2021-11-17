@@ -93,6 +93,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="components\SolarCamera.cpp" />
+    <ClCompile Include="components\SolarLight.cpp" />
     <ClCompile Include="core\SolarArray.cpp" />
     <ClCompile Include="core\SolarQueue.cpp" />
     <ClCompile Include="Debug.cpp" />
@@ -150,6 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="components\SolarCamera.h" />
+    <ClInclude Include="components\SolarLight.h" />
     <ClInclude Include="core\SolarArray.h" />
     <ClInclude Include="core\SolarMath.h" />
     <ClInclude Include="core\Defines.h" />

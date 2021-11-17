@@ -20,7 +20,7 @@ namespace cm
 
 		Mat4f GetViewMatrix() const;
 		Mat4f GetProjectionMatrix() const;
-		Ray ShootRayFromScreen(PlatformState* ws, const Vec2f& pixl_point, const Transform& worldTransform) const;
+		Ray ShootRayFromScreen() const;
 	};
 
 	struct CameraComponent

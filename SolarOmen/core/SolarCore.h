@@ -6,3 +6,4 @@
 #include "SolarArray.h"
 #include "SolarQueue.h"
 #include "SolarInput.h"
+#include "SolarPlatform.h"

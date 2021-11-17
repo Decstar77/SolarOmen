@@ -17,14 +17,17 @@ namespace cm
 		return projection;
 	}
 
-	Ray Camera::ShootRayFromScreen(PlatformState* ws, const Vec2f& pixl_point, const Transform& worldTransform) const
+	Ray Camera::ShootRayFromScreen() const
 	{
-		real32 aspect = (real32)ws->client_width / (real32)ws->client_height;
-		Mat4f proj = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
-		Mat4f view = Inverse(worldTransform.CalculateTransformMatrix());
+		PlatformState* platformState = PlatformState::Get();
+		Vec2f pixelPoint = Input::Get()->mousePositionPixelCoords;
 
-		Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)ws->client_width,
-			(real32)ws->client_height, pixl_point.x, pixl_point.y);
+		real32 aspect = (real32)platformState->client_width / (real32)platformState->client_height;
+		Mat4f proj = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
+		Mat4f view = Inverse(transform.CalculateTransformMatrix());
+
+		Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)platformState->client_width,
+			(real32)platformState->client_height, pixelPoint.x, pixelPoint.y);
 
 		Vec4f view_coords = ToViewCoords(proj, normal_coords);
 
@@ -33,7 +36,7 @@ namespace cm
 		Vec3f world_coords = ToWorldCoords(view, view_coords);
 
 		Ray ray = {};
-		ray.origin = worldTransform.position;
+		ray.origin = transform.position;
 		ray.direction = Normalize(Vec3f(world_coords.x, world_coords.y, world_coords.z));
 
 		return ray;

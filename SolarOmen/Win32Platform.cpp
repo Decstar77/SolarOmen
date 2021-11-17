@@ -684,6 +684,8 @@ int main()
 	win_state.client_height = client_rect.bottom - client_rect.top;
 	win_state.aspect = (real32)win_state.client_width / (real32)win_state.client_height;
 
+	PlatformState::Initailize(&win_state);
+
 	if (window)
 	{
 		// NOTE: Adjust window pos ect
@@ -704,6 +706,8 @@ int main()
 		Input old_input = {};
 		Input new_input = {};
 		new_input.old_input = &old_input;
+		Input::Initialize(&new_input);
+
 		//================================================================//
 
 		// @NOTE: Allocate all the states
@@ -1051,14 +1055,14 @@ static void Win32ProcessPendingMessages(PlatformState* win_state, Input* input)
 		mx = Clamp<real32>(mx, 0.0f, (real32)win_state->client_width);
 		my = Clamp<real32>(my, 0.0f, (real32)win_state->client_height);
 
-		input->mouse_pixl.x = mx;
-		input->mouse_pixl.y = my;
+		input->mousePositionPixelCoords.x = mx;
+		input->mousePositionPixelCoords.y = my;
 
 		if (input->mouse_locked && win_state->isFocused)
 		{
 			SetCursor(FALSE);
 
-			input->old_input->mouse_pixl = Vec2f((real32)(win_state->client_width / 2),
+			input->old_input->mousePositionPixelCoords = Vec2f((real32)(win_state->client_width / 2),
 				(real32)(win_state->client_height / 2));
 
 			POINT p = {};
@@ -1119,14 +1123,14 @@ static void Win32ProcessPendingMessages(PlatformState* win_state, Input* input)
 		mx = Clamp<real32>(mx, 0.0f, (real32)win_state->client_width);
 		my = Clamp<real32>(my, 0.0f, (real32)win_state->client_height);
 
-		input->mouse_pixl.x = mx;
-		input->mouse_pixl.y = my;
+		input->mousePositionPixelCoords.x = mx;
+		input->mousePositionPixelCoords.y = my;
 
 		if (input->mouse_locked && win_state->isFocused)
 		{
 			SetCursor(FALSE);
 
-			input->old_input->mouse_pixl = Vec2f((real32)(win_state->client_width / 2),
+			input->old_input->mousePositionPixelCoords = Vec2f((real32)(win_state->client_width / 2),
 				(real32)(win_state->client_height / 2));
 
 			POINT p = {};
@@ -1149,7 +1153,7 @@ static void Win32ProcessPendingMessages(PlatformState* win_state, Input* input)
 		input->mb2 = GetKeyState(VK_RBUTTON) & (1 << 15);
 		input->mb3 = GetKeyState(VK_MBUTTON) & (1 << 15);
 
-		input->mouseDelta = input->mouse_pixl - input->old_input->mouse_pixl;
+		input->mouseDelta = input->mousePositionPixelCoords - input->old_input->mousePositionPixelCoords;
 	}
 
 	if (!win_state->isFocused)

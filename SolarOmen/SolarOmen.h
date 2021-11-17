@@ -7,7 +7,9 @@
 #include "Physics/SolarPhysics.h"
 #include "SimpleColliders.h"
 #include "ManifoldTests.h"
+
 #include "components/SolarCamera.h"
+#include "components/SolarLight.h"
 
 namespace cm
 {
@@ -126,89 +128,7 @@ namespace cm
 		}
 	};
 
-	class LightType
-	{
-	public:
-		enum class Value
-		{
-			POINT = 0,
-			DIRECTIONAL,
-			SPOT,
-			AREA,
-			COUNT,
-		};
 
-		LightType()
-		{
-			value = Value::POINT;
-		}
-
-		LightType(Value v)
-		{
-			this->value = v;
-		}
-
-		inline CString ToString() const
-		{
-			CString copy = __STRINGS__[(uint32)value];
-
-			return copy;
-		}
-
-		inline static LightType ValueOf(const uint32& v)
-		{
-			Assert(v < (uint32)Value::COUNT, "Invalid model id");
-			return (LightType::Value)v;
-		}
-
-		inline static LightType ValueOf(const CString& str)
-		{
-			uint32 count = (uint32)Value::COUNT;
-			for (uint32 i = 0; i < count; i++)
-			{
-				if (str == __STRINGS__[i])
-				{
-					return ValueOf(i);
-				}
-			}
-
-			return Value::POINT;
-		}
-
-		inline bool operator==(const LightType& rhs) const
-		{
-			return this->value == rhs.value;
-		}
-
-		inline bool operator!=(const LightType& rhs) const
-		{
-			return this->value != rhs.value;
-		}
-
-		inline operator uint32() const
-		{
-			return (uint32)value;
-		}
-
-	private:
-		Value value;
-
-		inline static CString __STRINGS__[] = {
-
-			"POINT",
-			"DIRECTIONAL",
-			"SPOT",
-			"AREA"
-		};
-	};
-
-	struct LightComponent
-	{
-		bool32 active;
-		LightType type;
-		Vec3f colour;
-		real32 intensity;
-	};
 
 	class BrainNode
 	{

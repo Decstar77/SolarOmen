@@ -74,11 +74,11 @@ namespace cm
 		bool snapping;
 		Vec3f snapAmount;
 
-		void Operate(const Camera& camera, Entity* entity, struct Input* input);
+		void Operate(const Camera& camera, Entity* entity);
 
 	private:
-		void CheckOperationAndMode(struct Input* input);
-		void CheckSnapping(struct Input* input);
+		void CheckOperationAndMode();
+		void CheckSnapping();
 	};
 
 }
