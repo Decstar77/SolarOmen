@@ -235,6 +235,13 @@ namespace cm
 		DEBUGDrawLine(corners.far_bottom_right, corners.near_bottom_right);
 	}
 
+	void DEBUGDrawBasis(const Basisf& basis, const Vec3f& pos)
+	{
+		DEBUGDrawLine(pos, pos + basis.forward);
+		DEBUGDrawLine(pos, pos + basis.upward);
+		DEBUGDrawLine(pos, pos + basis.right);
+	}
+
 	class DebugLogger
 	{
 		std::ofstream file;

@@ -112,7 +112,7 @@ namespace cm
 		return result;
 	}
 
-	bool RaycastMeshCollider(const Ray& ray, const Array<Triangle>& triangles, RaycastInfo* info)
+	bool RaycastMeshCollider(const Ray& ray, const ManagedArray<Triangle>& triangles, RaycastInfo* info)
 	{
 		bool result = false;
 

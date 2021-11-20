@@ -38,6 +38,8 @@ namespace cm
 
 	void DEBUGDrawFrustum(const Frustrum& frustum);
 
+	void DEBUGDrawBasis(const Basisf& basis, const Vec3f& pos);
+
 	void DEBUGLog(const CString& str);
 
 	template <typename T>

@@ -389,7 +389,7 @@ namespace cm
 
 		s3.Replace('l', 'X');
 
-		Array<CString>someSplit = s1.Split(' ');
+		ManagedArray<CString>someSplit = s1.Split(' ');
 
 		s1.RemoveWhiteSpace();
 		s5.RemoveWhiteSpace();

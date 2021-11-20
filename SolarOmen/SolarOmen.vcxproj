@@ -136,6 +136,7 @@
     <ClCompile Include="core\SolarMemory.cpp" />
     <ClCompile Include="renderer\SolarRenderer.cpp" />
     <ClCompile Include="core\SolarString.cpp" />
+    <ClCompile Include="SolarSpline.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
     <ClCompile Include="vendor\imgui\ImGuizmo.cpp" />
     <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="renderer\SolarRendererMK1.h" />
     <ClInclude Include="renderer\SolarRenderer.h" />
     <ClInclude Include="core\SolarString.h" />
+    <ClInclude Include="SolarSpline.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\ImGuizmo.h" />

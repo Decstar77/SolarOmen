@@ -245,9 +245,9 @@ namespace cm
 		}
 
 		// @NOTE: This array is transietory !!!
-		Array<CString> Split(const char& delim) const
+		ManagedArray<CString> Split(const char& delim) const
 		{
-			Array<CString> result = GameMemory::PushTransientArray<CString>(10);
+			ManagedArray<CString> result = GameMemory::PushTransientArray<CString>(10);
 
 			const int32 len = GetLength();
 
@@ -407,7 +407,7 @@ namespace cm
 	{
 		inline CString StripFilePath(const CString& str)
 		{
-			Array<CString> pathElements = str.Split('/');
+			ManagedArray<CString> pathElements = str.Split('/');
 			CString result = pathElements[pathElements.count - 1];
 
 			return result;
@@ -415,7 +415,7 @@ namespace cm
 
 		inline CString StripFileExtension(const CString& str)
 		{
-			Array<CString> pathElements = str.Split('.');
+			ManagedArray<CString> pathElements = str.Split('.');
 			CString result = pathElements[0];
 
 			return result;
@@ -431,7 +431,7 @@ namespace cm
 
 		inline CString GetFileExtension(const CString& str)
 		{
-			Array<CString> pathElements = str.Split('.');
+			ManagedArray<CString> pathElements = str.Split('.');
 			return pathElements[pathElements.count - 1];
 		}
 	};

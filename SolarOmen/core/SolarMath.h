@@ -1417,6 +1417,55 @@ namespace cm
 		return result;
 	}
 
+	template<typename T>
+	Quat<T> LocalRotateX(const T& rads, const Quat<T>& q)
+	{
+		real32 hangle = rads * 0.5f;
+		real32 s = Sin(hangle);
+		real32 c = Cos(hangle);
+
+		Quat<T> result;
+		result.x = c * q.x + s * q.w;
+		result.y = c * q.y - s * q.z;
+		result.z = c * q.z + s * q.y;
+		result.w = c * q.w - s * q.x;
+
+		return result;
+	}
+
+	template<typename T>
+	Quat<T> LocalRotateY(const T& rads, const Quat<T>& q)
+	{
+		real32 hangle = rads * 0.5f;
+		real32 s = Sin(hangle);
+		real32 c = Cos(hangle);
+
+		Quat<T> result;
+		result.x = c * q.x + s * q.z;
+		result.y = c * q.y + s * q.w;
+		result.z = c * q.z - s * q.x;
+		result.w = c * q.w - s * q.y;
+
+		return result;
+	}
+
+	template<typename T>
+	Quat<T> LocalRotateZ(const T& rads, const Quat<T>& q)
+	{
+		real32 hangle = rads * 0.5f;
+		real32 s = Sin(hangle);
+		real32 c = Cos(hangle);
+
+		Quat<T> result;
+		result.x = c * q.x - s * q.y;
+		result.y = c * q.y + s * q.x;
+		result.z = c * q.z + s * q.w;
+		result.w = c * q.w - s * q.z;
+
+		return result;
+	}
+
+
 	template <typename T>
 	Vec3<T> RotatePointLHS(const Quat<T>& r, const Vec3<T>& point)
 	{
@@ -3093,6 +3142,21 @@ namespace cm
 			orientation = cm::GlobalRotateZ(rads, orientation);
 		}
 
+		inline void LocalRotateX(const real32& rads)
+		{
+			orientation = cm::LocalRotateX(rads, orientation);
+		}
+
+		inline void LocalRotateY(const real32& rads)
+		{
+			orientation = cm::LocalRotateY(rads, orientation);
+		}
+
+		inline void LocalRotateZ(const real32& rads)
+		{
+			orientation = cm::LocalRotateZ(rads, orientation);
+		}
+
 		inline Basisf GetBasis() const
 		{
 			Basisf result;
@@ -3112,15 +3176,13 @@ namespace cm
 		inline void LookAtLH(const Vec3f& point, const Vec3f& up = Vec3f(0.0f, 1.0f, 0.0f))
 		{
 			Mat4f look = cm::LookAtLH(this->position, point, up);
-
-			*this = Transform(look);
+			orientation = Mat4ToQuat(look);
 		}
 
 		inline void LookAtRH(const Vec3f& point, const Vec3f& up = Vec3f(0.0f, 1.0f, 0.0f))
 		{
 			Mat4f look = cm::LookAtRH(this->position, point, up);
-
-			*this = Transform(look);
+			orientation = Mat4ToQuat(look);
 		}
 
 		inline static Transform CombineTransform(const Transform& child, const Transform& parent)
@@ -3180,7 +3242,15 @@ namespace cm
 			this->position.z = m.row3.z;
 
 			this->scale = ScaleOfMatrix(m);
-			this->orientation = Mat4ToQuat(m); // @NOTE: The Mat4ToQuat takes care of scaling too.
+
+			// @NOTE: Is the same as calling RemoveScaleFromRotationMatrix, but we have scale so this is faster
+			Mat3f rotationMatrix = Mat3f(m);
+			for (int32 i = 0; i < 3; i++)
+			{
+				rotationMatrix[i] = rotationMatrix[i] / scale[i];
+			}
+
+			this->orientation = Mat3ToQuat(rotationMatrix);
 		}
 	};
 

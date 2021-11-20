@@ -35,7 +35,7 @@ namespace cm
 
 	bool RaycastAABB(const Ray& ray, const AABB& aabb, RaycastInfo* info);
 
-	bool RaycastMeshCollider(const Ray& ray, const Array<Triangle>& triangles, RaycastInfo* info);
+	bool RaycastMeshCollider(const Ray& ray, const ManagedArray<Triangle>& triangles, RaycastInfo* info);
 
 	bool CheckManifoldSphere(const Sphere& a, const Sphere& b, Manifold* info);
 

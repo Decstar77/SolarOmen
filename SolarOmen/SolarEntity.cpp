@@ -71,10 +71,10 @@ namespace cm
 		return sibling.Get();
 	}
 
-	Array<Entity*> Entity::GetChildren()
+	ManagedArray<Entity*> Entity::GetChildren()
 	{
 		// @TODO: When we do dirty and stuff we could probably cache the count somewhere
-		Array<Entity*> children = GameMemory::PushTransientArray<Entity*>(128);
+		ManagedArray<Entity*> children = GameMemory::PushTransientArray<Entity*>(128);
 
 		Entity* child = GetFirstChild();
 		while (child)

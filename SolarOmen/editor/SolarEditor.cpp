@@ -211,9 +211,9 @@ namespace cm
 	bool32 DisplayFancyEnum(const char* name, T* t)
 	{
 		uint32 count = (uint32)T::Value::COUNT;
-		Array<T> values = GameMemory::PushTransientArray<T>(count);
-		Array<CString> strings = GameMemory::PushTransientArray<CString>(count);
-		Array<const char*> items = GameMemory::PushTransientArray<const char*>(count);
+		ManagedArray<T> values = GameMemory::PushTransientArray<T>(count);
+		ManagedArray<CString> strings = GameMemory::PushTransientArray<CString>(count);
+		ManagedArray<const char*> items = GameMemory::PushTransientArray<const char*>(count);
 		int32 currentItem = -1;
 		for (uint32 i = 0; i < count; i++)
 		{

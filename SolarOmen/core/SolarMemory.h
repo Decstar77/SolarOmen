@@ -66,80 +66,6 @@ namespace cm
 	//	//	~FreeList() {}
 	//};
 
-
-	template<typename T>
-	class ManagedArray
-	{
-		friend class GameMemory;
-	public:
-
-		inline uint32 GetCount() const { return count; }
-		inline uint32 GetCapcity() const { return capcity; }
-
-		inline T* Add(const T& value)
-		{
-			uint32 index = count; count++;
-			Assert(index >= 0 && index < capcity, "Array, to many items");
-
-			data[index] = value;
-
-			return &data[index];
-		}
-
-		inline void Remove(const uint32& index)
-		{
-			Assert(index >= 0 && index < count, "Array invalid remove index ");
-			for (uint32 i = index; i < count - 1; i++)
-			{
-				data[i] = data[i + 1];
-			}
-			count--;
-		}
-
-		inline void Clear()
-		{
-			count = 0;
-		}
-
-		inline T& operator[](const uint32& index)
-		{
-			Assert(index >= 0 && index < count, "Array, invalid index");
-			return data[index];
-		}
-
-		inline T operator[](const uint32& index) const
-		{
-			Assert(index >= 0 && index < count, "Array, invalid index");
-
-			return data[index];
-		}
-
-		ManagedArray()
-		{
-			data = nullptr;
-			count = 0;
-			capcity = 0;
-		}
-
-	private:
-		ManagedArray(T* data, uint32 capcity)
-			: data(data), capcity(capcity)
-		{}
-
-		inline void Release()
-		{
-			id = 0;
-			count = 0;
-			capcity = 0;
-			data = nullptr;
-		}
-
-		T* data;
-		uint32 id;
-		uint32 count;
-		uint32 capcity;
-	};
-
 	struct MemoryArena
 	{
 		uint64 size;
@@ -204,17 +130,17 @@ namespace cm
 		}
 
 		template<typename T>
-		inline static Array<T> PushPermanentArray(uint32 capcity)
+		inline static ManagedArray<T> PushPermanentArray(uint32 capcity)
 		{
-			Array<T> arr = Array<T>((T*)instance->PermanentPushSize(sizeof(T) * capcity), capcity);
+			ManagedArray<T> arr = ManagedArray<T>((T*)instance->PermanentPushSize(sizeof(T) * capcity), capcity);
 
 			return arr;
 		}
 
 		template<typename T>
-		inline static Array<T> PushTransientArray(uint32 capcity)
+		inline static ManagedArray<T> PushTransientArray(uint32 capcity)
 		{
-			Array<T> arr = Array<T>((T*)instance->TransientPushSize(sizeof(T) * capcity), capcity);
+			ManagedArray<T> arr = ManagedArray<T>((T*)instance->TransientPushSize(sizeof(T) * capcity), capcity);
 
 			return arr;
 		}

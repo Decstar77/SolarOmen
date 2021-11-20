@@ -7,6 +7,7 @@
 #include "Physics/SolarPhysics.h"
 #include "SimpleColliders.h"
 #include "ManifoldTests.h"
+#include "SolarSpline.h"
 
 #include "components/SolarCamera.h"
 #include "components/SolarLight.h"
@@ -222,6 +223,15 @@ namespace cm
 		EntityId id;
 	};
 
+	class CarComponent
+	{
+	public:
+		bool32 active;
+		real32 speed;
+		real32 follow;
+		int32 laneIndex;
+	};
+
 	struct Entity
 	{
 		CString name;
@@ -235,6 +245,7 @@ namespace cm
 		RenderComponent renderComp;
 		LightComponent lightComp;
 		CameraComponent cameraComp;
+		CarComponent carComp;
 
 		EntityType type;
 		union
@@ -252,7 +263,7 @@ namespace cm
 		Entity* GetParent();
 		Entity* GetFirstChild();
 		Entity* GetSibling();
-		Array<Entity*> GetChildren();
+		ManagedArray<Entity*> GetChildren();
 		void SetParent(EntityId entity);
 
 		Transform GetLocalTransform();
@@ -305,21 +316,6 @@ namespace cm
 	//		return result;
 	//	}
 
-		////////////////////////////////////////////////
-		// @NOTE: Mesh stuff
-		////////////////////////////////////////////////
-
-	inline static MeshData* LookUpMeshData(AssetState* as, int32 index)
-	{
-		Assert(index > 0 && index < ArrayCount(as->meshesData), "LookUpMeshData, has invalid index");
-
-		// @TODO: How do we want to handle the case where the mesh data is invalid ?
-		//		: Becomes as issue if the game code thinks that it set a mesh but was invalid
-		MeshData* result = &as->meshesData[index];
-
-		return result;
-	}
-
 	////////////////////////////////////////////////
 	// @NOTE: Entity stuff
 	////////////////////////////////////////////////
@@ -366,14 +362,6 @@ namespace cm
 		AABB boundingBox;
 	};
 
-	template<typename T>
-	struct RingArray
-	{
-		int32 arraySize;
-		int32 end;
-		int32 fornt;
-		T* data;
-	};
 
 
 	// @NOTE: Also in shader !!
@@ -429,8 +417,14 @@ namespace cm
 		PhysicsSimulator physicsSimulator;
 	};
 
-#define ENTITY_STORAGE_COUNT 1000
+	class RacingTrack
+	{
+	public:
+		FixedArray<CatmullRomSpline, 4> lanes;
+	};
 
+
+#define ENTITY_STORAGE_COUNT 1000
 	class GameState
 	{
 	public:
@@ -446,6 +440,8 @@ namespace cm
 		int32 meshColliderCount;
 		MeshCollider meshColliders[ENTITY_STORAGE_COUNT];
 
+		RacingTrack currentTrack;
+
 		int32 particleEmitterCount;
 		int32 particleSlot[MAX_PARTICLE_EMITTERS];
 		Particle partices[MAX_PARTICLE_EMITTERS * MAX_PARTICLES_PER_EMITTER];
@@ -454,6 +450,8 @@ namespace cm
 
 		int32 worldSectorCount;
 		WorldSector worldSectors[100];
+
+		CatmullRomSpline spline;
 
 		Entity* testEntity1;
 		Entity* testEntity2;

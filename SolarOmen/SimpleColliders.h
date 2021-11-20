@@ -887,7 +887,7 @@ namespace cm
 	class MeshCollider
 	{
 	public:
-		Array<Triangle> triangles;
+		ManagedArray<Triangle> triangles;
 		AABB boundingBox;
 	};
 
