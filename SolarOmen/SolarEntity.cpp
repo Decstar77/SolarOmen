@@ -23,6 +23,26 @@ namespace cm
 		return CString("Index=").Add(index).Add(" Generation=").Add(generation);
 	}
 
+	CString* Entity::GetName()
+	{
+		if (IsValid())
+		{
+			GameState* gs = GameState::Get();
+			return &gs->nameComponents[id.index];
+		}
+
+		return nullptr;
+	}
+
+	void Entity::SetName(const CString& name)
+	{
+		if (IsValid())
+		{
+			GameState* gs = GameState::Get();
+			gs->nameComponents[id.index] = name;
+		}
+	}
+
 	EntityId Entity::GetId()
 	{
 		return id;
@@ -216,6 +236,16 @@ namespace cm
 		collisionComp.meshIndex = (int32)mesh;
 
 		boundingBoxLocal = collisionComp.GetBoundingBox();
+	}
+
+	RacingWaypoint* Entity::GetRacingWaypointComponent()
+	{
+		Assert(IsValid(), "GetRacingWaypointComponent, entity is not valid");
+
+		GameState* gs = GameState::Get();
+		RacingWaypoint* comp = &gs->racingWaypointComponents[id.index];
+
+		return comp;
 	}
 
 

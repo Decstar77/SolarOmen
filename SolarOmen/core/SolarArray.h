@@ -7,6 +7,11 @@ namespace cm
 	class FixedArray
 	{
 	public:
+		inline uint32 GetCapcity()
+		{
+			return capcity;
+		}
+
 		inline T* Add(const T& value)
 		{
 			uint32 index = count; count++;

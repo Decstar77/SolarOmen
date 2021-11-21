@@ -377,6 +377,24 @@ namespace cm
 		}
 	}
 
+	static void LoadTrack(GameState* gs, RacingTrack* track)
+	{
+		Entity* trackEntity = gs->CreateEntity();
+		trackEntity->SetName("Track");
+		for (uint32 i = 0; i < track->lanes[0].spline.waypoints.count; i++)
+		{
+			Entity* waypoint = gs->CreateEntity();
+			waypoint->transform.position = track->lanes[0].spline.waypoints[i].position;
+			waypoint->SetName(CString("Waypoint ").Add(i));
+			waypoint->SetParent(trackEntity->GetId());
+
+			RacingWaypoint* rc = waypoint->GetRacingWaypointComponent();
+			rc->active = true;
+			rc->laneIndex = 0;
+			rc->waypointIndex = i;
+		}
+	}
+
 	void InitializeGameState(GameState* gs, AssetState* as, PlatformState* ws)
 	{
 		GameState::Initialize(gs);
@@ -448,7 +466,7 @@ namespace cm
 		if (0)
 		{
 			Entity* player = gs->CreateEntity();
-			player->name = "Player";
+			player->SetName("Player");
 			player->boundingBoxLocal = CreateAABBFromCenterRadius(0, Vec3f(0.5f, 1.4f, 0.5f));
 			player->transform = Transform();
 			player->transform.position.y = 0.8f;
@@ -458,7 +476,7 @@ namespace cm
 			gs->player = player;
 
 			Entity* camera = gs->CreateEntity();
-			camera->name = "Player camera";
+			camera->SetName("Player camera");
 			camera->cameraComp.active = true;
 			camera->cameraComp.far_ = 100.0f;
 			camera->cameraComp.near_ = 0.3f;
@@ -469,9 +487,9 @@ namespace cm
 			gs->camera_offset_player = gs->camera.transform.position - gs->player->transform.position;
 
 			Entity* gun = gs->CreateEntity();
-			gun->name = "Player gun";
+			gun->SetName("Player gun");
 			gun->renderComp.active = true;
-			gun->renderComp.modelId = ModelId::Value::CUBE;
+			gun->renderComp.modelId = ModelId::Value::SM_WEP_RIFLE_BASE_01;
 			gun->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
 			gun->renderComp.SetFlag(RenderFlag::NO_CAST_SHADOW);
 			gun->transform.GlobalRotateY(DegToRad(180.0f));
@@ -489,15 +507,15 @@ namespace cm
 			car->renderComp.active = true;
 			car->renderComp.modelId = ModelId::Value::SM_VEH_CLASSIC_01;
 			car->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
-			car->name = car->renderComp.modelId.ToString();
+			car->SetName(car->renderComp.modelId.ToString());
 			car->carComp.active = true;
-			car->carComp.speed = 1.5f;
+			car->carComp.speed = 5.5f;
 			car->carComp.laneIndex = 0;
 
 			gs->testEntity1 = car;
 
 			Entity* camera = gs->CreateEntity();
-			camera->name = "Player camera";
+			camera->SetName("Player camera");
 			camera->cameraComp.active = true;
 			camera->cameraComp.far_ = 100.0f;
 			camera->cameraComp.near_ = 0.3f;
@@ -509,6 +527,13 @@ namespace cm
 			camera->SetParent(car->GetId());
 
 			gs->playerCamera = camera;
+
+			Entity* track = gs->CreateEntity();
+			track->renderComp.active = true;
+			track->renderComp.modelId = ModelId::Value::CM_TRACK_OVAL;
+			track->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
+			track->SetName(track->renderComp.modelId.ToString());
+
 		}
 
 		{
@@ -517,7 +542,7 @@ namespace cm
 			e1->renderComp.modelId = ModelId::Value::SM_WEP_RIFLE_BASE_01;
 			e1->SetCollider(ModelId::Value::CUBE);
 			e1->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
-			e1->name = e1->renderComp.modelId.ToString();
+			e1->SetName(e1->renderComp.modelId.ToString());
 			e1->transform.position.x = 3;
 			//e1->transform.GlobalRotateY(DegToRad(45.0f));
 
@@ -526,19 +551,18 @@ namespace cm
 			e2->renderComp.modelId = ModelId::Value::CUBE;
 			e2->SetCollider(ModelId::Value::CUBE);
 			e2->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
-			e2->name = e2->renderComp.modelId.ToString();
+			e2->SetName(e2->renderComp.modelId.ToString());
 
 			e2->transform.position.x = 3;
 			e2->SetParent(e1->GetId());
 
-
-			Entity* e3 = gs->CreateEntity();
+			/*Entity* e3 = gs->CreateEntity();
 			e3->renderComp.active = true;
 			e3->renderComp.modelId = ModelId::Value::PLANE;
 			e3->SetCollider(ModelId::Value::CUBE);
 			e3->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
 			e3->name = e3->renderComp.modelId.ToString();
-			e3->transform.scale = Vec3f(10.0f);
+			e3->transform.scale = Vec3f(10.0f);*/
 		}
 
 		if (0)
@@ -547,7 +571,7 @@ namespace cm
 			e->renderComp.active = true;
 			e->renderComp.modelId = ModelId::Value::TEST_1;
 			e->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
-			e->name = e->renderComp.modelId.ToString();
+			e->SetName(e->renderComp.modelId.ToString());
 		}
 
 		if (0)
@@ -558,7 +582,7 @@ namespace cm
 			e->renderComp.material.albedoTex = TextureId::Value::POLYGONSCIFI_01_C;
 			e->transform.position.y = -0.05f;
 			e->transform.scale = Vec3f(1, 1, 1);
-			e->name = e->renderComp.modelId.ToString();
+			e->SetName(e->renderComp.modelId.ToString());
 		}
 
 
@@ -566,75 +590,30 @@ namespace cm
 			Entity* e = CreateDirectionalLight(gs);
 			e->transform.position = Vec3f(1.5, 1.5, -1.5);
 			e->transform.LookAtLH(Vec3f(0));
-			e->name = "Directional light";
+			e->SetName("Directional light");
 		}
-
-		//{
-		//	Entity* e = CreateEntity(gs);
-		//	e->transform.position.x = 6;
-		//	e->renderComp.modelId = ModelId::Value::CUBE;
-		//	e->name = e->renderComp.modelId.ToString();
-		//}
-
-
-		//Entity* e2 = CreateEntity(gs);
-		//e2->transform.position.x = 3;
-		//e2->transform.scale = Vec3f(100);
-		//e2->name = "?1?";
-
-
-		//Entity* floor = CreateEntity(gs);
-		//floor->render.flags = (uint32)RenderFlags::RECEIVES_SHADOW;
-		//floor->render.texture = 1;
-		//floor->transform.scale = Vec3f(10, 1, 10);
-		//floor->collision.count = 0;
-		//floor->collision.box = CreateOBB(0, Vec3f(10.0f, 0.1f, 10.0f));
-		//SetEntityMesh(as, floor, 2);
-		//SetEntityShader(as, floor, 1);
-
-		//CreatePointLight(gs, Vec3f(1.1f))->transform.position = Vec3f(-2.0f, 3.0f, -2.0f);
 
 		PlaySomeAudio();
 
-		//CreateParticleEmitter(gs);
-		//CreateFireParticleEmitter(gs);
-
-
-
-		CreateCollisionGrid(gs);
 		BakeCollisionGrid(gs);
 
 		CreateWorldSector(gs, Vec3f(100, 100, 100));
 
-		//RaycastOBB()
+		//for (uint32 i = 0; i < gs->currentTrack.lanes.GetCapcity(); i++)
+		//{
+		//	for (real32 theta = 0; theta <= 2.0f * PI - 0.26f; theta += 0.26f)
+		//	{
+		//		real32 x = Cos(theta) * (5.0f * (i + 1)) / 2.0f;
+		//		real32 y = Sin(theta) * (5.0f * (i + 1)) / 2.0f;
+		//		real32 z = 0;// RandomBillateral<real32>();
+		//		gs->currentTrack.lanes[i].spline.AddWaypoint({ Vec3f(x,0,y), Normalize(Vec3f(0, 1, 0)) });
+		//	}
+		//
+		//	gs->currentTrack.lanes[i].spline.ComputeDistances();
+		//	gs->currentTrack.lanes.count++;
+		//}
 
-		//CheckIntersectionLineOBB()
-
-			//Entity* e = AddEntity(gs);
-			//RemoveEntity(gs, e);
-			//AddEntity(gs);
-		//gs->spline = CatmullRomSpline();
-
-		for (real32 theta = 0; theta <= 2.0f * PI - 0.26f; theta += 0.26f)
-		{
-			real32 x = Cos(theta) * 5;
-			real32 y = Sin(theta) * 5;
-			real32 z = 0;// RandomBillateral<real32>();
-			gs->spline.AddWaypoint({ Vec3f(x,y,z), Normalize(Vec3f(x, y, 0)) });
-		}
-
-		//gs->spline.AddWaypoint({ Vec3f(0,0,0), Vec3f(0, 1, 0) });
-		//gs->spline.AddWaypoint({ Vec3f(5,0,0), Vec3f(0, 1, 0) });
-		//gs->spline.AddWaypoint({ Vec3f(6,0,0), Vec3f(0, 1, 0) });
-		//gs->spline.AddWaypoint({ Vec3f(7,0,0), Vec3f(1, 0, 0) });
-		//gs->spline.AddWaypoint({ Vec3f(5,2,0), Vec3f(0, 1, 0) });
-
-		//gs->spline.AddWaypoint({ Vec3f(0,0,0), Normalize(Vec3f(-1, 1, 0)) });
-		//gs->spline.AddWaypoint({ Vec3f(2,2,0), Vec3f(0, 1, 0) });
-		//gs->spline.AddWaypoint({ Vec3f(4,2,0), Vec3f(0, 1, 0) });
-		//gs->spline.AddWaypoint({ Vec3f(6,0,0), Normalize(Vec3f(1, 1, 0)) });
-
-		gs->spline.ComputeDistances();
+		LoadTrack(gs, &as->racingTracks[0]);
 	}
 
 	WORK_CALLBACK(JobPhysics)
@@ -653,8 +632,28 @@ namespace cm
 		Vec3f currentNormal = spline->GetSplineNormal(follow);
 		car->carComp.follow = spline->WrapValue(follow + (speed * dt) / Mag(grad));
 
-		car->transform.position = currentPos;
-		car->transform.LookAtLH(currentPos + grad, currentNormal);
+		car->transform.position = Lerp(car->transform.position, currentPos, 0.25f);
+
+		Quatf ori = Mat4ToQuat(LookAtLH(car->transform.position, currentPos + grad, currentNormal));
+
+		car->transform.orientation = Slerp(car->transform.orientation, ori, 0.25f);
+		//car->transform.LookAtLH(currentPos + grad, currentNormal);
+
+	}
+
+	static void CarController(RacingTrack* track, Entity* car)
+	{
+		Assert(car->carComp.active, "No car componente");
+		Input* input = Input::Get();
+
+		if (IsKeyJustDown(input, a))
+		{
+			car->carComp.laneIndex = track->GoLeft(car->carComp.laneIndex);
+		}
+		if (IsKeyJustDown(input, d))
+		{
+			car->carComp.laneIndex = track->GetRight(car->carComp.laneIndex);
+		}
 	}
 
 	void UpdateGame(GameState* gs, AssetState* as, PlatformState* ws, Input* input)
@@ -685,30 +684,19 @@ namespace cm
 		//	last = next;
 		//}
 
+		{
+
+		}
+		gs->BuildTrackFromEntities();
+		gs->DEBUGDrawCurrentTrack();
+
 		//if (IsKeyJustDown(input, t))
 		{
 
-			Vec3f last = gs->spline.GetSplinePoint(0);
-			for (real32 t = 0.1f; t < gs->spline.waypoints.count; t += 0.1f)
-			{
-				Vec3f next = gs->spline.GetSplinePoint(t);
-				DEBUGDrawLine(last, next);
-				last = next;
-			}
 
-			for (uint32 i = 0; i < gs->spline.waypoints.count; i++)
-			{
-				DEBUGDrawSphere(CreateSphere(gs->spline.waypoints[i].position, 0.1f));
-			}
-
-			for (real32 t = 0.0f; t < gs->spline.waypoints.count; t += 0.1f)
-			{
-				Vec3f p = gs->spline.GetSplinePoint(t);
-				Vec3f n = gs->spline.GetSplineNormal(t);
-				DEBUGDrawLine(p, p + n);
-			}
-
-			CarFollowSpline(&gs->spline, gs->testEntity1, gs->dt);
+			//CarController(&gs->currentTrack, gs->testEntity1);
+			CatmullRomSpline* spline = &gs->currentTrack.lanes[gs->testEntity1->carComp.laneIndex].spline;
+			CarFollowSpline(spline, gs->testEntity1, gs->dt);
 		}
 
 
@@ -780,6 +768,74 @@ namespace cm
 		//renderGroup->player = *gs->player;
 	}
 
+
+	int32 RacingTrack::GoLeft(int32 currentLane)
+	{
+		if (currentLane - 1 < 0)
+		{
+			return currentLane;
+		}
+		currentLane--;
+		return currentLane;
+	}
+
+	int32 RacingTrack::GetRight(int32 currentLane)
+	{
+		if (currentLane + 1 >= (int32)lanes.count)
+		{
+			return currentLane;
+		}
+
+		currentLane++;
+		return currentLane;
+	}
+
+	void GameState::BuildTrackFromEntities()
+	{
+		RacingTrack* track = &currentTrack;
+		track->lanes.count = 1;
+		track->lanes[0].spline.waypoints.count = 0;
+
+		for (int32 i = 0; i < ENTITY_STORAGE_COUNT; i++)
+		{
+			Entity* entity = &entites[i];
+			if (entity->IsValid())
+			{
+				RacingWaypoint* waypoint = &racingWaypointComponents[i];
+				if (waypoint->active)
+				{
+					track->lanes[0].spline.AddWaypoint({ entity->transform.position, Vec3f(0, 1, 0) });
+				}
+			}
+		}
+	}
+
+	void GameState::DEBUGDrawCurrentTrack()
+	{
+		for (uint32 i = 0; i < currentTrack.lanes.count; i++)
+		{
+			CatmullRomSpline* spline = &currentTrack.lanes[i].spline;
+			Vec3f last = spline->GetSplinePoint(0);
+			for (real32 t = 0.1f; t < spline->waypoints.count; t += 0.25f)
+			{
+				Vec3f next = spline->GetSplinePoint(t);
+				DEBUGDrawLine(last, next);
+				last = next;
+			}
+
+			for (uint32 i = 0; i < spline->waypoints.count; i++)
+			{
+				DEBUGDrawSphere(CreateSphere(spline->waypoints[i].position, 0.1f));
+			}
+
+			for (real32 t = 0.0f; t < spline->waypoints.count; t += 0.25f)
+			{
+				Vec3f p = spline->GetSplinePoint(t);
+				Vec3f n = spline->GetSplineNormal(t);
+				DEBUGDrawLine(p, p + n);
+			}
+		}
+	}
 
 }
 

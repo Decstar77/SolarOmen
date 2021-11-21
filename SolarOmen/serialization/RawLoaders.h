@@ -10,5 +10,6 @@ namespace cm
 	void LoadAllTextures(AssetState* as);
 	void LoadAllFonts(AssetState* as);
 	void LoadAllAudio(AssetState* as);
+	void LoadAllRacingTracks(AssetState* as);
 #endif
 }

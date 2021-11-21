@@ -1,6 +1,7 @@
 #pragma once
 #include "core/SolarCore.h"
 #include "SimpleColliders.h"
+#include "SolarSpline.h"
 #include "serialization/assetId/ShaderId.h"
 #include "serialization/assetId/ModelId.h"
 #include "serialization/assetId/TextureId.h"
@@ -99,7 +100,6 @@ namespace cm
 		AABB boundingBox;
 	};
 
-
 	struct ShaderData
 	{
 		ShaderId id;
@@ -136,8 +136,26 @@ namespace cm
 		bool32 mips;
 	};
 
-	struct AssetState
+	struct RacingLane
 	{
+		int32 laneIndex;
+		CatmullRomSpline spline;
+	};
+
+	class RacingTrack
+	{
+	public:
+		CString name;
+		FixedArray<RacingLane, 4> lanes;
+
+		// @TODO: This is will go into car controller 
+		int32 GoLeft(int32 currentLane);
+		int32 GetRight(int32 currentLane);
+	};
+
+	class AssetState
+	{
+	public:
 		int32 textureCount;
 		TextureData texturesData[256];
 
@@ -146,11 +164,18 @@ namespace cm
 
 		int32 meshCount;
 		MeshData meshesData[512];
+
+		FixedArray<RacingTrack, 16> racingTracks;
+
+		static void Initialize(AssetState* as);
+		inline static AssetState* Get() { return assetState; }
+	private:
+		inline static AssetState* assetState = nullptr;
 	};
 
 	////////////////////////////////////////////////////
 	// @NOTE: Platform layer call this
 	////////////////////////////////////////////////////
 
-	void InitializeAssets(AssetState* as);
+
 }

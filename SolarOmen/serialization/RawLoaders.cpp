@@ -193,5 +193,67 @@ namespace cm
 	{
 
 	}
+
+	void LoadAllRacingTracks(AssetState* as)
+	{
+		CString path = MODEL_FILE_PATH;
+		path.Add("CM_Track_Oval_Lane0.txt");
+		PlatformFile file = DEBUGLoadEntireFile(path, false);
+
+		LargeString<4096>* text = GameMemory::PushTransientStruct<LargeString<4096>>();
+
+		text->Add((char*)file.data);
+
+		CString line = text->GetLine();
+		int32 count = line.ToInt32();
+
+		RacingTrack* track = &as->racingTracks[0];
+		RacingLane* lane = &track->lanes[0];
+		track->lanes.count = 1;
+
+		for (int32 i = 0; i < count; i++)
+		{
+			line = text->GetLine();
+			ManagedArray<CString> values = line.Split(' ');
+
+			Vec3f p;
+			p.x = values[0].ToReal32();
+			p.z = values[1].ToReal32();
+			p.y = values[2].ToReal32();
+			Vec3f n;
+			n.x = values[3].ToReal32();
+			n.z = values[4].ToReal32();
+			n.y = values[5].ToReal32();
+
+			// @NOTE: Remove any floating point error
+			n = Normalize(n);
+
+			lane->spline.AddWaypoint({ p, n });
+		}
+
+		// @NOTE: Sort the waypoints
+		for (uint32 j = 0; j < lane->spline.waypoints.count; j++)
+		{
+			real32 minDist = REAL_MAX;
+			int32 minIndex = INT_MAX;
+			SplineWaypoint startingWaypoint = lane->spline.waypoints[j];
+			for (uint32 i = j + 1; i < lane->spline.waypoints.count; i++)
+			{
+				SplineWaypoint currentWaypoint = lane->spline.waypoints[i];
+				real32 d = DistanceSqrd(startingWaypoint.position, currentWaypoint.position);
+				if (d < minDist)
+				{
+					minDist = d;
+					minIndex = i;
+				}
+			}
+
+			if (j + 1 < lane->spline.waypoints.count && minIndex != INT_MAX)
+				Swap(&lane->spline.waypoints[j + 1], &lane->spline.waypoints[minIndex]);
+		}
+
+		lane->spline.ComputeDistances();
+	}
+
 #endif
 }

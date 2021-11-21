@@ -723,11 +723,10 @@ int main()
 		//================================================================//
 
 		// @NOTE: Load every asset in the game
-		InitializeAssets(assetState);
+		AssetState::Initialize(assetState);
 		//================================================================//
 
 		assetState->shaderCount = 1;
-
 		InitializeDebugState();
 		InitializeRenderState(renderState, assetState, &win_state);
 		InitializeGameState(gameState, assetState, &win_state);

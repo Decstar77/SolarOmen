@@ -9,12 +9,14 @@
 
 namespace cm
 {
-	void InitializeAssets(AssetState* as)
+	void AssetState::Initialize(AssetState* as)
 	{
+		assetState = as;
 		LoadAllShaders(as);
 		LoadAllModels(as);
 		LoadAllTextures(as);
 		LoadAllFonts(as);
 		LoadAllAudio(as);
+		LoadAllRacingTracks(as);
 	}
 }

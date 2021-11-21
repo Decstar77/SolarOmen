@@ -7,7 +7,6 @@
 #include "Physics/SolarPhysics.h"
 #include "SimpleColliders.h"
 #include "ManifoldTests.h"
-#include "SolarSpline.h"
 
 #include "components/SolarCamera.h"
 #include "components/SolarLight.h"
@@ -232,13 +231,20 @@ namespace cm
 		int32 laneIndex;
 	};
 
+	class RacingWaypoint
+	{
+	public:
+		bool32 active;
+		int32 laneIndex;
+		int32 waypointIndex;
+	};
+
 	struct Entity
 	{
-		CString name;
-
 		bool32 active;
 		Transform transform;
 		AABB boundingBoxLocal;
+
 
 		CollisionComponent collisionComp;
 		RigidBodyComponent rigidBody;
@@ -253,6 +259,9 @@ namespace cm
 			PlayerPart playerPart;
 			ParticleEmitterPart particlePart;
 		};
+
+		CString* GetName();
+		void SetName(const CString& name);
 
 		EntityId GetId();
 		bool32 IsValid();
@@ -272,6 +281,9 @@ namespace cm
 		void SetCollider(const Sphere& sphere, bool32 setActive = true);
 		void SetCollider(const OBB& box, bool32 setActive = true);
 		void SetCollider(const ModelId& mesh, bool32 setActive = true);
+
+		RacingWaypoint* GetRacingWaypointComponent();
+
 
 	private:
 		EntityId id;
@@ -417,11 +429,7 @@ namespace cm
 		PhysicsSimulator physicsSimulator;
 	};
 
-	class RacingTrack
-	{
-	public:
-		FixedArray<CatmullRomSpline, 4> lanes;
-	};
+
 
 
 #define ENTITY_STORAGE_COUNT 1000
@@ -437,10 +445,19 @@ namespace cm
 		int32 entityLoopCount;
 		Entity entites[ENTITY_STORAGE_COUNT];
 
+		int32 entityFreeListCount;
+		EntityId entityFreeList[ENTITY_STORAGE_COUNT - 1];
+
+		RacingTrack currentTrack;
+		FixedArray<CString, ENTITY_STORAGE_COUNT>  nameComponents;
+		FixedArray<RacingWaypoint, ENTITY_STORAGE_COUNT> racingWaypointComponents;
+
+		//FixedArray<LightComponent, ENTITY_STORAGE_COUNT> lightsComponents;
+
 		int32 meshColliderCount;
 		MeshCollider meshColliders[ENTITY_STORAGE_COUNT];
 
-		RacingTrack currentTrack;
+
 
 		int32 particleEmitterCount;
 		int32 particleSlot[MAX_PARTICLE_EMITTERS];
@@ -451,13 +468,9 @@ namespace cm
 		int32 worldSectorCount;
 		WorldSector worldSectors[100];
 
-		CatmullRomSpline spline;
-
 		Entity* testEntity1;
 		Entity* testEntity2;
 
-		int32 entityFreeListCount;
-		EntityId entityFreeList[ENTITY_STORAGE_COUNT - 1];
 
 		Camera camera;
 		Vec3f camera_offset_player;
@@ -488,7 +501,7 @@ namespace cm
 			entity->active = true;
 			entity->transform = Transform();
 			entity->type = EntityType::ENVIRONMENT;
-			entity->name = "No name brand";
+			entity->SetName("No name brand");
 			entityCount++;
 
 			return entity;
@@ -521,6 +534,9 @@ namespace cm
 	public:
 		static inline void Initialize(GameState* gs) { gameState = gs; }
 		static inline GameState* Get() { return gameState; }
+
+		void BuildTrackFromEntities();
+		void DEBUGDrawCurrentTrack();
 
 		inline void CreateEntityFreeList()
 		{

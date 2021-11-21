@@ -150,7 +150,7 @@ namespace cm
 	static void DoDisplayEntity(EditorState* es, Entity* entity)
 	{
 		ImGui::PushID(entity->GetId().index);
-		if (ImGui::TreeNode(entity->name.GetCStr()))
+		if (ImGui::TreeNode(entity->GetName()->GetCStr()))
 		{
 			ImGui::Text(entity->GetId().ToString().GetCStr());
 			ImGui::SameLine();
@@ -170,16 +170,16 @@ namespace cm
 
 			//DisplayTransform(&entity->transform);
 
-			for (Entity* child = entity->GetFirstChild(); child != nullptr; child = entity->GetSibling())
+			for (Entity* child = entity->GetFirstChild(); child != nullptr; child = child->GetSibling())
 			{
 				DoDisplayEntity(es, child);
 			}
 
 			//Entity* parent = entity->GetFirstChild();
-			//if (parent)
-			//{
-			//	DoDisplayEntity(es, parent);
-			//}
+	//if (parent)
+	//{
+	//	DoDisplayEntity(es, parent);
+	//}
 
 			ImGui::TreePop();
 		}
@@ -192,6 +192,10 @@ namespace cm
 		ImGui::SetNextWindowPos({ 0,18 });
 		ImGui::SetNextWindowSize({ 376, 731 });
 		ImGui::Begin("World name", &es->showWorldWindow, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+
+
+		ImGui::Separator();
 
 		gs->BeginEntityLoop();
 		while (Entity* entity = gs->GetNextEntity())
@@ -250,15 +254,16 @@ namespace cm
 
 		bool32 changed = false;
 		char nameBuf[128] = {};
-		for (int32 i = 0; i < entity->name.GetLength() && i < 128; i++)
+		for (int32 i = 0; i < entity->GetName()->GetLength() && i < 128; i++)
 		{
-			nameBuf[i] = entity->name[i];
+			CString name = *entity->GetName();
+			nameBuf[i] = name[i];
 		}
 
 		if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
 		{
 			changed = true;
-			entity->name = CString(nameBuf);
+			entity->SetName(CString(nameBuf));
 		}
 
 		ImGui::SameLine();
@@ -521,7 +526,7 @@ namespace cm
 		while (Entity* entity = gs->GetNextEntity())
 		{
 			fileData->Add("Entity:\n");
-			fileData->Add("\tname=").Add(entity->name).Add("\n");
+			fileData->Add("\tname=").Add(*entity->GetName()).Add("\n");
 			fileData->Add("\tactive=").Add(entity->active).Add("\n");
 			fileData->Add("\tTransform:\n");
 			fileData->Add("\t\tposition=").Add(ToString(entity->transform.position)).Add("\n");
@@ -654,6 +659,8 @@ namespace cm
 						es->undoSystem.Do(entry);
 					}
 				}
+				gs->BuildTrackFromEntities();
+				gs->DEBUGDrawCurrentTrack();
 
 				//es->nodeWindow.Show(input);
 				//DisplayContentWindow(es, gs);

@@ -479,6 +479,24 @@ namespace cm
 			return *this;
 		}
 
+		inline LargeString& Add(char* str)
+		{
+			const int32 stringLength = (int32)strlen(str);
+			Assert(stringLength < size, "String is too large");
+
+			for (int32 i = 0; i < stringLength; i++)
+			{
+				data[i] = str[i];
+			}
+
+			for (int32 i = stringLength; i < size; i++)
+			{
+				data[i] = '\0';
+			}
+
+			return *this;
+		}
+
 		inline LargeString& Add(const char& c)
 		{
 			return Add(CString(c));
