@@ -245,7 +245,6 @@ namespace cm
 		Transform transform;
 		AABB boundingBoxLocal;
 
-
 		CollisionComponent collisionComp;
 		RigidBodyComponent rigidBody;
 		RenderComponent renderComp;
@@ -292,6 +291,8 @@ namespace cm
 		EntityId sibling;
 
 		EntityFlag flags;
+
+		GameState* gs;
 
 	private:
 		friend class GameState;
@@ -448,7 +449,8 @@ namespace cm
 		int32 entityFreeListCount;
 		EntityId entityFreeList[ENTITY_STORAGE_COUNT - 1];
 
-		RacingTrack currentTrack;
+
+		FixedArray<EntityId, ENTITY_STORAGE_COUNT> entityIds;
 		FixedArray<CString, ENTITY_STORAGE_COUNT>  nameComponents;
 		FixedArray<RacingWaypoint, ENTITY_STORAGE_COUNT> racingWaypointComponents;
 
@@ -499,10 +501,13 @@ namespace cm
 			ZeroStruct(entity);
 			entity->id = id;
 			entity->active = true;
+			entity->gs = this;
 			entity->transform = Transform();
 			entity->type = EntityType::ENVIRONMENT;
 			entity->SetName("No name brand");
 			entityCount++;
+
+			entityIds[id.index] = id;
 
 			return entity;
 		}
@@ -557,45 +562,45 @@ namespace cm
 			}
 		}
 
-		inline void AddFreeEntityId(Entity* entity)
-		{
-			EntityId id = entity->id;
-			id.generation++;
-			Assert(entityFreeListCount >= 0 &&
-				entityFreeListCount < ArrayCount(entityFreeList), "Invalid free index");
+		//inline void AddFreeEntityId(Entity* entity)
+		//{
+		//	EntityId id = entity->id;
+		//	id.generation++;
+		//	Assert(entityFreeListCount >= 0 &&
+		//		entityFreeListCount < ArrayCount(entityFreeList), "Invalid free index");
 
-			if (entityFreeListCount >= 0 &&
-				entityFreeListCount < ArrayCount(entityFreeList))
-			{
-				entityFreeList[entityFreeListCount] = id;
-				entityFreeListCount++;
-			}
-		}
+		//	if (entityFreeListCount >= 0 &&
+		//		entityFreeListCount < ArrayCount(entityFreeList))
+		//	{
+		//		entityFreeList[entityFreeListCount] = id;
+		//		entityFreeListCount++;
+		//	}
+		//}
 
-		inline void RemoveEntity(Entity* entity)
-		{
-			if (entity && entity->id.index)
-			{
-				AddFreeEntityId(entity);
-				entityCount--;
+		//inline void RemoveEntity(Entity* entity)
+		//{
+		//	if (entity && entity->id.index)
+		//	{
+		//		AddFreeEntityId(entity);
+		//		entityCount--;
 
-				if (entity->type == EntityType::PARTICLE_EMITTER)
-				{
-					particleSlot[entity->particlePart.emitterSlot] = 0;
-				}
+		//		if (entity->type == EntityType::PARTICLE_EMITTER)
+		//		{
+		//			particleSlot[entity->particlePart.emitterSlot] = 0;
+		//		}
 
-				// @NOTE: This clear is not strictly nessessary but is done in an to prevent bugs in old code
-				ZeroStruct(entity);
-			}
-		}
+		//		// @NOTE: This clear is not strictly nessessary but is done in an to prevent bugs in old code
+		//		ZeroStruct(entity);
+		//	}
+		//}
 
-		inline void RemoveAllEntities()
-		{
-			for (int32 i = 0; i < ArrayCount(entites); i++)
-			{
-				RemoveEntity(&entites[i]);
-			}
-		}
+		//inline void RemoveAllEntities()
+		//{
+		//	for (int32 i = 0; i < ArrayCount(entites); i++)
+		//	{
+		//		RemoveEntity(&entites[i]);
+		//	}
+		//}
 
 	private:
 		inline static GameState* gameState = nullptr;

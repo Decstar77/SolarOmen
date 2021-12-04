@@ -27,7 +27,6 @@ namespace cm
 	{
 		if (IsValid())
 		{
-			GameState* gs = GameState::Get();
 			return &gs->nameComponents[id.index];
 		}
 
@@ -38,7 +37,6 @@ namespace cm
 	{
 		if (IsValid())
 		{
-			GameState* gs = GameState::Get();
 			gs->nameComponents[id.index] = name;
 		}
 	}
@@ -111,7 +109,6 @@ namespace cm
 
 	void Entity::SetParent(EntityId entity)
 	{
-		GameState* gs = GameState::Get();
 		Assert(IsValid(), "SetParent me is an invalid entities");
 
 		//@NOTE: Do we have an existing parent
@@ -242,7 +239,6 @@ namespace cm
 	{
 		Assert(IsValid(), "GetRacingWaypointComponent, entity is not valid");
 
-		GameState* gs = GameState::Get();
 		RacingWaypoint* comp = &gs->racingWaypointComponents[id.index];
 
 		return comp;
