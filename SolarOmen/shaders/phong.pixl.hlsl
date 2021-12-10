@@ -63,25 +63,26 @@ float4 main(VSInput vsInput) : SV_TARGET
 	float4 fragColour = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	float3 colour = pow(texture0.Sample(linearSampler, vsInput.uvs).rgb, float3(2.2, 2.2, 2.2));
-	float3 ambient = 0.01 * colour;
+	float3 ambient = 0.25 * colour;
 
 	//if (lightCounts.z > 0)
-	for (int pointLightIndex = 0; pointLightIndex < lightCounts.pointLightCount; pointLightIndex++)
+	//for (int pointLightIndex = 0; pointLightIndex < lightCounts.pointLightCount; pointLightIndex++)
 	{
-		float3 lightPos = pointLights[pointLightIndex].position;
-		float3 lightColour = pointLights[pointLightIndex].colour;
+		//float3 lightPos = pointLights[pointLightIndex].position;
+		//float3 lightColour = pointLights[pointLightIndex].colour;
 
 		float3 normal = normalize(vsInput.normal);
 
-		float dist = distance(lightPos, vsInput.worldPos);
-		float attenuation = 1.0 / (1.0f + 0.09f * dist + 0.032f * (dist * dist));
-		//float attenuation = 1.0;
+		//float dist = distance(lightPos, vsInput.worldPos);
+		//float attenuation = 1.0 / (1.0f + 0.09f * dist + 0.032f * (dist * dist));
+		float attenuation = 1.0;
 
 		float shadow = 0;
 		//if (pointLightIndex == 0)
 		//	shadow = CalculateShadow(vsInput.worldPos, lightPos, normal, pointLightIndex);
 
-		float3 lightDir = normalize(lightPos - vsInput.worldPos);
+		float3 lightColour = float3(1,1, 1) * 1.1;
+		float3 lightDir = normalize(float3(1,1,1));// normalize(lightPos - vsInput.worldPos);
 
 		float diff = max(dot(lightDir, normal), 0.0);
 		float3 diffuse = diff * lightColour * colour * (1 - shadow) * attenuation;

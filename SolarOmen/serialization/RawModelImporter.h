@@ -1,6 +1,7 @@
 #pragma once
-#include "../SolarAssets.h"
+#include "core/SolarAssets.h"
+
 namespace cm
 {
-	MeshData LoadModel(CString filePath);
+	ModelAsset LoadModel(CString filePath);
 }

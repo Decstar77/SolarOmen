@@ -1,4 +1,5 @@
 #pragma once
+#include "core/SolarCore.h"
 
 #include <d3d11.h>
 #include <dxgi.h>
@@ -39,12 +40,3 @@
         object = nullptr;  \
     }
 
-
-namespace cm
-{
-	class DeviceAndContext
-	{
-		ID3D11Device* device;
-		ID3D11DeviceContext* context;
-	};
-}

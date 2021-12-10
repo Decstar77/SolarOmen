@@ -377,24 +377,6 @@ namespace cm
 		}
 	}
 
-	static void LoadTrack(GameState* gs, RacingTrack* track)
-	{
-		Entity* trackEntity = gs->CreateEntity();
-		trackEntity->SetName("Track");
-		for (uint32 i = 0; i < track->lanes[0].spline.waypoints.count; i++)
-		{
-			Entity* waypoint = gs->CreateEntity();
-			waypoint->transform.position = track->lanes[0].spline.waypoints[i].position;
-			waypoint->SetName(CString("Waypoint ").Add(i));
-			waypoint->SetParent(trackEntity->GetId());
-
-			RacingWaypoint* rc = waypoint->GetRacingWaypointComponent();
-			rc->active = true;
-			rc->laneIndex = 0;
-			rc->waypointIndex = i;
-		}
-	}
-
 	void InitializeGameState(GameState* gs, AssetState* as, PlatformState* ws)
 	{
 		GameState::Initialize(gs);
@@ -405,7 +387,7 @@ namespace cm
 		//gs->camera.far_ = 10.0f;
 		gs->camera.near_ = 0.3f;
 		gs->camera.yfov = 45.0f;
-		gs->camera.aspect = (real32)ws->client_width / (real32)ws->client_height;
+		gs->camera.aspect = (real32)ws->clientWidth / (real32)ws->clientHeight;
 		gs->camera.transform = Transform();
 		gs->camera.transform.position.x = 7;
 		gs->camera.transform.position.y = 14;
@@ -481,7 +463,7 @@ namespace cm
 			camera->cameraComp.far_ = 100.0f;
 			camera->cameraComp.near_ = 0.3f;
 			camera->cameraComp.yfov = 45.0f;
-			camera->cameraComp.aspect = (real32)ws->client_width / (real32)ws->client_height;
+			camera->cameraComp.aspect = (real32)ws->clientWidth / (real32)ws->clientHeight;
 
 			gs->playerCamera = camera;
 			gs->camera_offset_player = gs->camera.transform.position - gs->player->transform.position;
@@ -520,7 +502,7 @@ namespace cm
 			camera->cameraComp.far_ = 100.0f;
 			camera->cameraComp.near_ = 0.3f;
 			camera->cameraComp.yfov = 45.0f;
-			camera->cameraComp.aspect = (real32)ws->client_width / (real32)ws->client_height;
+			camera->cameraComp.aspect = (real32)ws->clientWidth / (real32)ws->clientHeight;
 			camera->transform.position = Vec3f(0, 5, -9);
 			camera->transform.LookAtLH(0);
 			camera->transform.LocalRotateX(DegToRad(-10.0f));
@@ -599,21 +581,7 @@ namespace cm
 
 		CreateWorldSector(gs, Vec3f(100, 100, 100));
 
-		//for (uint32 i = 0; i < gs->currentTrack.lanes.GetCapcity(); i++)
-		//{
-		//	for (real32 theta = 0; theta <= 2.0f * PI - 0.26f; theta += 0.26f)
-		//	{
-		//		real32 x = Cos(theta) * (5.0f * (i + 1)) / 2.0f;
-		//		real32 y = Sin(theta) * (5.0f * (i + 1)) / 2.0f;
-		//		real32 z = 0;// RandomBillateral<real32>();
-		//		gs->currentTrack.lanes[i].spline.AddWaypoint({ Vec3f(x,0,y), Normalize(Vec3f(0, 1, 0)) });
-		//	}
-		//
-		//	gs->currentTrack.lanes[i].spline.ComputeDistances();
-		//	gs->currentTrack.lanes.count++;
-		//}
 
-		LoadTrack(gs, &as->racingTracks[0]);
 	}
 
 	WORK_CALLBACK(JobPhysics)
@@ -639,21 +607,6 @@ namespace cm
 		car->transform.orientation = Slerp(car->transform.orientation, ori, 0.25f);
 		//car->transform.LookAtLH(currentPos + grad, currentNormal);
 
-	}
-
-	static void CarController(RacingTrack* track, Entity* car)
-	{
-		Assert(car->carComp.active, "No car componente");
-		Input* input = Input::Get();
-
-		if (IsKeyJustDown(input, a))
-		{
-			car->carComp.laneIndex = track->GoLeft(car->carComp.laneIndex);
-		}
-		if (IsKeyJustDown(input, d))
-		{
-			car->carComp.laneIndex = track->GetRight(car->carComp.laneIndex);
-		}
 	}
 
 	void UpdateGame(GameState* gs, AssetState* as, PlatformState* ws, Input* input)
@@ -683,21 +636,6 @@ namespace cm
 		//	DEBUGDrawLine(last, next);
 		//	last = next;
 		//}
-
-		{
-
-		}
-		gs->BuildTrackFromEntities();
-		gs->DEBUGDrawCurrentTrack();
-
-		//if (IsKeyJustDown(input, t))
-		{
-
-
-			//CarController(&gs->currentTrack, gs->testEntity1);
-			CatmullRomSpline* spline = &gs->currentTrack.lanes[gs->testEntity1->carComp.laneIndex].spline;
-			CarFollowSpline(spline, gs->testEntity1, gs->dt);
-		}
 
 
 		//ts->physicsSimulator.dt = input->dt;
@@ -769,73 +707,6 @@ namespace cm
 	}
 
 
-	int32 RacingTrack::GoLeft(int32 currentLane)
-	{
-		if (currentLane - 1 < 0)
-		{
-			return currentLane;
-		}
-		currentLane--;
-		return currentLane;
-	}
-
-	int32 RacingTrack::GetRight(int32 currentLane)
-	{
-		if (currentLane + 1 >= (int32)lanes.count)
-		{
-			return currentLane;
-		}
-
-		currentLane++;
-		return currentLane;
-	}
-
-	void GameState::BuildTrackFromEntities()
-	{
-		RacingTrack* track = &currentTrack;
-		track->lanes.count = 1;
-		track->lanes[0].spline.waypoints.count = 0;
-
-		for (int32 i = 0; i < ENTITY_STORAGE_COUNT; i++)
-		{
-			Entity* entity = &entites[i];
-			if (entity->IsValid())
-			{
-				RacingWaypoint* waypoint = &racingWaypointComponents[i];
-				if (waypoint->active)
-				{
-					track->lanes[0].spline.AddWaypoint({ entity->transform.position, Vec3f(0, 1, 0) });
-				}
-			}
-		}
-	}
-
-	void GameState::DEBUGDrawCurrentTrack()
-	{
-		for (uint32 i = 0; i < currentTrack.lanes.count; i++)
-		{
-			CatmullRomSpline* spline = &currentTrack.lanes[i].spline;
-			Vec3f last = spline->GetSplinePoint(0);
-			for (real32 t = 0.1f; t < spline->waypoints.count; t += 0.25f)
-			{
-				Vec3f next = spline->GetSplinePoint(t);
-				DEBUGDrawLine(last, next);
-				last = next;
-			}
-
-			for (uint32 i = 0; i < spline->waypoints.count; i++)
-			{
-				DEBUGDrawSphere(CreateSphere(spline->waypoints[i].position, 0.1f));
-			}
-
-			for (real32 t = 0.0f; t < spline->waypoints.count; t += 0.25f)
-			{
-				Vec3f p = spline->GetSplinePoint(t);
-				Vec3f n = spline->GetSplineNormal(t);
-				DEBUGDrawLine(p, p + n);
-			}
-		}
-	}
 
 }
 

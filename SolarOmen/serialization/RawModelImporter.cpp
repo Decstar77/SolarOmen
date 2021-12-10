@@ -1,15 +1,13 @@
 #include "RawModelImporter.h"
-#include "../SolarAssets.h"
-#include "core/SolarCore.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
 namespace cm
 {
-	static MeshData ProcessMesh(aiMesh* mesh, const aiScene* scene)
+	static ModelAsset ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	{
-		MeshData meshData = {};
+		ModelAsset meshData = {};
 
 		meshData.positionCount = mesh->mNumVertices;
 		meshData.positions = GameMemory::PushPermanentCount<Vec3f>(mesh->mNumVertices);
@@ -85,7 +83,7 @@ namespace cm
 		return meshData;
 	}
 
-	static MeshData ProcessNode(aiNode* node, const aiScene* scene)
+	static ModelAsset ProcessNode(aiNode* node, const aiScene* scene)
 	{
 		if (node->mNumMeshes > 0)
 		{
@@ -104,7 +102,7 @@ namespace cm
 		return {};
 	}
 
-	MeshData LoadModel(CString filePath)
+	ModelAsset LoadModel(CString filePath)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(filePath.GetCStr(), aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -115,7 +113,7 @@ namespace cm
 			return {};
 		}
 
-		MeshData mesh = ProcessNode(scene->mRootNode, scene);
+		ModelAsset mesh = ProcessNode(scene->mRootNode, scene);
 
 		importer.FreeScene();
 

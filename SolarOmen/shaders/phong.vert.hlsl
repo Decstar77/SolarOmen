@@ -1,11 +1,4 @@
-cbuffer VSInput  : register(b0)
-{
-	matrix mvp;
-	matrix persp;
-	matrix view;
-	matrix model;
-	matrix invModel;
-};
+#include "VertexShaderHeader.hlsli"
 
 struct VSOutput
 {
@@ -22,7 +15,7 @@ VSOutput main(float3 pos : Position, float3 normal : Normal, float2 txc : TexCor
 	output.uvs = txc;
 	output.worldPos = mul(float4(pos, 1.0f), model).xyz;
 
-	matrix nm = transpose(invModel);
+	matrix nm = transpose(invM);
 	float4 tt = mul(float4(normal, 0.0f), nm);
 	output.normal = (float3)tt;
 

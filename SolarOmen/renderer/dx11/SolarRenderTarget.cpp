@@ -1,4 +1,4 @@
-#include "../SolarRenderer.h"
+#
 namespace cm
 {
 	void RenderTarget::Clear(RenderState* rs, const Vec4f& colour)

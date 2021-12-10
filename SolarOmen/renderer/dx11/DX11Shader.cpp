@@ -1,31 +1,13 @@
-#include "SolarShader.h"
-#include "../SolarRenderer.h"
+#include "DX11Shader.h"
+#include "DX11Renderer.h"
+
 namespace cm
 {
-	void ShaderInstance::Bind()
+	ShaderInstance ShaderInstance::CreateGraphics(const ShaderAsset& shaderAsset)
 	{
-		RenderState* rs = RenderState::GlobalRenderState;
+		GetRenderState();
 
-		if (vs)
-		{
-			DXINFO(rs->context->VSSetShader(vs, nullptr, 0));
-			DXINFO(rs->context->IASetInputLayout(layout));
-		}
-		if (ps)
-		{
-			DXINFO(rs->context->PSSetShader(ps, nullptr, 0));
-		}
-		if (cs)
-		{
-			DXINFO(rs->context->CSSetShader(cs, nullptr, 0));
-		}
-	}
-
-	ShaderInstance ShaderInstance::CreateGraphics(ShaderData* shaderData, VertexShaderLayout layout)
-	{
-		RenderState* rs = RenderState::GlobalRenderState;
-
-		switch (layout)
+		switch (shaderAsset.vertexLayout)
 		{
 		case VertexShaderLayout::P:
 		{
@@ -41,20 +23,15 @@ namespace cm
 			D3D11_INPUT_ELEMENT_DESC layouts[] = { pos_desc };
 
 			ShaderInstance shader = {};
-			shader.id = shaderData->id;
-			DXCHECK(rs->device->CreateInputLayout(layouts, 1, shaderData->vertexData,
-				shaderData->vertexSizeBytes, &shader.layout));
+			shader.id = shaderAsset.id;
+			DXCHECK(rs->device->CreateInputLayout(layouts, 1, shaderAsset.vertexData.data,
+				shaderAsset.vertexData.GetCount(), &shader.layout));
 
-			DXCHECK(rs->device->CreateVertexShader(shaderData->vertexData,
-				shaderData->vertexSizeBytes, nullptr, &shader.vs));
+			DXCHECK(rs->device->CreateVertexShader(shaderAsset.vertexData.data,
+				shaderAsset.vertexData.GetCount(), nullptr, &shader.vs));
 
-			DXCHECK(rs->device->CreatePixelShader(shaderData->pixelData,
-				shaderData->pixelSizeBytes, nullptr, &shader.ps));
-
-			int32 index = (int32)shaderData->id;
-			Assert(index != 0, "Error");
-
-			rs->shaders[index] = shader;
+			DXCHECK(rs->device->CreatePixelShader(shaderAsset.pixelData.data,
+				shaderAsset.pixelData.GetCount(), nullptr, &shader.ps));
 
 			return shader;
 		}break;
@@ -91,21 +68,16 @@ namespace cm
 			D3D11_INPUT_ELEMENT_DESC layouts[] = { pos_desc, nrm_desc, txc_desc };
 
 			ShaderInstance shader = {};
-			shader.id = shaderData->id;
+			shader.id = shaderAsset.id;
 
-			DXCHECK(rs->device->CreateInputLayout(layouts, 3, shaderData->vertexData,
-				shaderData->vertexSizeBytes, &shader.layout));
+			DXCHECK(rs->device->CreateInputLayout(layouts, 3, shaderAsset.vertexData.data,
+				shaderAsset.vertexData.GetCount(), &shader.layout));
 
-			DXCHECK(rs->device->CreateVertexShader(shaderData->vertexData,
-				shaderData->vertexSizeBytes, nullptr, &shader.vs));
+			DXCHECK(rs->device->CreateVertexShader(shaderAsset.vertexData.data,
+				shaderAsset.vertexData.GetCount(), nullptr, &shader.vs));
 
-			DXCHECK(rs->device->CreatePixelShader(shaderData->pixelData,
-				shaderData->pixelSizeBytes, nullptr, &shader.ps));
-
-			int32 index = (int32)shaderData->id;
-			Assert(index != 0, "Error");
-
-			rs->shaders[index] = shader;
+			DXCHECK(rs->device->CreatePixelShader(shaderAsset.pixelData.data,
+				shaderAsset.pixelData.GetCount(), nullptr, &shader.ps));
 
 			return shader;
 		}break;
@@ -114,7 +86,7 @@ namespace cm
 		return {};
 	}
 
-	ShaderInstance ShaderInstance::CreateCompute(ShaderData* shaderData)
+	/*ShaderInstance ShaderInstance::CreateCompute(ShaderData* shaderData)
 	{
 		RenderState* rs = RenderState::GlobalRenderState;
 
@@ -129,20 +101,63 @@ namespace cm
 		rs->shaders[index] = result;
 
 		return result;
+	}*/
+
+
+	ID3D11Buffer* CreateShaderConstBuffer(int32 size)
+	{
+		GetRenderState();
+
+		D3D11_BUFFER_DESC desc = {};
+		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		desc.Usage = D3D11_USAGE_DEFAULT; //D3D11_USAGE_DYNAMIC;
+		desc.CPUAccessFlags = 0;
+		desc.MiscFlags = 0;
+		desc.ByteWidth = size;
+		desc.StructureByteStride = 0;
+
+		ID3D11Buffer* buffer = nullptr;
+		DXCHECK(rs->device->CreateBuffer(&desc, NULL, &buffer));
+
+		return buffer;
 	}
 
-	void ShaderConstBuffer::CommitChanges()
+
+
+
+	static ShaderConstBuffer2 CreateShaderBuffer(RenderState* rs, int32 sizeBytes)
 	{
-		RenderState* rs = RenderState::GlobalRenderState;
+		D3D11_BUFFER_DESC desc = {};
+		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		desc.Usage = D3D11_USAGE_DEFAULT; //D3D11_USAGE_DYNAMIC;
+		desc.CPUAccessFlags = 0;
+		desc.MiscFlags = 0;
+		desc.ByteWidth = sizeBytes;
+		desc.StructureByteStride = 0;
+
+		ShaderConstBuffer2 result = {};
+
+		DXCHECK(rs->device->CreateBuffer(&desc, NULL, &result.buffer));
+		result.sizeBytes = sizeBytes;
+		result.copy_ptr = 0;
+		Assert(ArrayCount(result.stagingBuffer) > sizeBytes, "Shader buffer staging buffer is not big enough");
+
+		return result;
+	}
+
+
+	void ShaderConstBuffer2::CommitChanges()
+	{
+		GetRenderState();
 
 		DXINFO(rs->context->UpdateSubresource(buffer, 0, nullptr, (void*)stagingBuffer, 0, 0));
 		ZeroMemory(stagingBuffer, sizeBytes);
 		copy_ptr = 0;
 	}
 
-	void ShaderConstBuffer::BindShaderBuffer(ShaderStage stage, int32 register_)
+	void ShaderConstBuffer2::BindShaderBuffer(ShaderStage stage, int32 register_)
 	{
-		RenderState* rs = RenderState::GlobalRenderState;
+		GetRenderState();
 
 		switch (stage)
 		{
@@ -165,7 +180,7 @@ namespace cm
 		}
 	}
 
-	void ShaderConstBuffer::CopyVec3fIntoShaderBuffer(const Vec3f& a)
+	void ShaderConstBuffer2::CopyVec3fIntoShaderBuffer(const Vec3f& a)
 	{
 		Assert(copy_ptr + 4 <= sizeBytes / 4, "DXConstBuffer::CopyInVec3f buffer overrun");
 
@@ -181,7 +196,7 @@ namespace cm
 		copy_ptr++;
 	}
 
-	void ShaderConstBuffer::CopyVec4iIntoShaderBuffer(const Vec4i& a)
+	void ShaderConstBuffer2::CopyVec4iIntoShaderBuffer(const Vec4i& a)
 	{
 		Assert(copy_ptr + 4 <= sizeBytes / 4, "DXConstBuffer::CopyInVec4i buffer overrun");
 
@@ -197,7 +212,7 @@ namespace cm
 		copy_ptr++;
 	}
 
-	void ShaderConstBuffer::CopyVec4fIntoShaderBuffer(const Vec4f& a)
+	void ShaderConstBuffer2::CopyVec4fIntoShaderBuffer(const Vec4f& a)
 	{
 		Assert(copy_ptr + 4 <= sizeBytes / 4, "DXConstBuffer::CopyInVec3f buffer overrun");
 
@@ -213,7 +228,7 @@ namespace cm
 		copy_ptr++;
 	}
 
-	void ShaderConstBuffer::CopyMat4fIntoShaderBuffer(const Mat4f& a, bool32 transpose)
+	void ShaderConstBuffer2::CopyMat4fIntoShaderBuffer(const Mat4f& a, bool32 transpose)
 	{
 		Assert(copy_ptr + 16 <= sizeBytes / 4, "DXConstBuffer::CopyInMat4f buffer overrun");
 
@@ -227,4 +242,13 @@ namespace cm
 			copy_ptr++;
 		}
 	}
+
+
+
+
+
+
+
+
+
 }

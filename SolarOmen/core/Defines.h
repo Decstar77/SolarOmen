@@ -26,6 +26,7 @@
 
 #define EDITOR 1
 #define USE_RAW_ASSETS 1
+#define DEBUG 1
 
 #define VOXEL_IMPORT_SCALE 0.05f
 #define MODEL_IMPORT_SCALE 0.5f
@@ -40,7 +41,7 @@ typedef int16_t int16;
 typedef int32_t int32;
 typedef int64_t int64;
 
-typedef bool bool32;
+typedef int32 bool32;
 typedef float real32;
 typedef double real64;
 
@@ -61,6 +62,17 @@ typedef double real64;
 #include <sstream>
 namespace cm
 {
+	struct EntityRenderGroup;
+
+
+	inline uint32 SafeTruncateUInt64(uint64 Value)
+	{
+		// TODO: Defines for maximum values
+		Assert(Value <= 0xFFFFFFFF, "Trunc err");
+		uint32 Result = (uint32)Value;
+		return(Result);
+	}
+
 	template<typename T>
 	inline void ArrayRemove(T* arr, int32 removeIndex, int32 arraySize)
 	{

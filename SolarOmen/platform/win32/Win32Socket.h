@@ -14,6 +14,9 @@ namespace cm
 		SocketAddress(uint32 inAddress, uint16 inPort);
 		SocketAddress(CString inAddress, uint16 inPort);
 
+
+		uint32 GetIp();
+		uint32 GetPort();
 		CString GetStringIp();
 
 		inline uint32 GetSize() const { return sizeof(sockaddr); }
@@ -33,8 +36,9 @@ namespace cm
 
 		void Create();
 		bool32 Bind(const SocketAddress& inBindAddress);
+		bool32 SetNonBlocking();
 		int SendTo(const void* inData, int inLen, const SocketAddress& inTo);
-		int ReceiveFrom(void* inBuffer, int inLen, SocketAddress& outFrom);
+		int ReceiveFrom(void* inBuffer, int inLen, SocketAddress* outFrom);
 		void Close();
 
 	private:

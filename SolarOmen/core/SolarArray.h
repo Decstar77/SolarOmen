@@ -7,7 +7,7 @@ namespace cm
 	class FixedArray
 	{
 	public:
-		inline uint32 GetCapcity()
+		inline uint32 GetCapcity() const
 		{
 			return capcity;
 		}
@@ -50,6 +50,12 @@ namespace cm
 		inline void Clear()
 		{
 			count = 0;
+		}
+
+		inline T* Get(const uint32& index)
+		{
+			Assert(index >= 0 && index < capcity, "Array, invalid index");
+			return &data[index];
 		}
 
 		inline T& operator[](const uint32& index)

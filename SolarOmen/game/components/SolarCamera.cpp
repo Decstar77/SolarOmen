@@ -22,12 +22,12 @@ namespace cm
 		PlatformState* platformState = PlatformState::Get();
 		Vec2f pixelPoint = Input::Get()->mousePositionPixelCoords;
 
-		real32 aspect = (real32)platformState->client_width / (real32)platformState->client_height;
+		real32 aspect = (real32)platformState->clientWidth / (real32)platformState->clientHeight;
 		Mat4f proj = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
 		Mat4f view = Inverse(transform.CalculateTransformMatrix());
 
-		Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)platformState->client_width,
-			(real32)platformState->client_height, pixelPoint.x, pixelPoint.y);
+		Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)platformState->clientHeight,
+			(real32)platformState->clientHeight, pixelPoint.x, pixelPoint.y);
 
 		Vec4f view_coords = ToViewCoords(proj, normal_coords);
 
@@ -59,12 +59,12 @@ namespace cm
 
 	Ray CameraComponent::ShootRayFromScreen(PlatformState* ws, const Vec2f& pixl_point, const Transform& worldTransform)
 	{
-		real32 aspect = (real32)ws->client_width / (real32)ws->client_height;
+		real32 aspect = (real32)ws->clientWidth / (real32)ws->clientHeight;
 		Mat4f proj = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
 		Mat4f view = Inverse(worldTransform.CalculateTransformMatrix());
 
-		Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)ws->client_width,
-			(real32)ws->client_height, pixl_point.x, pixl_point.y);
+		Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)ws->clientWidth,
+			(real32)ws->clientHeight, pixl_point.x, pixl_point.y);
 
 		Vec4f view_coords = ToViewCoords(proj, normal_coords);
 

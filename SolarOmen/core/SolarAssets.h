@@ -1,11 +1,9 @@
 #pragma once
-#include "core/SolarCore.h"
+#include "Defines.h"
+#include "SolarPlatform.h"
+#include "SolarMemory.h"
+#include "SolarHashMap.h"
 #include "SimpleColliders.h"
-#include "SolarSpline.h"
-#include "serialization/assetId/ShaderId.h"
-#include "serialization/assetId/ModelId.h"
-#include "serialization/assetId/TextureId.h"
-#include "serialization/assetId/WorldId.h"
 
 namespace cm
 {
@@ -75,12 +73,12 @@ namespace cm
 		PNTM,	// @NOTE: Postions, normal, texture coords(uv), and an instanced model transform matrix
 	};
 
-	struct MeshData
-	{
-		// @TODO: Remove
-		CString name;
+	typedef uint64 AssetId;
 
-		ModelId id;
+	struct ModelAsset
+	{
+		AssetId id;
+		CString name;
 
 		int32 positionCount;
 		Vec3f* positions;
@@ -97,36 +95,26 @@ namespace cm
 		int32 indicesCount;
 		uint32* indices;
 
-		AABB boundingBox;
+		//AABB boundingBox;
 	};
 
-	struct ShaderData
+	struct ShaderAsset
 	{
-		ShaderId id;
-		VertexShaderLayout vertexLayout;
-
-		int32 vertexSizeBytes;
-		int32 computeSizeBytes;
-		int32 pixelSizeBytes;
-
-		// @TODO: Remove this shit !!
+		AssetId id;
 		CString name;
-		CString vertexPath;
-		CString pixelPath;
 
-		union
-		{
-			char vertexData[Megabytes(1)];
-			char computeData[Megabytes(1)];
-		};
-
-		char pixelData[Megabytes(1)];
+		VertexShaderLayout vertexLayout;
+		ManagedArray<char> vertexData;
+		ManagedArray<char> computeData;
+		ManagedArray<char> pixelData;
 	};
 
 	// @TODO: Textures that are loaded with via the raw loaders are loaded will malloc !!
-	struct TextureData
+	struct TextureAsset
 	{
-		TextureId id;
+		AssetId id;
+		CString name;
+
 		TextureFormat format;
 		TextureUsage usage[4];
 		TextureCPUFlags cpuFlags;
@@ -136,46 +124,38 @@ namespace cm
 		bool32 mips;
 	};
 
-	struct RacingLane
-	{
-		int32 laneIndex;
-		CatmullRomSpline spline;
-	};
-
-	class RacingTrack
-	{
-	public:
-		CString name;
-		FixedArray<RacingLane, 4> lanes;
-
-		// @TODO: This is will go into car controller 
-		int32 GoLeft(int32 currentLane);
-		int32 GetRight(int32 currentLane);
-	};
+#define GetAssetState() AssetState* as = AssetState::Get()
 
 	class AssetState
 	{
 	public:
-		int32 textureCount;
-		TextureData texturesData[256];
+		HashMap<ModelAsset> models;
+		HashMap<ShaderAsset> shaders;
+		HashMap<TextureAsset> textures;
 
-		int32 shaderCount;
-		ShaderData shadersData[256];
-
-		int32 meshCount;
-		MeshData meshesData[512];
-
-		FixedArray<RacingTrack, 16> racingTracks;
-
-		static void Initialize(AssetState* as);
+		inline static void Initialize(AssetState* as) { assetState = as; };
 		inline static AssetState* Get() { return assetState; }
 	private:
 		inline static AssetState* assetState = nullptr;
 	};
 
-	////////////////////////////////////////////////////
-	// @NOTE: Platform layer call this
-	////////////////////////////////////////////////////
+	template<typename T>
+	inline T GetAssetFromName(ManagedArray<T> assetArray, const CString& name)
+	{
+		for (uint32 i = 0; i < assetArray.GetCount(); i++)
+		{
+			if (assetArray[i].name == name)
+				return assetArray[i];
+		}
 
+		Assert(0, "Could not find asset");
 
+		return {};
+	}
+
+	namespace Assets
+	{
+		bool32 Initialize();
+		void Shutdown();
+	}
 }

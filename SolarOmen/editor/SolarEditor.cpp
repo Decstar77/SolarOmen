@@ -22,7 +22,7 @@ namespace cm
 		es->camera.far_ = 250.0f;
 		es->camera.near_ = 0.3f;
 		es->camera.yfov = 45.0f;
-		es->camera.aspect = (real32)ws->client_width / (real32)ws->client_height;
+		es->camera.aspect = (real32)ws->clientWidth / (real32)ws->clientHeight;
 
 		es->vsync = true;
 		es->inGame = false;
@@ -659,8 +659,6 @@ namespace cm
 						es->undoSystem.Do(entry);
 					}
 				}
-				gs->BuildTrackFromEntities();
-				gs->DEBUGDrawCurrentTrack();
 
 				//es->nodeWindow.Show(input);
 				//DisplayContentWindow(es, gs);

@@ -20,10 +20,9 @@ namespace cm
 			}
 		};
 
-		void CreateThreads();
+
 		void AddWorkEntry(WorkEntry entry);
 		bool HasWork();
 		void WaitForAllWorkToComplete();
-		void ShutdownThreads();
 	}
 }

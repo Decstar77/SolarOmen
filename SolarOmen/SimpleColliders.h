@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/SolarCore.h"
+#include "core/SolarMath.h"
 
 namespace cm
 {

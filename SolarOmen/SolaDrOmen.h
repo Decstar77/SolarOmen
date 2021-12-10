@@ -2,14 +2,14 @@
 #include "core/SolarPlatform.h"
 #include "SolarAudio.h"
 #include "FileParsers.h"
-#include "SolarAssets.h"
+#include "core/SolarAssets.h"
 #include "core/SolarMemory.h"
 #include "Physics/SolarPhysics.h"
 #include "SimpleColliders.h"
 #include "ManifoldTests.h"
 
-#include "components/SolarCamera.h"
-#include "components/SolarLight.h"
+#include "game/components/SolarCamera.h"
+#include "game/components/SolarLight.h"
 
 namespace cm
 {
@@ -102,11 +102,11 @@ namespace cm
 
 	struct Material
 	{
-		ShaderId shaderId;
-		TextureId albedoTex;
-		TextureId occRoughMetTex;
-		TextureId normalTex;
-		TextureId emissiveTex;
+		AssetId shaderId;
+		AssetId albedoTex;
+		AssetId occRoughMetTex;
+		AssetId normalTex;
+		AssetId emissiveTex;
 	};
 
 	struct RenderComponent
@@ -114,7 +114,7 @@ namespace cm
 		bool32 active;
 		uint32 flags;
 
-		ModelId modelId;
+		AssetId modelId;
 		Material material;
 
 		inline void SetFlag(const RenderFlag& flag)
@@ -231,13 +231,6 @@ namespace cm
 		int32 laneIndex;
 	};
 
-	class RacingWaypoint
-	{
-	public:
-		bool32 active;
-		int32 laneIndex;
-		int32 waypointIndex;
-	};
 
 	struct Entity
 	{
@@ -279,9 +272,8 @@ namespace cm
 
 		void SetCollider(const Sphere& sphere, bool32 setActive = true);
 		void SetCollider(const OBB& box, bool32 setActive = true);
-		void SetCollider(const ModelId& mesh, bool32 setActive = true);
+		void SetCollider(const AssetId& mesh, bool32 setActive = true);
 
-		RacingWaypoint* GetRacingWaypointComponent();
 
 
 	private:
@@ -452,7 +444,6 @@ namespace cm
 
 		FixedArray<EntityId, ENTITY_STORAGE_COUNT> entityIds;
 		FixedArray<CString, ENTITY_STORAGE_COUNT>  nameComponents;
-		FixedArray<RacingWaypoint, ENTITY_STORAGE_COUNT> racingWaypointComponents;
 
 		//FixedArray<LightComponent, ENTITY_STORAGE_COUNT> lightsComponents;
 
@@ -540,8 +531,6 @@ namespace cm
 		static inline void Initialize(GameState* gs) { gameState = gs; }
 		static inline GameState* Get() { return gameState; }
 
-		void BuildTrackFromEntities();
-		void DEBUGDrawCurrentTrack();
 
 		inline void CreateEntityFreeList()
 		{

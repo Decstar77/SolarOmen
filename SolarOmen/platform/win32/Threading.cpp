@@ -25,15 +25,6 @@ namespace cm
 			}
 		}
 
-		void CreateThreads()
-		{
-			running.store(true);
-			for (int32 i = 0; i < THREAD_COUNT; i++)
-			{
-				threads[i] = std::thread(ThreadLoop, i);
-			}
-		}
-
 		void AddWorkEntry(WorkEntry entry)
 		{
 			workEntries.Push(entry);
@@ -65,6 +56,15 @@ namespace cm
 		WORK_CALLBACK(DummyWork)
 		{
 
+		}
+
+		void IntializeThreads()
+		{
+			running.store(true);
+			for (int32 i = 0; i < THREAD_COUNT; i++)
+			{
+				threads[i] = std::thread(ThreadLoop, i);
+			}
 		}
 
 		void ShutdownThreads()

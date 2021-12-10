@@ -16,7 +16,7 @@ namespace cm
 
 	void InitializeDebugState();
 
-	DebugState* GetDebugState();
+	//DebugState* GetDebugState();
 
 	void DEBUGDrawLine(const Vec3f& a, const Vec3f& b);
 

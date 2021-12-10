@@ -1,6 +1,6 @@
 #pragma once
-#include "../SolarAssets.h"
+#include "core/SolarAssets.h"
 namespace cm
 {
-	TextureData LoadTexture(CString filePath);
+	TextureAsset LoadTexture(CString filePath);
 }

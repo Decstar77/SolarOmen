@@ -146,6 +146,31 @@ namespace cm
 			return Add(buf);
 		}
 
+
+		inline int32 FindFirstOf(const char& c) const
+		{
+			const int32 l = GetLength();
+			for (int32 i = 0; i < l; i++)
+			{
+				if (data[i] == c)
+					return i;
+			}
+
+			return -1;
+		}
+
+		inline int32 FindLastOf(const char& c) const
+		{
+			const int32 l = GetLength();
+			for (int32 i = l; i >= 0; i--)
+			{
+				if (data[i] == c)
+					return i;
+			}
+
+			return -1;
+		}
+
 		inline void Replace(const char& c, const char& replaceWith)
 		{
 			const int32 l = GetLength();
@@ -210,7 +235,7 @@ namespace cm
 			return result;
 		}
 
-		inline bool32 StartsWith(const CString& str)
+		inline bool32 StartsWith(const CString& str) const
 		{
 			const int32 l = GetLength();
 			const int32 ll = str.GetLength();
@@ -279,6 +304,40 @@ namespace cm
 			return result;
 		}
 
+		ManagedArray<CString> Split(const int32& splitIndex) const
+		{
+			ManagedArray<CString> result = GameMemory::PushTransientArray<CString>(10);
+
+			const int32 len = GetLength();
+
+			int32 start = 0;
+			int32 end = 0;
+			for (; end < len; end++)
+			{
+				if (end == splitIndex)
+				{
+					if (start != end)
+					{
+						result[result.count].CopyFrom(*this, start, end - 1);
+						result.count++;
+						start = end + 1;
+					}
+					else
+					{
+						start++;
+					}
+				}
+			}
+
+			if (end != start)
+			{
+				result[result.count].CopyFrom(*this, start, end - 1);
+				result.count++;
+			}
+
+			return result;
+		}
+
 		inline void ToUpperCase()
 		{
 			int32 l = GetLength();
@@ -297,7 +356,7 @@ namespace cm
 
 		inline int64 ToUint64() const
 		{
-			uint64 result = atoll(data);
+			uint64 result = std::stoull(data);
 
 			return result;
 		}
@@ -415,8 +474,23 @@ namespace cm
 
 		inline CString StripFileExtension(const CString& str)
 		{
-			ManagedArray<CString> pathElements = str.Split('.');
-			CString result = pathElements[0];
+			int32 l = str.GetLength();
+			int32 split = -1;
+
+			for (int32 i = l - 1; i >= 0; i--)
+			{
+				if (str[i] == '\\' || str[i] == '/')
+					break;
+				if (str[i] == '.')
+					split = i;
+			}
+
+			CString result = {};
+			if (split >= 0)
+			{
+				ManagedArray<CString> pathElements = str.Split(split);
+				result = pathElements[0];
+			}
 
 			return result;
 		}
@@ -431,8 +505,11 @@ namespace cm
 
 		inline CString GetFileExtension(const CString& str)
 		{
-			ManagedArray<CString> pathElements = str.Split('.');
-			return pathElements[pathElements.count - 1];
+			CString stripped = StripFilePath(str);
+			int32 index = stripped.FindFirstOf('.');
+			CString result = stripped.Split(index)[1];
+
+			return result;
 		}
 	};
 
@@ -543,12 +620,12 @@ namespace cm
 			return &data[0];
 		}
 
-	private:
 		LargeString()
 		{
 			current = 0;
 		}
 
+	private:
 		uint64 current;
 		char data[size];
 	};

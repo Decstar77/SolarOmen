@@ -12,7 +12,7 @@ struct VSOutput
 VSOutput main(float3 pos : Position, float3 normal : Normal, float2 uv : TexCord)
 {
 	//VSOutput output;
-	//output.pos = float4(pos, 1.0f);
+	//output.pos = mul(float4(pos, 1.0f), mvp);
 	//output.uv = uv;
 	//output.normal = normal;
 	//output.world_position = pos;

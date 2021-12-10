@@ -50,7 +50,7 @@ namespace cm
 	//	return index;
 	//}
 
-	TextureData LoadTexture(CString filePath)
+	TextureAsset LoadTexture(CString filePath)
 	{
 		int32 width = -1;
 		int32 height = -1;
@@ -71,7 +71,7 @@ namespace cm
 			// @NOTE: The channel value is the TRUE amount of channel without pad/req comps count.
 			// @NOTE: Thus we set it to 4
 
-			TextureData texture = {};
+			TextureAsset texture = {};
 			texture.width = width;
 			texture.height = height;
 			texture.pixels = pixels;
@@ -95,7 +95,7 @@ namespace cm
 			// @NOTE: The channel value is the TRUE amount of channel without pad/req comps count.
 			// @NOTE: Thus we set it to 4
 
-			TextureData texture = {};
+			TextureAsset texture = {};
 			texture.width = width;
 			texture.height = height;
 			texture.pixels = pixels;

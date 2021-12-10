@@ -12,7 +12,7 @@
 namespace cm
 {
 #define PROFILE_FUNCTION() ProfileClock __PROFILE_CLOCK__(__func__)
-
+#define GetPlatofrmState() PlatformState *ps = PlatformState::Get()
 	class PlatformState
 	{
 	public:
@@ -20,8 +20,8 @@ namespace cm
 		int64 console;
 		bool32 rawInput;
 		bool32 isFocused;
-		int32 client_width;
-		int32 client_height;
+		int32 clientWidth;
+		int32 clientHeight;
 		real32 aspect;
 
 		inline static PlatformState* Get()
@@ -29,9 +29,9 @@ namespace cm
 			return platformState;
 		}
 
-		inline static void Initailize(PlatformState* state)
+		inline static void Initialize(PlatformState* ps)
 		{
-			platformState = state;
+			platformState = ps;
 		}
 
 	private:
@@ -44,29 +44,55 @@ namespace cm
 		uint64 creationTime;
 		uint64 lastAcessTime;
 		uint64 lastWriteTime;
-		uint64 size_bytes;
+		uint64 sizeBytes;
 		void* data;
 	};
 
-	struct PlatformFolder
+
+	enum class SnapShotType : uint8
 	{
-		CString path;
-		std::vector<PlatformFile> files;
+		// NOTE: Messages 0 and 1 are resvered for the platform layer
+		//INVALID = 0
+		//CONNECTION = 1 
+		TRANSFORM = 2,
 	};
 
-	class PlatformNetwork
+	struct SnapShotTransform
 	{
-	public:
-		static void Initialize();
-		static void Shutdown();
+		SnapShotType type;
+		Vec3f position;
+		Quatf orientation;
 	};
 
-	CString PlatformOpenNFileDialogAndReturnPath();
-	int32 PlatformCompareFileTimes(uint64 fileTime1, uint64 fileTime2);
+	namespace Platform
+	{
+		bool32 Initialize(PlatformState* ps, const char* title, int32 width, int32 height, bool32 console);
+		bool32 ProcessInput(PlatformState* ps, Input* input);
+		void PostQuitMessage();
+		void Shutdown();
 
-	PlatformFolder DEBUGLoadEnitreFolder(const CString& file, const CString& fileTypes, bool32 metaDataOnly);
-	PlatformFile DEBUGLoadEntireFile(const CString& file, bool32 metaDataOnly);
-	void DEBUGFreeFile(PlatformFile* file);
-	void DEBUGFreeFolder(PlatformFolder* folder);
-	bool32 DEBUGWriteFile(PlatformFile file, const CString& name);
+		void IntializeThreads();
+		void ShutdownThreads();
+
+		void IntializeNetworking();
+		void NetworkStart();
+		void NetworkStart(const CString& ip);
+		bool32 NetworkConnectionEsablished();
+		int32 NetworkReceive(void* buf, int32 bufSizeBytes);
+		void NetworkSend(void* buf, int32 bufSizeBytes);
+		void ShutdownNetworking();
+
+		bool32 WriteFile(const CString& path, void* data, uint32 sizeBytes);
+		ManagedArray<CString> LoadEntireFolder(const CString& path, const CString& fileTypes);
+		PlatformFile LoadEntireFile(const CString& path, bool32 metaDataOnly);
+	}
+
+	//CString PlatformOpenNFileDialogAndReturnPath();
+	//int32 PlatformCompareFileTimes(uint64 fileTime1, uint64 fileTime2);
+
+	//PlatformFolder DEBUGLoadEnitreFolder(const CString& file, const CString& fileTypes, bool32 metaDataOnly) { return {}; };
+	//PlatformFile DEBUGLoadEntireFile(const CString& file, bool32 metaDataOnly);
+	//void DEBUGFreeFile(PlatformFile* file);
+	//void DEBUGFreeFolder(PlatformFolder* folder) {};
+	//bool32 DEBUGWriteFile(PlatformFile file, const CString& name);
 }

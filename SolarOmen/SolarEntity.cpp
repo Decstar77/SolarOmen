@@ -235,15 +235,6 @@ namespace cm
 		boundingBoxLocal = collisionComp.GetBoundingBox();
 	}
 
-	RacingWaypoint* Entity::GetRacingWaypointComponent()
-	{
-		Assert(IsValid(), "GetRacingWaypointComponent, entity is not valid");
-
-		RacingWaypoint* comp = &gs->racingWaypointComponents[id.index];
-
-		return comp;
-	}
-
 
 	AABB CollisionComponent::GetBoundingBox()
 	{

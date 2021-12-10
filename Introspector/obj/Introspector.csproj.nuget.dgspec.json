@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "F:\\codes\\SolarOmen\\SolarOmen\\Introspector\\Introspector.csproj": {}
+    "F:\\codes\\SolarOmen\\SolarOmen-2\\Introspector\\Introspector.csproj": {}
   },
   "projects": {
-    "F:\\codes\\SolarOmen\\SolarOmen\\Introspector\\Introspector.csproj": {
+    "F:\\codes\\SolarOmen\\SolarOmen-2\\Introspector\\Introspector.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\codes\\SolarOmen\\SolarOmen\\Introspector\\Introspector.csproj",
+        "projectUniqueName": "F:\\codes\\SolarOmen\\SolarOmen-2\\Introspector\\Introspector.csproj",
         "projectName": "Introspector",
-        "projectPath": "F:\\codes\\SolarOmen\\SolarOmen\\Introspector\\Introspector.csproj",
+        "projectPath": "F:\\codes\\SolarOmen\\SolarOmen-2\\Introspector\\Introspector.csproj",
         "packagesPath": "C:\\Users\\porte\\.nuget\\packages\\",
-        "outputPath": "F:\\codes\\SolarOmen\\SolarOmen\\Introspector\\obj\\",
+        "outputPath": "F:\\codes\\SolarOmen\\SolarOmen-2\\Introspector\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

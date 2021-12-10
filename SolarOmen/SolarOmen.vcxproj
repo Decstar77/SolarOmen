@@ -60,6 +60,7 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>$(SolutionDir)SolarOmen\vendor\assimp\include;$(SolutionDir)SolarOmen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>26495</DisableSpecificWarnings>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -81,6 +82,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>$(SolutionDir)SolarOmen\vendor\assimp\include;$(SolutionDir)SolarOmen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>26495</DisableSpecificWarnings>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -92,51 +94,37 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="components\SolarCamera.cpp" />
-    <ClCompile Include="components\SolarLight.cpp" />
+    <ClCompile Include="game\components\SolarCamera.cpp" />
     <ClCompile Include="core\SolarArray.cpp" />
+    <ClCompile Include="core\SolarAssets.cpp" />
+    <ClCompile Include="core\SolarDebug.cpp" />
     <ClCompile Include="core\SolarQueue.cpp" />
-    <ClCompile Include="Debug.cpp" />
-    <ClCompile Include="Editor.cpp" />
-    <ClCompile Include="editor\Gizmos.cpp" />
-    <ClCompile Include="FileParsers.cpp" />
-    <ClCompile Include="ManifoldTests.cpp" />
-    <ClCompile Include="editor\NodeWindow.cpp" />
-    <ClCompile Include="physics\MK2\SolarCollisionMK2.cpp" />
-    <ClCompile Include="physics\MK2\SolarConstraintMK2.cpp" />
-    <ClCompile Include="physics\MK2\SolarGJKMK2.cpp" />
-    <ClCompile Include="physics\SolarBody.cpp" />
-    <ClCompile Include="physics\SolarConstraints.cpp" />
-    <ClCompile Include="physics\SolarGJK.cpp" />
-    <ClCompile Include="physics\SolarMatrix.cpp" />
-    <ClCompile Include="physics\SolarPhysics.cpp" />
-    <ClCompile Include="physics\MK2\SolarPhysicsMK2.cpp" />
-    <ClCompile Include="physics\MK2\SolarRigidBodyMK2.cpp" />
     <ClCompile Include="core\SolarPlatform.cpp" />
+    <ClCompile Include="game\Entity.cpp" />
+    <ClCompile Include="game\GameEditor.cpp" />
+    <ClCompile Include="game\TankGame.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="ManifoldTests.cpp" />
     <ClCompile Include="platform\win32\BlockingQueue.cpp" />
     <ClCompile Include="platform\win32\Clock.cpp" />
     <ClCompile Include="platform\win32\Network.cpp" />
     <ClCompile Include="platform\win32\RetainLock.cpp" />
     <ClCompile Include="platform\win32\Threading.cpp" />
+    <ClCompile Include="platform\win32\Win32Audio.cpp" />
     <ClCompile Include="platform\win32\Win32Network.cpp" />
-    <ClCompile Include="renderer\dx11\SolarMesh.cpp" />
-    <ClCompile Include="renderer\dx11\SolarRenderTarget.cpp" />
-    <ClCompile Include="renderer\dx11\SolarShader.cpp" />
-    <ClCompile Include="renderer\dx11\SolarTexture.cpp" />
-    <ClCompile Include="serialization\PackedLoaders.cpp" />
-    <ClCompile Include="serialization\RawLoaders.cpp" />
+    <ClCompile Include="platform\win32\Win32Window.cpp" />
+    <ClCompile Include="core\SolarMemory.cpp" />
+    <ClCompile Include="core\SolarString.cpp" />
+    <ClCompile Include="core\SolarRenderer.cpp" />
+    <ClCompile Include="renderer\dx11\DX11Commands.cpp" />
+    <ClCompile Include="renderer\dx11\DX11Renderer.cpp" />
+    <ClCompile Include="renderer\dx11\DX11StaticMesh.cpp" />
+    <ClCompile Include="renderer\dx11\DX11Shader.cpp" />
+    <ClCompile Include="renderer\dx11\DX11Texture.cpp" />
     <ClCompile Include="serialization\RawModelImporter.cpp" />
+    <ClCompile Include="serialization\RawShaderImporter.cpp" />
     <ClCompile Include="serialization\RawTextureImporter.cpp" />
     <ClCompile Include="SimpleColliders.cpp" />
-    <ClCompile Include="SolarAssets.cpp" />
-    <ClCompile Include="SolarAudio.cpp" />
-    <ClCompile Include="editor\SolarEditor.cpp" />
-    <ClCompile Include="SolarEntity.cpp" />
-    <ClCompile Include="SolarSettings.cpp" />
-    <ClCompile Include="core\SolarMemory.cpp" />
-    <ClCompile Include="renderer\SolarRenderer.cpp" />
-    <ClCompile Include="core\SolarString.cpp" />
-    <ClCompile Include="SolarSpline.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
     <ClCompile Include="vendor\imgui\ImGuizmo.cpp" />
     <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
@@ -145,59 +133,45 @@
     <ClCompile Include="vendor\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
     <ClCompile Include="vendor\imgui_node\imnodes.cpp" />
-    <ClCompile Include="Win32Platform.cpp" />
-    <ClCompile Include="SolarOmen.cpp" />
-    <ClCompile Include="renderer\SolarRendererMK1.cpp" />
     <ClCompile Include="platform\win32\Win32Socket.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="components\SolarCamera.h" />
-    <ClInclude Include="components\SolarLight.h" />
+    <ClInclude Include="core\SolarAudio.h" />
+    <ClInclude Include="game\components\SolarCamera.h" />
     <ClInclude Include="core\SolarArray.h" />
+    <ClInclude Include="core\SolarAssets.h" />
+    <ClInclude Include="core\SolarDebug.h" />
+    <ClInclude Include="core\SolarEditor.h" />
+    <ClInclude Include="core\SolarGame.h" />
+    <ClInclude Include="core\SolarHashMap.h" />
     <ClInclude Include="core\SolarMath.h" />
     <ClInclude Include="core\Defines.h" />
     <ClInclude Include="core\SolarCore.h" />
     <ClInclude Include="core\SolarQueue.h" />
-    <ClInclude Include="Editor.h" />
-    <ClInclude Include="editor\Gizmos.h" />
-    <ClInclude Include="FileParsers.h" />
+    <ClInclude Include="game\Entity.h" />
+    <ClInclude Include="game\GameEditor.h" />
+    <ClInclude Include="game\TankGame.h" />
     <ClInclude Include="ManifoldTests.h" />
-    <ClInclude Include="editor\NodeWindow.h" />
-    <ClInclude Include="physics\SolarConstraints.h" />
-    <ClInclude Include="physics\SolarGJK.h" />
-    <ClInclude Include="physics\MK2\SolarCollisionMK2.h" />
-    <ClInclude Include="physics\MK2\SolarConstraintMK2.h" />
-    <ClInclude Include="physics\MK2\SolarGJKMK2.h" />
-    <ClInclude Include="physics\MK2\SolarRigidBodyMK2.h" />
-    <ClInclude Include="physics\SolarBody.h" />
-    <ClInclude Include="physics\SolarMatrix.h" />
     <ClInclude Include="platform\win32\BlockingQueue.h" />
     <ClInclude Include="platform\win32\Clock.h" />
     <ClInclude Include="platform\win32\RetainLock.h" />
     <ClInclude Include="platform\win32\Threading.h" />
-    <ClInclude Include="renderer\dx11\D3D11Header.h" />
-    <ClInclude Include="renderer\dx11\SolarShader.h" />
-    <ClInclude Include="serialization\assetId\ModelId.h" />
-    <ClInclude Include="serialization\assetId\TextureId.h" />
-    <ClInclude Include="serialization\assetId\WorldId.h" />
-    <ClInclude Include="serialization\RawTextureImporter.h" />
-    <ClInclude Include="serialization\assetId\ShaderId.h" />
-    <ClInclude Include="serialization\PackedLoaders.h" />
-    <ClInclude Include="serialization\RawLoaders.h" />
-    <ClInclude Include="serialization\RawModelImporter.h" />
-    <ClInclude Include="SimpleColliders.h" />
-    <ClInclude Include="SolarAssets.h" />
-    <ClInclude Include="SolarAudio.h" />
-    <ClInclude Include="editor\SolarEditor.h" />
-    <ClInclude Include="SolarSettings.h" />
+    <ClInclude Include="platform\win32\Win32Window.h" />
     <ClInclude Include="core\SolarInput.h" />
     <ClInclude Include="core\SolarMemory.h" />
-    <ClInclude Include="SolarOmen.h" />
-    <ClInclude Include="physics\SolarPhysics.h" />
-    <ClInclude Include="renderer\SolarRendererMK1.h" />
-    <ClInclude Include="renderer\SolarRenderer.h" />
     <ClInclude Include="core\SolarString.h" />
-    <ClInclude Include="SolarSpline.h" />
+    <ClInclude Include="core\SolarRenderer.h" />
+    <ClInclude Include="renderer\dx11\DX11Header.h" />
+    <ClInclude Include="renderer\dx11\DX11Commands.h" />
+    <ClInclude Include="renderer\dx11\DX11Renderer.h" />
+    <ClInclude Include="renderer\dx11\DX11StaticMesh.h" />
+    <ClInclude Include="renderer\dx11\DX11Shader.h" />
+    <ClInclude Include="renderer\dx11\DX11Texture.h" />
+    <ClInclude Include="renderer\dx11\DX11Topology.h" />
+    <ClInclude Include="serialization\RawModelImporter.h" />
+    <ClInclude Include="serialization\RawShaderImporter.h" />
+    <ClInclude Include="serialization\RawTextureImporter.h" />
+    <ClInclude Include="SimpleColliders.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\ImGuizmo.h" />
@@ -211,7 +185,6 @@
     <ClInclude Include="vendor\imgui_node\imnodes_internal.h" />
     <ClInclude Include="vendor\std_image\std_image.h" />
     <ClInclude Include="core\SolarPlatform.h" />
-    <ClInclude Include="Debug.h" />
     <ClInclude Include="platform\win32\Win32Socket.h" />
   </ItemGroup>
   <ItemGroup>

@@ -1,20 +1,19 @@
 #pragma once
+#include "Defines.h"
 
-#include "../SolarOmen.h"
-#include "../renderer/SolarRenderer.h"
-
-
-
-#include "../vendor/imgui/imgui.h"
-#include "../vendor/imgui/imgui_impl_win32.h"
-#include "../vendor/imgui/imgui_impl_dx11.h"
-#include "../vendor/imguizmo/ImGuizmo.h"
-#include "../vendor/imgui_node/imnodes.h"
-
-#include "NodeWindow.h"
-#include "Gizmos.h"
-
-IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+//#include "../SolarOmen.h"
+//#include "../renderer/SolarRenderer.h"
+//
+//#include "../vendor/imgui/imgui.h"
+//#include "../vendor/imgui/imgui_impl_win32.h"
+//#include "../vendor/imgui/imgui_impl_dx11.h"
+//#include "../vendor/imguizmo/ImGuizmo.h"
+//#include "../vendor/imgui_node/imnodes.h"
+//
+//#include "NodeWindow.h"
+//#include "Gizmos.h"
+//
+//IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace cm
 {
@@ -27,7 +26,7 @@ namespace cm
 
 
 
-	class UndoAction
+	/*class UndoAction
 	{
 	public:
 		enum class Value
@@ -182,16 +181,17 @@ namespace cm
 
 		Gizmo gizmo;
 		NodeWindow nodeWindow;
-	};
+	};*/
 
 	////////////////////////////////////////////////////
 	// @NOTE: Platform layer call this
 	////////////////////////////////////////////////////
 
-	void InitializeEditorState(GameState* gs, RenderState* rs, AssetState* as, EditorState* es, PlatformState* ws);
-
-	void RenderEditor(EditorState* es);
-
-	void UpdateEditor(GameState* gs, RenderState* rs, AssetState* as, EditorState* es, Input* input,
-		PlatformState* ws, EntityRenderGroup* renderGroup);
+	namespace Editor
+	{
+		bool32 Initialize();
+		void RenderEditor();
+		void UpdateEditor(EntityRenderGroup* renderGroup, real32 dt);
+		void Shutdown();
+	}
 }

@@ -1,4 +1,4 @@
-#include <fstream>
+//#include <fstream>
 #include <filesystem>
 
 #include "core/SolarPlatform.h"
@@ -327,46 +327,46 @@ namespace cm
 		}
 	}
 
-	void InitializeRawInput(PlatformState* win)
-	{
-		// @NOTE: Mouse
-		{
-			RAWINPUTDEVICE rid = {};
-			rid.usUsagePage = 0x1;
-			rid.usUsage = 0x02;
-			rid.dwFlags = 0;
-			rid.hwndTarget = NULL; // @NOTE: I think this means listen to events outside of window
+	//void InitializeRawInput(PlatformState* win)
+	//{
+	//	// @NOTE: Mouse
+	//	{
+	//		RAWINPUTDEVICE rid = {};
+	//		rid.usUsagePage = 0x1;
+	//		rid.usUsage = 0x02;
+	//		rid.dwFlags = 0;
+	//		rid.hwndTarget = NULL; // @NOTE: I think this means listen to events outside of window
 
-			if (RegisterRawInputDevices(&rid, 1, sizeof(rid)))
-			{
-				win->rawInput = true;
-			}
-			else
-			{
-				win->rawInput = false;
-				LOG("Could not init raw input");
-			}
-		}
+	//		if (RegisterRawInputDevices(&rid, 1, sizeof(rid)))
+	//		{
+	//			win->rawInput = true;
+	//		}
+	//		else
+	//		{
+	//			win->rawInput = false;
+	//			LOG("Could not init raw input");
+	//		}
+	//	}
 
-		// @NOTE: Keyboard
-		{
-			RAWINPUTDEVICE rid = {};
-			rid.usUsagePage = 0x1;
-			rid.usUsage = 0x06;
-			rid.dwFlags = 0;
-			rid.hwndTarget = NULL; // @NOTE: I think this means listen to events outside of window
+	//	// @NOTE: Keyboard
+	//	{
+	//		RAWINPUTDEVICE rid = {};
+	//		rid.usUsagePage = 0x1;
+	//		rid.usUsage = 0x06;
+	//		rid.dwFlags = 0;
+	//		rid.hwndTarget = NULL; // @NOTE: I think this means listen to events outside of window
 
-			if (RegisterRawInputDevices(&rid, 1, sizeof(rid)))
-			{
-				win->rawInput = true;
-			}
-			else
-			{
-				win->rawInput = false;
-				LOG("Could not init raw input");
-			}
-		}
-	}
+	//		if (RegisterRawInputDevices(&rid, 1, sizeof(rid)))
+	//		{
+	//			win->rawInput = true;
+	//		}
+	//		else
+	//		{
+	//			win->rawInput = false;
+	//			LOG("Could not init raw input");
+	//		}
+	//	}
+	//}
 
 	void StringTests(TransientState* ts)
 	{

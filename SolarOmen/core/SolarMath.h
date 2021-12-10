@@ -645,6 +645,15 @@ namespace cm
 		return result;
 	}
 
+
+	template <typename T>
+	inline constexpr Vec2<T> operator*(const Vec2<T>& a, const Vec2<T>& b)
+	{
+		Vec2<T> result = Vec2<T>(a.x * b.x, a.y * b.y);
+
+		return result;
+	}
+
 	template <typename T>
 	inline constexpr Vec2<T> operator/(const Vec2<T>& a, const Vec2<T>& b)
 	{

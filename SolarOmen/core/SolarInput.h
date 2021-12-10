@@ -3,6 +3,8 @@
 
 namespace cm
 {
+#define GetInput() Input *input = Input::Get()
+
 	class Input
 	{
 	public:
