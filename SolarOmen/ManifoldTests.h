@@ -43,6 +43,8 @@ namespace cm
 
 	bool CheckManifoldAABB(const AABB& a, const AABB& b, Manifold* info);
 
+	bool CheckManifoldSphereAABB(const Sphere& sphere, const AABB& aabb, Manifold* info);
+
 	bool SweepManifoldSphere(const Sphere& sA, const Vec3f& velA, const Sphere& sB, const Vec3f& velB, real32 dt, Manifold* info);
 }
 

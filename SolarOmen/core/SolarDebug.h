@@ -28,7 +28,9 @@ namespace cm
 	{
 		void Initialize();
 
+		void DrawPoint(const Vec3f& p, real32 size = 0.5f);
 		void DrawLine(const Vec3f& a, const Vec3f& b);
+		void DrawRay(const Ray& ray);
 		void DrawSphere(const Sphere& sphere);
 		void DrawAABB(const AABB& aabb);
 

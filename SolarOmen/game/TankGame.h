@@ -1,12 +1,14 @@
 #pragma once
 #include "components/SolarCamera.h"
 #include "Entity.h"
-
+#include "ManifoldTests.h"
 namespace cm
 {
 	struct TransformComponent
 	{
+		bool32 cached;
 		Transform transform;
+		Transform worldTransform;
 	};
 
 	struct NameComponent
@@ -21,8 +23,6 @@ namespace cm
 		AssetId textureId;
 		AssetId shaderId;
 	};
-
-
 
 	struct GridCell
 	{
@@ -54,6 +54,13 @@ namespace cm
 		void DebugDraw();
 	};
 
+	struct RaycastResult
+	{
+		bool32 hit;
+		Entity entity;
+		RaycastInfo rayInfo;
+	};
+
 	class Room
 	{
 	public:
@@ -62,11 +69,10 @@ namespace cm
 
 		Camera playerCamera;
 		Vec3f playerCameraOffset;
-		Entity tank;
-
-		Entity player2Tank;
 
 		Grid grid;
+
+		FixedArray<Entity, ENTITY_STORAGE_COUNT> bullets;
 
 		FixedArray<Entity, ENTITY_STORAGE_COUNT> entities;
 		FixedArray<EntityId, ENTITY_STORAGE_COUNT - 1> entityFreeList;
@@ -75,6 +81,7 @@ namespace cm
 		FixedArray<NameComponent, ENTITY_STORAGE_COUNT> nameComponents;
 		FixedArray<RenderComponent, ENTITY_STORAGE_COUNT> renderComponents;
 		FixedArray<ColliderComponent, ENTITY_STORAGE_COUNT> colliderComponents;
+		FixedArray<BrainComponent, ENTITY_STORAGE_COUNT> brainComponents;
 
 		uint32 entityLoopIndex = 0;
 	public:
@@ -82,19 +89,25 @@ namespace cm
 		Entity CreateEntity(const CString& name);
 
 		// @TODO: Remember to reconstruct parent/child and clear any components too !!
-		//void DestoryEntity(const Entity& entity);
+		void DestoryEntity(Entity entity);
 
 		void BeginEntityLoop();
 		Entity GetNextEntity();
+
+		RaycastResult ShootRayThrough(const Ray& ray);
 
 		void Initialize();
 		void Update(real32 dt);
 		void ConstructRenderGroup(EntityRenderGroup* renderGroup);
 		void Shutdown();
 
+
+		void DEBUGDrawAllColliders();
+
 	private:
 		void CreateEntityFreeList();
 		EntityId GetNextFreeEntityId();
+		void PushFreeEntityId(EntityId id);
 
 	};
 

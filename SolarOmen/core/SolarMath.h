@@ -469,6 +469,14 @@ namespace cm
 	};
 
 	template <typename T>
+	inline T MagSqrd(const Vec2<T>& a)
+	{
+		T result = a.x * a.x + a.y * a.y;
+
+		return result;
+	}
+
+	template <typename T>
 	inline T Mag(const Vec2<T>& a)
 	{
 		T result = Sqrt(a.x * a.x + a.y * a.y);
@@ -481,7 +489,7 @@ namespace cm
 	{
 		T magA = Mag(a);
 
-		if (Equal(magA, 0.0))
+		if (Equal(magA, static_cast<T>(0.0)))
 			return Vec2<T>();
 
 		Vec2<T> result = a / magA;

@@ -1,5 +1,6 @@
 #pragma once
 #include "core/SolarCore.h"
+#include "game/components/SolarCamera.h"
 
 namespace cm
 {
@@ -16,6 +17,8 @@ namespace cm
 		real32 frameTimes[256] = {};
 		real32 minTime = REAL_MAX;
 		real32 maxTime = REAL_MIN;
+
+		Camera camera;
 
 		inline static EditorState* Get() { return editorState; }
 		inline static void Initialize(EditorState* es) { editorState = es; }

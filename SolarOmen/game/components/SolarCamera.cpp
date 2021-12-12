@@ -26,7 +26,7 @@ namespace cm
 		Mat4f proj = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
 		Mat4f view = Inverse(transform.CalculateTransformMatrix());
 
-		Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)platformState->clientHeight,
+		Vec4f normal_coords = GetNormalisedDeviceCoordinates((real32)platformState->clientWidth,
 			(real32)platformState->clientHeight, pixelPoint.x, pixelPoint.y);
 
 		Vec4f view_coords = ToViewCoords(proj, normal_coords);

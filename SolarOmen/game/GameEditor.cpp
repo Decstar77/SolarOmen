@@ -21,11 +21,21 @@ namespace cm
 
 		GetPlatofrmState();
 		GetRenderState();
-
 		ImGui_ImplWin32_Init((void*)ps->window);
 		ImGui_ImplDX11_Init(rs->device, rs->context);
 
 		EditorState::Initialize(GameMemory::PushPermanentStruct<EditorState>());
+		GetEditorState();
+
+
+
+		es->camera.transform = Transform();
+		es->camera.transform.position.y = 1;
+		es->camera.yaw = 90.0f;
+		es->camera.far_ = 250.0f;
+		es->camera.near_ = 0.3f;
+		es->camera.yfov = 45.0f;
+		es->camera.aspect = (real32)ps->clientWidth / (real32)ps->clientHeight;
 
 		return true;
 	}
@@ -129,6 +139,45 @@ namespace cm
 		ImGui::PopStyleVar();
 	}
 
+	static void DoEntityTreeDisplay(Entity entity)
+	{
+		ImGui::PushID(entity.GetId().index);
+		if (ImGui::TreeNode(entity.GetName().GetCStr()))
+		{
+			//ImGui::Text(entity.GetId().ToString().GetCStr());
+			//ImGui::SameLine();
+			//if (ImGui::SmallButton("Select"))
+			//{
+			//	if (entity != es->selectedEntity)
+			//	{
+			//		UndoEntry entry = {};
+			//		entry.action = UndoAction::Value::SELECTION_CHANGE;
+			//		entry.selectionChange.current = entity->GetId();
+			//		entry.selectionChange.previous = es->selectedEntity ? es->selectedEntity->GetId() : EntityId();
+
+			//		es->selectedEntity = entity;
+			//		es->undoSystem.Do(entry);
+			//	}
+			//}
+
+			//DisplayTransform(&entity->transform);
+
+			for (Entity* child = entity.GetFirstChild(); child != nullptr; child = child->GetSiblingAhead())
+			{
+				DoEntityTreeDisplay(*child);
+			}
+
+			//Entity* parent = entity->GetFirstChild();
+			//if (parent)
+			//{
+			//	DoDisplayEntity(es, parent);
+			//}
+
+			ImGui::TreePop();
+		}
+		ImGui::PopID();
+	}
+
 	static void ShowRoomWindow()
 	{
 		GetGameState();
@@ -143,13 +192,82 @@ namespace cm
 			room->BeginEntityLoop();
 			while (Entity entity = room->GetNextEntity())
 			{
-				ImGui::Text(entity.GetName().GetCStr());
+				Entity* parent = entity.GetParent();
+				if (!parent)
+				{
+					DoEntityTreeDisplay(entity);
+				}
 			}
 		}
 
 		ImGui::End();
 		ImGui::PopStyleVar();
 	}
+
+	void OperateCamera(Camera* camera, real32 dtime)
+	{
+		GetInput();
+		if (input->mb2)
+		{
+			input->mouse_locked = true;
+
+			Vec2f delta = input->mouseDelta;
+			delta.y = -delta.y;
+
+			real32 mouse_sensitivity = 0.1f;
+
+			real32 nyaw = camera->yaw - delta.x * mouse_sensitivity;
+			real32 npitch = camera->pitch + delta.y * mouse_sensitivity;
+
+			npitch = Clamp(npitch, -89.0f, 89.0f);
+			camera->yaw = Lerp(camera->yaw, nyaw, 0.67f);
+			camera->pitch = Lerp(camera->pitch, npitch, 0.67f);
+
+			Vec3f direction;
+			direction.x = Cos(DegToRad(camera->yaw)) * Cos(DegToRad(camera->pitch));
+			direction.y = Sin(DegToRad(camera->pitch));
+			direction.z = Sin(DegToRad(camera->yaw)) * Cos(DegToRad(camera->pitch));
+
+			Transform transform = camera->transform;
+
+			Mat4f result = LookAtLH(transform.position, transform.position + direction, Vec3f(0, 1, 0));
+
+			camera->transform.orientation = Mat4ToQuat(result);
+
+			Basisf basis = camera->transform.GetBasis();
+
+			real32 move_speed = 6.0f;
+			if (input->w)
+			{
+				camera->transform.position += (basis.forward * move_speed * dtime);
+			}
+			if (input->s)
+			{
+				camera->transform.position += (-1.0f * basis.forward * move_speed * dtime);
+			}
+			if (input->a)
+			{
+				camera->transform.position += (-1.0f * basis.right * move_speed * dtime);
+			}
+			if (input->d)
+			{
+				camera->transform.position += (basis.right * move_speed * dtime);
+			}
+			if (input->q)
+			{
+				camera->transform.position += (Vec3f(0, 1, 0) * move_speed * dtime);
+			}
+			if (input->e)
+			{
+				camera->transform.position += (Vec3f(0, -1, 0) * move_speed * dtime);
+			}
+		}
+		else
+		{
+			input->mouse_locked = false;
+		}
+	}
+
 
 	void Editor::UpdateEditor(EntityRenderGroup* renderGroup, real32 dt)
 	{
@@ -159,19 +277,19 @@ namespace cm
 		//ImGuizmo::BeginFrame();
 
 		GetEditorState();
-
-		ShowMainMenuBar();
-		if (es->showConsoleWindow) ShowConsoleWindow();
-		if (es->showPerformanceWindow) ShowPerformanceWindow(dt);
-		if (es->showRoomWindow) ShowRoomWindow();
-
 		GetInput();
+
 		static bool inGame = false;
 		if (IsKeyJustDown(input, f5))
 		{
 			inGame = !inGame;
 		}
-
+		if (IsKeyJustDown(input, f6))
+		{
+			GetGameState();
+			ZeroStruct(&gs->currentRoom);
+			gs->currentRoom.Initialize();
+		}
 
 		if (inGame)
 		{
@@ -179,10 +297,19 @@ namespace cm
 		}
 		else
 		{
-			//ImGui::ShowDemoWindow();
-			//ShowPerformanceWindow(dt);
-
+			GetGameState();
+			gs->currentRoom.DEBUGDrawAllColliders();
+			ShowMainMenuBar();
+			OperateCamera(&es->camera, dt);
+			renderGroup->playerCamera = es->camera;
 		}
+
+		if (es->showConsoleWindow) ShowConsoleWindow();
+		if (es->showPerformanceWindow) ShowPerformanceWindow(dt);
+		if (es->showRoomWindow) ShowRoomWindow();
+
+
+
 	}
 
 	void Editor::Shutdown()

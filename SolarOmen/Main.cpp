@@ -16,8 +16,8 @@ int main(int argc, const char* argv[])
 	GameMemory::AllocateGameMemory(Gigabytes(1), Gigabytes(2));
 
 	PlatformState* platformState = GameMemory::PushPermanentStruct<PlatformState>();
-	//if (Platform::Initialize(platformState, "Solar omen", 1900, 1000, true))
-	if (Platform::Initialize(platformState, "Solar omen", 800, 600, true))
+	if (Platform::Initialize(platformState, "Solar omen", 1900, 1000, true))
+		//if (Platform::Initialize(platformState, "Solar omen", 800, 600, true))
 	{
 		Platform::IntializeThreads();
 		Platform::IntializeNetworking();
@@ -64,11 +64,9 @@ int main(int argc, const char* argv[])
 							}
 
 
-
-
 #if EDITOR							
-							Editor::UpdateEditor(renderGroupA, dt);
 							Game::ConstructRenderGroup(renderGroupA);
+							Editor::UpdateEditor(renderGroupA, dt);
 							Renderer::RenderGame(renderGroupA);
 							Editor::RenderEditor();
 #else
@@ -95,15 +93,15 @@ int main(int argc, const char* argv[])
 				}
 
 				Renderer::Shutdown();
-					}
+			}
 
 			Assets::Shutdown();
-				}
+		}
 
 		Audio::Shutdown();
 		Platform::ShutdownNetworking();
 		Platform::ShutdownThreads();
 		Platform::Shutdown();
-			}
+	}
 
-		}
+}

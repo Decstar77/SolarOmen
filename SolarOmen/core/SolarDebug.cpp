@@ -1,4 +1,5 @@
 #include "SolarDebug.h"
+#include "game/Entity.h"
 #include "SolarPlatform.h"
 #include <iostream>
 
@@ -25,6 +26,13 @@ namespace cm
 			}
 		}
 
+		void DrawPoint(const Vec3f& p, real32 size)
+		{
+			DrawLine(p - Vec3f(size, 0, 0), p + Vec3f(size, 0, 0));
+			DrawLine(p - Vec3f(0, size, 0), p + Vec3f(0, size, 0));
+			DrawLine(p - Vec3f(0, 0, size), p + Vec3f(0, 0, size));
+		}
+
 		void Debug::DrawLine(const Vec3f& a, const Vec3f& b)
 		{
 			GetDebugState();
@@ -41,6 +49,11 @@ namespace cm
 			ds->vertex_data[ds->next_vertex_index + 1] = b.y;
 			ds->vertex_data[ds->next_vertex_index + 2] = b.z;
 			ds->next_vertex_index += ds->vertex_stride;
+		}
+
+		void DrawRay(const Ray& ray)
+		{
+			DrawLine(ray.origin, ray.origin + ray.direction * 100.0f);
 		}
 
 		void Debug::DrawSphere(const Sphere& sphere)
@@ -153,11 +166,15 @@ namespace cm
 				Platform::NetworkStart("");
 				Platform::NetworkSend(nullptr, 0);
 			}
+			else if (cmd.StartsWith("hand"))
+			{
+				Platform::NetworkSend(nullptr, 0);
+			}
 			else if (cmd.StartsWith("pos"))
 			{
 				SnapShotTransform snap = {  };
-				snap.type = SnapShotType::TRANSFORM;
-				snap.position = Vec3f(203, 23, 394);
+				//snap.type = SnapShotType::TRANSFORM;
+				//snap.position = Vec3f(203, 23, 394);
 				Platform::NetworkSend(&snap, sizeof(snap));
 			}
 		}

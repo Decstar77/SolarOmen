@@ -398,7 +398,7 @@ namespace cm
 			}
 			else
 			{
-				Debug::LogInfo("Could not find texture");
+				//Debug::LogInfo("Could not find texture");
 			}
 
 			StaticMesh* mesh = rs->meshes.Get(entry->modelId);
@@ -410,7 +410,7 @@ namespace cm
 			}
 			else
 			{
-				Debug::LogInfo("Could not find mesh");
+				//Debug::LogInfo("Could not find mesh");
 			}
 		}
 

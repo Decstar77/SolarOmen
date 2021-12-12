@@ -48,22 +48,6 @@ namespace cm
 		void* data;
 	};
 
-
-	enum class SnapShotType : uint8
-	{
-		// NOTE: Messages 0 and 1 are resvered for the platform layer
-		//INVALID = 0
-		//CONNECTION = 1 
-		TRANSFORM = 2,
-	};
-
-	struct SnapShotTransform
-	{
-		SnapShotType type;
-		Vec3f position;
-		Quatf orientation;
-	};
-
 	namespace Platform
 	{
 		bool32 Initialize(PlatformState* ps, const char* title, int32 width, int32 height, bool32 console);

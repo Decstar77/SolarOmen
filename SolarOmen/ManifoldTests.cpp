@@ -93,19 +93,22 @@ namespace cm
 				tmin = (min.z > tmin) ? min.z : tmin;
 				tmax = (max.z < tmax) ? max.z : tmax;
 
-				info->closePoint = TravelDownRay(ray, tmin);
-				info->farPoint = TravelDownRay(ray, tmax);
-				info->t = tmin;
+				if (tmin > 0.0001f)
+				{
+					info->closePoint = TravelDownRay(ray, tmin);
+					info->farPoint = TravelDownRay(ray, tmax);
+					info->t = tmin;
 
-				Vec3f dmin = info->closePoint - aabb.min;
-				Vec3f dmax = info->closePoint - aabb.max;
+					Vec3f dmin = info->closePoint - aabb.min;
+					Vec3f dmax = info->closePoint - aabb.max;
 
-				Vec3f n1((real32)Equal(dmin.x, 0.0f), (real32)Equal(dmin.y, 0.0f), (real32)Equal(dmin.z, 0.0f));
-				Vec3f n2((real32)Equal(dmax.x, 0.0f), (real32)Equal(dmax.y, 0.0f), (real32)Equal(dmax.z, 0.0f));
+					Vec3f n1((real32)Equal(dmin.x, 0.0f), (real32)Equal(dmin.y, 0.0f), (real32)Equal(dmin.z, 0.0f));
+					Vec3f n2((real32)Equal(dmax.x, 0.0f), (real32)Equal(dmax.y, 0.0f), (real32)Equal(dmax.z, 0.0f));
 
-				info->normal = n2 - n1;
+					info->normal = n2 - n1;
 
-				result = true;
+					result = true;
+				}
 			}
 		}
 
@@ -253,6 +256,28 @@ namespace cm
 		}
 
 		return result;
+	}
+
+	bool CheckManifoldSphereAABB(const Sphere& sphere, const AABB& aabb, Manifold* info)
+	{
+		Vec3f sc = GetSphereCenter(sphere);
+		Vec3f p = ClosestPointOnAABB(aabb, sc);
+
+		real32 r = GetSphereRadius(sphere);
+		real32 r2 = r * r;
+		real32 d2 = DistanceSqrd(p, sc);
+
+		if (d2 - r2 < FLOATING_POINT_ERROR_PRESCION)
+		{
+			info->seperationDistance = r - Sqrt(d2);
+			info->normal = Normalize(sc - p);
+			info->pt_onA_World = info->normal * -r;
+			info->pt_onB_World = p;
+
+			return true;
+		}
+
+		return false;
 	}
 
 	static bool RaySphere(const Vec3f& rayStart, const Vec3f& rayDir, const Vec3f& sphereCenter, real32 r, real32* t1, real32* t2)
