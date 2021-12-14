@@ -169,7 +169,7 @@ namespace cm
 			else if (cmd.StartsWith("ping"))
 			{
 				GetGameState();
-				gs->currentRoom.mutliplayerState.pingTimer = 0.0f;
+				gs->currentRoom.multiplayerState.pingTimer = 0.0f;
 				SnapShot snap = {};
 				snap.type = SnapShotType::PING;
 				Platform::NetworkSend(&snap, sizeof(snap), "192.168.0.107", 54001);

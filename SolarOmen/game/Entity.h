@@ -265,7 +265,7 @@ namespace cm
 		static constexpr real32 TANK_MOVE_SPEED = 2.0f;
 		static constexpr real32 TANK_ROTATION_SPEED = 2.0f;
 
-		static constexpr real32 FIRE_RATE = 0.1f;
+		static constexpr real32 FIRE_RATE = 1.1f;
 		real32 lastFireTime = 0.0f;
 		bool canFire = false;
 
@@ -280,7 +280,7 @@ namespace cm
 		real32 tankRotation;
 
 		void FrameUpdate(Room* room, real32 dt);
-		void TickUpdate(Room* room, real32 dt);
+		void TickUpdate(Room* room, struct GameUpdate* update, real32 dt);
 
 	private:
 		void Start(Room* room, real32 dt);
@@ -310,7 +310,12 @@ namespace cm
 		Entity player2Tank;
 		Entity player2Turret;
 
+		Vec3f player2TankLerpPos;
+		Quatf player2TankLerpOri;
+		Vec3f player2TurretLerpPos;
+		Quatf player2TurretLerpOri;
 
+		void TickUpdate(Room* room, struct GameUpdate* update, real32 dt);
 		void FrameUpdate(Room* room, Entity entity, real32 dt);
 	};
 

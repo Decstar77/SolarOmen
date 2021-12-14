@@ -15,7 +15,7 @@ namespace cm
 		inline T* Add(const T& value)
 		{
 			uint32 index = count; count++;
-			Assert(index >= 0 && index < capcity, "Array, to many items");
+			Assert(index >= 0 && index < capcity, "Array, add to many items");
 
 			data[index] = value;
 
@@ -45,6 +45,18 @@ namespace cm
 				data[i] = data[i + 1];
 			}
 			count--;
+		}
+
+		inline void Remove(const T* ptr)
+		{
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (ptr == &data[i])
+				{
+					Remove(i);
+					return;
+				}
+			}
 		}
 
 		inline void Clear()

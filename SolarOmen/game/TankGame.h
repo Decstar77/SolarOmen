@@ -67,7 +67,7 @@ namespace cm
 		PLAYER1_SPAWN_BULLET,
 	};
 
-	struct GameTick
+	struct GameUpdate
 	{
 		int32 hostTick;
 		int32 peerTick;
@@ -82,29 +82,31 @@ namespace cm
 		Vec3f player2TurretPos;
 		Quatf player2TurretOri;
 
+		bool player1SpawnBullet;
+		bool player2SpawnBullet;
+
 		FixedArray<CommandType, 64> commands;
 	};
 
 	struct MultiplayerState
 	{
 		static constexpr int32 PACKETS_PER_SECOND = 30;
-		static constexpr int32 TICKS_PER_SECOND = 60;
+		static constexpr int32 TICKS_PER_SECOND = 30;
 
 		bool startedNetworkStuff;
 		bool connectionValid;
 		PlatformAddress myAddress;
 		PlatformAddress peerAddress;
 
-		bool sentTick;
+		bool sendTick;
 		int32 currentTick;
-		int32 peerTick;
 
 		FixedArray<SnapGameTick, 64> unproccessedPeerTicks;
+		FixedArray<GameUpdate, 64> gameUpdates;
 
-		bool tickThisFrame;
+		bool spawnBullet;
+
 		real32 timeSinceLastTick;
-
-		FixedArray<CommandType, 64> tickCommmands;
 
 		Entity player1Tank;
 		Entity player1Turret;
@@ -112,21 +114,10 @@ namespace cm
 		Entity player2Tank;
 		Entity player2Turret;
 
-		bool spawnPlayer1Bullet;
-
-		Vec3f player1TankPos;
-		Quatf player1TankOri;
-		Vec3f player1TurretPos;
-		Quatf player1TurretOri;
-
-		Vec3f player2TankPos;
-		Quatf player2TankOri;
-		Vec3f player2TurretPos;
-		Quatf player2TurretOri;
-
 		real32 pingTimer;
 
-		void SortSnapShots();
+		GameUpdate* GetLatestValidGameUpdate();
+		GameUpdate* GetGameUpdate(int32 tickIndex);
 		void Update(Room* room, real32 dt);
 	};
 
@@ -140,7 +131,7 @@ namespace cm
 		Vec3f playerCameraOffset;
 
 		Grid grid;
-		MultiplayerState mutliplayerState;
+		MultiplayerState multiplayerState;
 
 		FixedArray<Entity, ENTITY_STORAGE_COUNT> bullets;
 
