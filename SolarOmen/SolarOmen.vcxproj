@@ -65,7 +65,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxguid.lib;DXGI.lib;wsock32.lib;Ws2_32.lib;irrKlang.lib;ole32.lib;assimp.lib</AdditionalDependencies>
+      <AdditionalDependencies>xinput.lib;d3d11.lib;dxguid.lib;DXGI.lib;wsock32.lib;Ws2_32.lib;irrKlang.lib;ole32.lib;assimp.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)SolarOmen\vendor\assimp\lib\;$(SolutionDir)SolarOmen\vendor\irrklang\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -89,7 +89,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxguid.lib;DXGI.lib;wsock32.lib;Ws2_32.lib;irrKlang.lib;ole32.lib;assimp.lib</AdditionalDependencies>
+      <AdditionalDependencies>xinput.lib;d3d11.lib;dxguid.lib;DXGI.lib;wsock32.lib;Ws2_32.lib;irrKlang.lib;ole32.lib;assimp.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)SolarOmen\vendor\assimp\lib\;$(SolutionDir)SolarOmen\vendor\irrklang\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -173,6 +173,7 @@
     <ClInclude Include="serialization\RawShaderImporter.h" />
     <ClInclude Include="serialization\RawTextureImporter.h" />
     <ClInclude Include="SimpleColliders.h" />
+    <ClInclude Include="core\SolarNetwork.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\ImGuizmo.h" />

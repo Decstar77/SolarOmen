@@ -290,6 +290,9 @@
     <ClInclude Include="core\Stract.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="core\SolarNetwork.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\unlit.vert.hlsl" />

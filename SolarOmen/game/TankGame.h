@@ -72,6 +72,9 @@ namespace cm
 
 		Grid grid;
 
+		SnapShot snapShotStorage[256];
+		Queue<SnapShot> snapShots;
+
 		FixedArray<Entity, ENTITY_STORAGE_COUNT> bullets;
 
 		FixedArray<Entity, ENTITY_STORAGE_COUNT> entities;

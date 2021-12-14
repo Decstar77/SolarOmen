@@ -244,6 +244,7 @@ namespace cm
 		//INVALID = 0
 		//CONNECTION = 1 
 		TRANSFORM = 2,
+		BULLET_SHOT = 3,
 	};
 
 	struct SnapShotTransform
@@ -256,11 +257,29 @@ namespace cm
 		Quatf turretOrientation;
 	};
 
+	struct SnapShotBulletShot
+	{
+		uint32 bulletId;
+		bool ack;
+		Vec3f position;
+		Quatf orientation;
+	};
+
+	struct SnapShot
+	{
+		SnapShotType type;
+		union
+		{
+			SnapShotTransform snapTransform;
+			SnapShotBulletShot snapBullet;
+		};
+	};
+
 	static_assert(sizeof(SnapShotTransform) < 256);
 
 	struct NetworkBrain
 	{
-		static constexpr int32 PACKETS_PER_SECOND = 10;
+		static constexpr int32 PACKETS_PER_SECOND = 30;
 
 		real32 timeTillLastSend;
 

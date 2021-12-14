@@ -11,7 +11,7 @@ namespace cm
 
 		void Push(const T& t)
 		{
-			int32 index = count;
+			uint32 index = count;
 			Assert(index < capcity, "Queue, can't push more values");
 
 			data[index] = t;

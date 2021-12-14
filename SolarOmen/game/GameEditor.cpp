@@ -279,7 +279,7 @@ namespace cm
 		GetEditorState();
 		GetInput();
 
-		static bool inGame = false;
+		static bool inGame = 1;
 		if (IsKeyJustDown(input, f5))
 		{
 			inGame = !inGame;

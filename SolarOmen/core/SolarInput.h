@@ -12,63 +12,83 @@ namespace cm
 
 		Vec2f mousePositionPixelCoords;
 		Vec2f mouse_norm;
-
 		Vec2f mouseDelta;
 
-		bool32 mouse_locked;
+		bool isPS4Controller;
+		real32 controllerLeftTrigger;
+		real32 controllerRightTrigger;
+		Vec2f controllerLeftThumbDrag;
+		Vec2f controllerRightThumbDrag;
 
-		bool32 mb1;
-		bool32 mb2;
-		bool32 mb3;
+		bool mouse_locked;
 
-		bool32 alt;
-		bool32 shift;
-		bool32 ctrl;
+		bool mb1;
+		bool mb2;
+		bool mb3;
+
+		bool alt;
+		bool shift;
+		bool ctrl;
 
 		union
 		{
-			bool32 buttons[100];
+			bool buttons[100];
 			struct
 			{
-				bool32 w;
-				bool32 s;
-				bool32 a;
-				bool32 d;
-				bool32 q;
-				bool32 e;
-				bool32 r;
-				bool32 t;
-				bool32 z;
-				bool32 x;
-				bool32 c;
-				bool32 v;
-				bool32 b;
-				bool32 del;
-				bool32 tlda;
-				bool32 K1;
-				bool32 K2;
-				bool32 K3;
-				bool32 K4;
-				bool32 K5;
-				bool32 K6;
-				bool32 K7;
-				bool32 K8;
-				bool32 K9;
-				bool32 K0;
-				bool32 f1;
-				bool32 f2;
-				bool32 f3;
-				bool32 f4;
-				bool32 f5;
-				bool32 f6;
-				bool32 f7;
-				bool32 f8;
-				bool32 f9;
-				bool32 f10;
-				bool32 f11;
-				bool32 f12;
-				bool32 escape;
-				bool32 space;
+				bool w;
+				bool s;
+				bool a;
+				bool d;
+				bool q;
+				bool e;
+				bool r;
+				bool t;
+				bool z;
+				bool x;
+				bool c;
+				bool v;
+				bool b;
+				bool del;
+				bool tlda;
+				bool K1;
+				bool K2;
+				bool K3;
+				bool K4;
+				bool K5;
+				bool K6;
+				bool K7;
+				bool K8;
+				bool K9;
+				bool K0;
+				bool f1;
+				bool f2;
+				bool f3;
+				bool f4;
+				bool f5;
+				bool f6;
+				bool f7;
+				bool f8;
+				bool f9;
+				bool f10;
+				bool f11;
+				bool f12;
+				bool escape;
+				bool space;
+
+				bool controllerUp;
+				bool controllerDown;
+				bool controllerLeft;
+				bool controllerRight;
+				bool controllerStart;
+				bool controllerBack;
+				bool controllerLeftThumb;
+				bool controllerRightThumb;
+				bool controllerLeftShoulder;
+				bool controllerRightShoulder;
+				bool controllerA;
+				bool controllerB;
+				bool controllerX;
+				bool controllerY;
 			};
 		};
 

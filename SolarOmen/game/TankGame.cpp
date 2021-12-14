@@ -122,7 +122,7 @@ namespace cm
 
 	void Room::Initialize()
 	{
-		bool twoPlayerGame = false;
+		bool twoPlayerGame = true;
 
 		GetPlatofrmState();
 		CreateEntityFreeList();
@@ -184,8 +184,12 @@ namespace cm
 			brain->networkBrain.player2Turret = player2Turret;
 			brain->networkBrain.player1Tank = tank;
 			brain->networkBrain.player1Turret = turret;
+
+			snapShots.data = snapShotStorage;
+			snapShots.capcity = ArrayCount(snapShotStorage);
 		}
 
+		if (0)
 		{
 			Entity tankAI = CreateEntity("TankAI");
 			tankAI.SetRendering("TankBase", "Tank_DefaultMaterial_BaseColor");
@@ -263,7 +267,7 @@ namespace cm
 		static bool isPlaying = false;
 		if (!isPlaying)
 		{
-			PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/Monsters.wav", true);
+			//PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/Monsters.wav", true);
 			isPlaying = true;
 		}
 
@@ -273,9 +277,9 @@ namespace cm
 
 	void Room::Update(real32 dt)
 	{
+		GetInput();
 		if (!startedNetworkStuff)
 		{
-			GetInput();
 			if (IsKeyJustDown(input, f9))
 			{
 				Platform::NetworkStart();
@@ -288,6 +292,11 @@ namespace cm
 				Platform::NetworkSend(nullptr, 0);
 				startedNetworkStuff = true;
 			}
+		}
+
+		if (input->controllerA)
+		{
+			LOG("CONTROLER!!");
 		}
 
 
@@ -624,7 +633,7 @@ namespace cm
 			tankTransform.position + room->playerCameraOffset, 0.1f);
 	}
 
-	static void SpawnBullet(Room* room, Transform transform)
+	static void SpawnBullet(Room* room, Transform transform, bool sendNetwork)
 	{
 		transform.scale = Vec3f(0.2f);
 		Basisf basis = transform.GetBasis();
@@ -643,6 +652,15 @@ namespace cm
 
 		BrainComponent* bc = entity.SetBrain(BrainType::Value::BULLET);
 		BulletBrain* bullet = &bc->bulletBrain;
+
+		if (Platform::NetworkConnectionEsablished() && sendNetwork)
+		{
+			SnapShot snap = {};
+			snap.type = SnapShotType::BULLET_SHOT;
+			snap.snapBullet.orientation = transform.orientation;
+			snap.snapBullet.position = transform.position;
+			Platform::NetworkSend(&snap, sizeof(snap));
+		}
 
 		PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_revolver_pistol_shot_04.wav", false);
 	}
@@ -681,13 +699,13 @@ namespace cm
 			PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_shotgun_cock_01.wav", false);
 		}
 
-		if (IsKeyJustDown(input, mb1))
+		if (IsKeyJustDown(input, mb2))
 		{
 			if (canFire)
 			{
 				lastFireTime = 0.0f;
 				canFire = false;
-				SpawnBullet(room, bulletSpawnPoint.GetWorldTransform());
+				SpawnBullet(room, bulletSpawnPoint.GetWorldTransform(), true);
 			}
 			else
 			{
@@ -768,17 +786,26 @@ namespace cm
 		{
 			if (networkBuffer[0] > 1)
 			{
-				SnapShotType type = (SnapShotType)networkBuffer[0];
-				switch (type)
+				SnapShot* snap = (SnapShot*)networkBuffer;
+				switch (snap->type)
 				{
 				case SnapShotType::TRANSFORM:
 				{
-					SnapShotTransform snapTransform = *((SnapShotTransform*)networkBuffer);
-					player2TankLerpPos = snapTransform.tankPosition;
-					player2TankLerpOri = snapTransform.tankOrientation;
+					SnapShotTransform* snapTransform = &snap->snapTransform;
+					player2TankLerpPos = snapTransform->tankPosition;
+					player2TankLerpOri = snapTransform->tankOrientation;
 
-					player2TurretLerpPos = snapTransform.turretPosition;
-					player2TurretLerpOri = snapTransform.turretOrientation;
+					player2TurretLerpPos = snapTransform->turretPosition;
+					player2TurretLerpOri = snapTransform->turretOrientation;
+				}break;
+				case SnapShotType::BULLET_SHOT:
+				{
+					LOG("Network bullet created");
+					SnapShotBulletShot* snapBullet = &snap->snapBullet;
+					Transform t = {};
+					t.position = snap->snapBullet.position;
+					t.orientation = snap->snapBullet.orientation;
+					SpawnBullet(room, t, false);
 				}break;
 				}
 			}
@@ -789,20 +816,23 @@ namespace cm
 		if (Platform::NetworkConnectionEsablished())
 		{
 			timeTillLastSend += dt;
-			if (timeTillLastSend >= (real32)PACKETS_PER_SECOND / 1000.0f)
+			if (timeTillLastSend >= 1.0f / (real32)PACKETS_PER_SECOND)
 			{
 				Transform t1 = player1Tank.GetWorldTransform();
 				Transform t2 = player1Turret.GetWorldTransform();
 
-				SnapShotTransform snap = {};
+				SnapShot snap = {};
 				snap.type = SnapShotType::TRANSFORM;
-				snap.tankPosition = t1.position;
-				snap.tankOrientation = t1.orientation;
+				snap.snapTransform.tankPosition = t1.position;
+				snap.snapTransform.tankOrientation = t1.orientation;
 
-				snap.turretPosition = t2.position;
-				snap.turretOrientation = t2.orientation;
+				snap.snapTransform.turretPosition = t2.position;
+				snap.snapTransform.turretOrientation = t2.orientation;
 
-				Platform::NetworkSend(&snap, sizeof(snap));
+				room->snapShots.Push(snap);
+
+				SnapShot send = room->snapShots.Pop();
+				Platform::NetworkSend(&send, sizeof(send));
 				timeTillLastSend = 0.0f;
 			}
 		}
@@ -841,7 +871,7 @@ namespace cm
 			else if (lastFireTime > FIRE_RATE)
 			{
 				lastFireTime = 0.0f;
-				SpawnBullet(room, bulletSpawnPoint.GetWorldTransform());
+				SpawnBullet(room, bulletSpawnPoint.GetWorldTransform(), true);
 			}
 		}
 		else
