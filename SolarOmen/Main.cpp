@@ -14,7 +14,6 @@ int main(int argc, const char* argv[])
 {
 	// @TODO: Go through platform layer!!
 	GameMemory::AllocateGameMemory(Gigabytes(1), Gigabytes(2));
-
 	PlatformState* platformState = GameMemory::PushPermanentStruct<PlatformState>();
 	//if (Platform::Initialize(platformState, "Solar omen", 1900, 1000, true))
 	if (Platform::Initialize(platformState, "Solar omen", 800, 600, true))

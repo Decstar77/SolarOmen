@@ -280,6 +280,7 @@ namespace cm
 		GetInput();
 
 		static bool inGame = 1;
+		es->showConsoleWindow = 0;
 		if (IsKeyJustDown(input, f5))
 		{
 			inGame = !inGame;

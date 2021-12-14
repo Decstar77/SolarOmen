@@ -48,6 +48,12 @@ namespace cm
 		void* data;
 	};
 
+	struct PlatformAddress
+	{
+		uint16 port;
+		uint32 ipAddress;
+	};
+
 	namespace Platform
 	{
 		bool32 Initialize(PlatformState* ps, const char* title, int32 width, int32 height, bool32 console);
@@ -58,12 +64,13 @@ namespace cm
 		void IntializeThreads();
 		void ShutdownThreads();
 
+		static constexpr uint32 MAX_NETWORK_PACKET_SIZE = 256;
+
 		void IntializeNetworking();
-		void NetworkStart();
-		void NetworkStart(const CString& ip);
-		bool32 NetworkConnectionEsablished();
-		int32 NetworkReceive(void* buf, int32 bufSizeBytes);
-		void NetworkSend(void* buf, int32 bufSizeBytes);
+		PlatformAddress NetworkStart(uint16 port);
+		int32 NetworkReceive(void* buf, int32 bufSizeBytes, PlatformAddress* address);
+		void NetworkSend(void* buf, int32 bufSizeBytes, const PlatformAddress& address);
+		void NetworkSend(void* buf, int32 bufSizeBytes, const CString& address, uint16 port);
 		void ShutdownNetworking();
 
 		bool32 WriteFile(const CString& path, void* data, uint32 sizeBytes);

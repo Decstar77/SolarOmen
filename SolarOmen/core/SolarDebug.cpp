@@ -1,5 +1,6 @@
 #include "SolarDebug.h"
 #include "game/Entity.h"
+#include "game/TankGame.h"
 #include "SolarPlatform.h"
 #include <iostream>
 
@@ -159,23 +160,38 @@ namespace cm
 		{
 			if (cmd.StartsWith("host"))
 			{
-				Platform::NetworkStart();
+				Platform::NetworkStart(54000);
 			}
 			else if (cmd.StartsWith("con"))
 			{
-				Platform::NetworkStart("");
-				Platform::NetworkSend(nullptr, 0);
+				Platform::NetworkStart(54001);
 			}
-			else if (cmd.StartsWith("hand"))
+			else if (cmd.StartsWith("ping"))
 			{
-				Platform::NetworkSend(nullptr, 0);
+				GetGameState();
+				gs->currentRoom.mutliplayerState.pingTimer = 0.0f;
+				SnapShot snap = {};
+				snap.type = SnapShotType::PING;
+				Platform::NetworkSend(&snap, sizeof(snap), "192.168.0.107", 54001);
+			}
+			else if (cmd.StartsWith("send"))
+			{
+				auto arr = cmd.Split(' ');
+				if (arr.count == 2)
+				{
+					int32 port = arr[1].ToInt32();
+
+					char data[64] = { "Hello again" };
+					Platform::NetworkSend(data, sizeof(data), "192.168.0.107", port);
+				}
+				else
+				{
+					Debug::LogInfo("No port");
+				}
+				//Platform::NetworkSend(nullptr, 0);
 			}
 			else if (cmd.StartsWith("pos"))
 			{
-				SnapShotTransform snap = {  };
-				//snap.type = SnapShotType::TRANSFORM;
-				//snap.position = Vec3f(203, 23, 394);
-				Platform::NetworkSend(&snap, sizeof(snap));
 			}
 		}
 	}

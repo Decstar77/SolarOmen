@@ -61,6 +61,75 @@ namespace cm
 		RaycastInfo rayInfo;
 	};
 
+	enum class CommandType : uint8
+	{
+		INVALID = 0,
+		PLAYER1_SPAWN_BULLET,
+	};
+
+	struct GameTick
+	{
+		int32 hostTick;
+		int32 peerTick;
+
+		Vec3f player1TankPos;
+		Quatf player1TankOri;
+		Vec3f player1TurretPos;
+		Quatf player1TurretOri;
+
+		Vec3f player2TankPos;
+		Quatf player2TankOri;
+		Vec3f player2TurretPos;
+		Quatf player2TurretOri;
+
+		FixedArray<CommandType, 64> commands;
+	};
+
+	struct MultiplayerState
+	{
+		static constexpr int32 PACKETS_PER_SECOND = 30;
+		static constexpr int32 TICKS_PER_SECOND = 60;
+
+		bool startedNetworkStuff;
+		bool connectionValid;
+		PlatformAddress myAddress;
+		PlatformAddress peerAddress;
+
+		bool sentTick;
+		int32 currentTick;
+		int32 peerTick;
+
+		FixedArray<SnapGameTick, 64> unproccessedPeerTicks;
+
+		bool tickThisFrame;
+		real32 timeSinceLastTick;
+
+		FixedArray<CommandType, 64> tickCommmands;
+
+		Entity player1Tank;
+		Entity player1Turret;
+
+		Entity player2Tank;
+		Entity player2Turret;
+
+		bool spawnPlayer1Bullet;
+
+		Vec3f player1TankPos;
+		Quatf player1TankOri;
+		Vec3f player1TurretPos;
+		Quatf player1TurretOri;
+
+		Vec3f player2TankPos;
+		Quatf player2TankOri;
+		Vec3f player2TurretPos;
+		Quatf player2TurretOri;
+
+		real32 pingTimer;
+
+		void SortSnapShots();
+		void Update(Room* room, real32 dt);
+	};
+
 	class Room
 	{
 	public:
@@ -71,9 +140,7 @@ namespace cm
 		Vec3f playerCameraOffset;
 
 		Grid grid;
-
-		SnapShot snapShotStorage[256];
-		Queue<SnapShot> snapShots;
+		MultiplayerState mutliplayerState;
 
 		FixedArray<Entity, ENTITY_STORAGE_COUNT> bullets;
 

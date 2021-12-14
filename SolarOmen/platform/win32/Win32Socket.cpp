@@ -91,6 +91,7 @@ namespace cm
 	SocketAddress::SocketAddress()
 	{
 		socketAddress = {};
+		port = 0;
 	}
 
 	SocketAddress::SocketAddress(uint16 inPort)
@@ -101,7 +102,8 @@ namespace cm
 		in->sin_addr = GetLocalIP(inPort);
 		in->sin_port = htons(inPort);
 
-		//Debug::LogInfo(CString("Starting on ").Add(GetLocalIP(inPort)));
+		port = inPort;
+		ipAddress = ntohl(in->sin_addr.S_un.S_addr);
 	}
 
 	SocketAddress::SocketAddress(uint32 inAddress, uint16 inPort)
@@ -111,6 +113,9 @@ namespace cm
 		in->sin_family = AF_INET;
 		in->sin_addr.S_un.S_addr = htonl(inAddress);
 		in->sin_port = htons(inPort);
+
+		port = inPort;
+		ipAddress = inAddress;
 	}
 
 	SocketAddress::SocketAddress(CString inAddress, uint16 inPort)
@@ -120,6 +125,21 @@ namespace cm
 		in->sin_family = AF_INET;
 		in->sin_port = htons(inPort);
 		InetPtonA(AF_INET, inAddress.GetCStr(), &in->sin_addr);
+
+		port = port;
+		ipAddress = ntohl(in->sin_addr.S_un.S_addr);
+	}
+
+	SocketAddress::SocketAddress(PlatformAddress platformSocket)
+	{
+		socketAddress = {};
+		sockaddr_in* in = GetAsSockAddIn();
+		in->sin_family = AF_INET;
+		in->sin_addr.S_un.S_addr = htonl(platformSocket.ipAddress);
+		in->sin_port = htons(platformSocket.port);
+
+		port = platformSocket.port;
+		ipAddress = platformSocket.ipAddress;
 	}
 
 	CString SocketAddress::GetStringIp()
@@ -130,6 +150,15 @@ namespace cm
 		inet_ntop(AF_INET, &in->sin_addr, buf, 256);
 
 		return CString(buf);
+	}
+
+	PlatformAddress SocketAddress::ToPlatformAddress() const
+	{
+		PlatformAddress platformSocket = {};
+		platformSocket.port = port;
+		platformSocket.ipAddress = ipAddress;
+
+		return platformSocket;
 	}
 
 	void UDPSocket::Create()
@@ -191,6 +220,14 @@ namespace cm
 	{
 		int32 fromLength = outFrom->GetSize();
 		int32 readByteCount = recvfrom(socket, (char*)inBuffer, bufferLen, 0, &outFrom->socketAddress, &fromLength);
+
+		if (readByteCount > 0)
+		{
+			sockaddr_in* in = outFrom->GetAsSockAddIn();
+			outFrom->port = ntohs(in->sin_port);
+			outFrom->ipAddress = ntohl(in->sin_addr.S_un.S_addr);
+		}
+
 		return readByteCount;
 	}
 

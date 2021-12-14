@@ -13,11 +13,13 @@ namespace cm
 		SocketAddress(uint16 inPort);
 		SocketAddress(uint32 inAddress, uint16 inPort);
 		SocketAddress(CString inAddress, uint16 inPort);
-
+		SocketAddress(PlatformAddress platformSocket);
 
 		uint32 GetIp();
 		uint32 GetPort();
 		CString GetStringIp();
+
+		PlatformAddress ToPlatformAddress() const;
 
 		inline uint32 GetSize() const { return sizeof(sockaddr); }
 
@@ -25,6 +27,10 @@ namespace cm
 		friend class UDPSocket;
 		inline sockaddr_in* GetAsSockAddIn() const { return (sockaddr_in*)&socketAddress; }
 		sockaddr socketAddress;
+
+		// @NOTE: Just caching these for easy of use
+		uint16 port;
+		uint32 ipAddress;
 	};
 
 

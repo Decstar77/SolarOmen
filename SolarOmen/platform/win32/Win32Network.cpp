@@ -20,47 +20,6 @@ namespace cm
 		{
 			if (InitializeSockets())
 			{
-				//UDPSocket socket = {};
-				//socket.Create();
-				//SocketAddress hostAddr = SocketAddress(54000);
-				//socket.Bind(hostAddr);
-
-
-				//if (asServer)
-				//{
-				//	UDPSocket socket;
-				//	SocketAddress hostAddr = SocketAddress(54000);
-
-				//	socket.Create();
-				//	socket.Bind(hostAddr);
-
-				//	LOG(hostAddr.GetStringIp().GetCStr());
-
-				//	while (true)
-				//	{
-				//		char inputBuffer[1024];
-				//		ZeroArray(inputBuffer);
-
-				//		SocketAddress client;
-				//		int32 bytesIn = socket.ReceiveFrom(inputBuffer, 1024, client);
-
-				//		LOG(client.GetStringIp().GetCStr());
-				//	}
-				//	socket.Close();
-				//}
-				//else
-				//{
-				//	SocketAddress serverAddr = SocketAddress("192.168.0.107", 54000);
-				//	UDPSocket socket;
-				//	socket.Create();
-
-				//	char outBuffer[256] = {};
-				//	socket.SendTo(outBuffer, 256, serverAddr);
-
-
-
-				//	socket.Close();
-				//}
 			}
 			else
 			{
@@ -68,51 +27,32 @@ namespace cm
 			}
 		}
 
-		static bool32 connectionEsablished = false;
+
+
 		static bool32 mainSocketBound = false;
 		static UDPSocket mainSocket = {};
-		static bool32 sendAddressValid = false;
-		static SocketAddress sendToAddress = {};
 
-		void NetworkStart()
+		PlatformAddress NetworkStart(uint16 port)
 		{
-			SocketAddress hostAddr = SocketAddress(54000);
+			SocketAddress hostAddr = SocketAddress(port);
 			mainSocket.Create();
 			mainSocket.Bind(hostAddr);
 			mainSocket.SetNonBlocking();
 			Debug::LogInfo(CString("Server started on ").Add(hostAddr.GetStringIp()));
 			mainSocketBound = true;
+
+			PlatformAddress platformSocket = hostAddr.ToPlatformAddress();
+
+			return platformSocket;
 		}
 
-		void NetworkStart(const CString& ip)
+		int32 NetworkReceive(void* buf, int32 bufSizeBytes, PlatformAddress* platformAddress)
 		{
-			SocketAddress myAddr = SocketAddress(54001);
-			mainSocket.Create();
-			mainSocket.Bind(myAddr);
-			mainSocket.SetNonBlocking();
-			Debug::LogInfo(CString("Client stated on ").Add(myAddr.GetStringIp()));
-			sendToAddress = SocketAddress("192.168.0.107", 54000);
-			sendAddressValid = true;
-			mainSocketBound = true;
-		}
-
-		bool32 NetworkConnectionEsablished()
-		{
-			return connectionEsablished;
-		}
-
-		struct ConnectionSnapShot
-		{
-			uint8 type;
-		};
-
-		int32 NetworkReceive(void* buf, int32 bufSizeBytes)
-		{
-			Assert(bufSizeBytes <= 256, "Network buffer size to large !");
+			Assert(bufSizeBytes <= MAX_NETWORK_PACKET_SIZE, "Network buffer size to large !");
 
 			if (mainSocketBound)
 			{
-				uint8 buffer[256] = {};
+				uint8 buffer[MAX_NETWORK_PACKET_SIZE] = {};
 				uint32 bufferSize = sizeof(buffer);
 
 				SocketAddress address = {};
@@ -123,27 +63,12 @@ namespace cm
 					return bytes;
 				}
 
-				ConnectionSnapShot* snap = (ConnectionSnapShot*)buffer;
-				if (snap->type == 1)
+				if (platformAddress)
 				{
-					if (!sendAddressValid)
-					{
-						sendToAddress = address;
-						sendAddressValid = true;
-						connectionEsablished = true;
-						Debug::LogInfo(CString("Connected to ").Add(sendToAddress.GetStringIp()));
-						NetworkSend(snap, sizeof(ConnectionSnapShot));
-					}
-					else
-					{
-						connectionEsablished = true;
-						Debug::LogInfo("Connection received");
-					}
+					*platformAddress = address.ToPlatformAddress();
 				}
-				else
-				{
-					memcpy(buf, buffer, bufSizeBytes);
-				}
+
+				memcpy(buf, buffer, bytes);
 
 				return bytes;
 			}
@@ -151,21 +76,18 @@ namespace cm
 			return -1;
 		}
 
-		void NetworkSend(void* buf, int32 bufsizeBytes)
+		void NetworkSend(void* buf, int32 bufSizeBytes, const PlatformAddress& address)
 		{
-			if (sendAddressValid)
-			{
-				if (buf)
-				{
-					mainSocket.SendTo(buf, bufsizeBytes, sendToAddress);
-				}
-				else
-				{
-					ConnectionSnapShot snap = {};
-					snap.type = 1;
-					mainSocket.SendTo((void*)&snap, sizeof(snap), sendToAddress);
-				}
-			}
+			Assert(bufSizeBytes <= MAX_NETWORK_PACKET_SIZE, "Network buffer size to large !");
+			SocketAddress sendToAddress = SocketAddress(address);
+			mainSocket.SendTo(buf, bufSizeBytes, sendToAddress);
+		}
+
+		void NetworkSend(void* buf, int32 bufSizeBytes, const CString& address, uint16 port)
+		{
+			Assert(bufSizeBytes <= MAX_NETWORK_PACKET_SIZE, "Network buffer size to large !");
+			SocketAddress sendToAddress = SocketAddress(address, port);
+			mainSocket.SendTo(buf, bufSizeBytes, sendToAddress);
 		}
 
 		void ShutdownNetworking()
