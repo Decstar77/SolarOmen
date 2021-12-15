@@ -173,7 +173,8 @@ namespace cm
 		void SetCollider(const AssetId& mesh, bool32 setActive = true);
 
 		ColliderComponent GetColliderLocal() const;
-		AABB GetAlignedBoxColliderLocal()const;
+		AABB GetAlignedBoxColliderLocal() const;
+		Sphere GetSphereColliderLocal() const;
 
 		ColliderComponent GetWorldCollider() const;
 		Sphere GetSphereColliderWorld() const;
@@ -289,12 +290,16 @@ namespace cm
 		void UpdateFiring(Room* room, real32 dt);
 	};
 
+	inline static constexpr real32 NETWORK_INTERPOLATE_AMOUNT = 0.65f;
+
 	struct BulletBrain
 	{
 		static constexpr real32 BULLET_MOVE_SPEED = 4.0f;
 		bool32 initialized;
 		int32 collisionCount;
+		Transform trueTransform;
 
+		void TickUpdate(Room* room, struct GameUpdate* update, Entity entity, real32 dt);
 		void FrameUpdate(Room* room, Entity entity, real32 dt);
 	};
 

@@ -72,6 +72,14 @@ namespace cm
 		return cc.alignedBox;
 	}
 
+	Sphere Entity::GetSphereColliderLocal() const
+	{
+		ColliderComponent cc = GetColliderLocal();
+		Assert(cc.type == ColliderType::SPHERE, "Collider is not of type sphere");
+
+		return cc.sphere;
+	}
+
 	Sphere Entity::GetSphereColliderWorld() const
 	{
 		ColliderComponent cc = GetColliderLocal();

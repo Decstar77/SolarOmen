@@ -291,6 +291,7 @@ namespace cm
 
 		BrainComponent* bc = entity.SetBrain(BrainType::Value::BULLET);
 		BulletBrain* bullet = &bc->bulletBrain;
+		bullet->trueTransform = transform;
 
 		PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_revolver_pistol_shot_04.wav", false);
 	}
@@ -458,7 +459,7 @@ namespace cm
 		GameUpdate* gameUpdate = GetLatestValidGameUpdate();
 		if (gameUpdate)
 		{
-			LOG(gameUpdate->hostTick << ":" << gameUpdate->peerTick);
+			//LOG(gameUpdate->hostTick << ":" << gameUpdate->peerTick);
 
 			gameUpdates.Remove(gameUpdate);
 
@@ -467,13 +468,14 @@ namespace cm
 				BrainComponent* bc = &room->brainComponents[i];
 				if (bc->enabled)
 				{
+					real32 stepDt = 1.0f / TICKS_PER_SECOND;
 					if (room->entities[i].IsValid())
 					{
 						switch (bc->type.Get())
 						{
-						case BrainType::Value::PLAYER_BRAIN:bc->playerBrain.TickUpdate(room, gameUpdate, dt); break;
-						case BrainType::Value::BULLET:break;
-						case BrainType::Value::PEER_BRAIN: bc->networkBrain.TickUpdate(room, gameUpdate, dt); break;
+						case BrainType::Value::PLAYER_BRAIN:bc->playerBrain.TickUpdate(room, gameUpdate, stepDt); break;
+						case BrainType::Value::BULLET: bc->bulletBrain.TickUpdate(room, gameUpdate, room->entities[i], stepDt); break;
+						case BrainType::Value::PEER_BRAIN: bc->networkBrain.TickUpdate(room, gameUpdate, stepDt); break;
 						case BrainType::Value::TANK_AI_IMMOBILE:break;
 						}
 					}
@@ -485,7 +487,6 @@ namespace cm
 				Transform transform = {};
 				transform.position = gameUpdate->player1TurretPos;
 				transform.orientation = gameUpdate->player1TurretOri;
-				//LOG("NET SPAWN" << lastTick.tickNumber);
 				SpawnBullet(room, transform);
 			}
 
@@ -494,7 +495,6 @@ namespace cm
 				Transform transform = {};
 				transform.position = gameUpdate->player2TurretPos;
 				transform.orientation = gameUpdate->player2TurretOri;
-				//LOG("LOCAL SPAWN " << currentTick);
 				SpawnBullet(room, transform);
 			}
 
@@ -894,21 +894,19 @@ namespace cm
 		}
 	}
 
-	void BulletBrain::FrameUpdate(Room* room, Entity entity, real32 dt)
+	void BulletBrain::TickUpdate(Room* room, GameUpdate* update, Entity entity, real32 dt)
 	{
-		Transform transform = entity.GetLocalTransform();
-		Basisf basis = transform.GetBasis();
+		Basisf basis = trueTransform.GetBasis();
 
 		Vec2f moveDir = Normalize(Vec2(basis.forward.x, basis.forward.z));
 		Vec2f moveDelta = BULLET_MOVE_SPEED * moveDir * dt;
 
-		transform.position += Vec3f(moveDelta.x, 0.0f, moveDelta.y);
-
-		entity.SetLocalTransform(transform);
+		trueTransform.position += Vec3f(moveDelta.x, 0.0f, moveDelta.y);
 
 		// @NOTE: Collision detection 
 		bool hitCollider = false;
-		Sphere bulletCollider = entity.GetSphereColliderWorld();
+		Sphere bulletCollider = entity.GetSphereColliderLocal();
+		bulletCollider = TranslateSphere(bulletCollider, trueTransform.position);
 		for (uint32 i = 0; i < room->grid.cells.count; i++)
 		{
 			GridCell* cell = &room->grid.cells[i];
@@ -923,10 +921,10 @@ namespace cm
 					basis.forward = r;
 					basis.upward = Vec3f(0, 1, 0);
 					basis.right = Cross(basis.upward, basis.forward);
-					transform.orientation = Mat3ToQuat(basis.mat);
+					trueTransform.orientation = Mat3ToQuat(basis.mat);
 
 					Vec3f disp = manifold.normal * manifold.seperationDistance;
-					transform.position += disp;
+					trueTransform.position += disp;
 
 					bulletCollider = TranslateSphere(bulletCollider, disp);
 					hitCollider = true;
@@ -934,7 +932,7 @@ namespace cm
 			}
 		}
 
-		entity.SetLocalTransform(transform);
+
 
 		if (hitCollider)
 			collisionCount++;
@@ -943,7 +941,14 @@ namespace cm
 		{
 			DestroyBullet(room, entity);
 		}
+	}
 
+	void BulletBrain::FrameUpdate(Room* room, Entity entity, real32 dt)
+	{
+		Transform t = entity.GetLocalTransform();
+		t.position = Lerp(trueTransform.position, t.position, NETWORK_INTERPOLATE_AMOUNT);
+		t.orientation = Slerp(trueTransform.orientation, t.orientation, NETWORK_INTERPOLATE_AMOUNT);
+		entity.SetLocalTransform(t);
 	}
 
 	void PeerBrain::TickUpdate(Room* room, GameUpdate* update, real32 dt)
@@ -959,14 +964,14 @@ namespace cm
 	{
 		{
 			Transform transform = player2Tank.GetWorldTransform();
-			transform.position = Lerp(player2TankLerpPos, transform.position, 0.65f);
-			transform.orientation = Slerp(player2TankLerpOri, transform.orientation, 0.65f);
+			transform.position = Lerp(player2TankLerpPos, transform.position, NETWORK_INTERPOLATE_AMOUNT);
+			transform.orientation = Slerp(player2TankLerpOri, transform.orientation, NETWORK_INTERPOLATE_AMOUNT);
 			player2Tank.SetLocalTransform(transform);
 		}
 		{
 			Transform transform = player2Turret.GetWorldTransform();
-			transform.position = Lerp(player2TurretLerpPos, transform.position, 0.65f);
-			transform.orientation = Slerp(player2TurretLerpOri, transform.orientation, 0.65f);
+			transform.position = Lerp(player2TurretLerpPos, transform.position, NETWORK_INTERPOLATE_AMOUNT);
+			transform.orientation = Slerp(player2TurretLerpOri, transform.orientation, NETWORK_INTERPOLATE_AMOUNT);
 			player2Turret.SetLocalTransform(transform);
 		}
 	}

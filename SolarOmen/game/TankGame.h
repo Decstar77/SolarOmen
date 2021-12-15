@@ -91,7 +91,7 @@ namespace cm
 	struct MultiplayerState
 	{
 		static constexpr int32 PACKETS_PER_SECOND = 30;
-		static constexpr int32 TICKS_PER_SECOND = 30;
+		static constexpr int32 TICKS_PER_SECOND = 60;
 
 		bool startedNetworkStuff;
 		bool connectionValid;
