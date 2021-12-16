@@ -22,11 +22,13 @@ namespace cm
 		inline static DebugState* debugState = nullptr;
 
 		FixedArray<CString, 1000> logs;
+		FixedArray<CString, 1000> fileLogs;
 	};
 
 	namespace Debug
 	{
 		void Initialize();
+		void Shutdown();
 
 		void DrawPoint(const Vec3f& p, real32 size = 0.5f);
 		void DrawLine(const Vec3f& a, const Vec3f& b);
@@ -36,6 +38,7 @@ namespace cm
 
 		void ClearLogs();
 		void LogInfo(const CString& msg);
+		void LogFile(const CString& msg);
 
 		void ExecuteCommand(const CString& cmd);
 	}

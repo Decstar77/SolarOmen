@@ -24,7 +24,22 @@ namespace cm
 			else
 			{
 				Assert(0, "Debug not alloced");
+
 			}
+
+			LogFile("Start");
+		}
+
+		void Shutdown()
+		{
+			GetDebugState();
+			LargeString<100000>* largeString = GameMemory::PushPermanentStruct<LargeString<100000>>();;
+			for (uint32 i = 0; i < ds->fileLogs.count; i++)
+			{
+				largeString->Add(ds->fileLogs[i]).Add("\n");
+			}
+
+			Platform::WriteFile("dump.txt", largeString->GetCStr(), (uint32)largeString->GetLength());
 		}
 
 		void DrawPoint(const Vec3f& p, real32 size)
@@ -154,6 +169,12 @@ namespace cm
 
 			ds->logs[index] = msg;
 			ds->logs.count++;
+		}
+
+		void LogFile(const CString& msg)
+		{
+			GetDebugState();
+			ds->fileLogs.AddIfPossible(msg);
 		}
 
 		void ExecuteCommand(const CString& cmd)

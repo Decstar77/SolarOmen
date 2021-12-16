@@ -12,6 +12,16 @@ namespace cm
 			return capcity;
 		}
 
+		inline bool IsFull() const
+		{
+			return capcity == count;
+		}
+
+		inline bool IsEmpty() const
+		{
+			return count == 0;
+		}
+
 		inline T* Add(const T& value)
 		{
 			uint32 index = count; count++;
@@ -91,6 +101,7 @@ namespace cm
 	template<typename T, uint32 size>
 	inline FixedArray<T, size>::FixedArray()
 	{
+		count = 0;
 	}
 
 	template<typename T>

@@ -86,21 +86,25 @@ int main(int argc, const char* argv[])
 #if EDITOR
 						Editor::Shutdown();
 #endif
-					}
+						}
 
 					Game::Shutdown();
-				}
+					}
 
 				Renderer::Shutdown();
-			}
+				}
 
 			Assets::Shutdown();
-		}
+			}
+
+#if DEBUG
+		Debug::Shutdown();
+#endif
 
 		Audio::Shutdown();
 		Platform::ShutdownNetworking();
 		Platform::ShutdownThreads();
 		Platform::Shutdown();
-	}
+		}
 
-}
+	}

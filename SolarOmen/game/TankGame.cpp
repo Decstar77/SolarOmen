@@ -122,7 +122,7 @@ namespace cm
 
 	void Room::Initialize()
 	{
-		bool twoPlayerGame = true;
+		twoPlayerGame = true;
 
 		GetPlatofrmState();
 		CreateEntityFreeList();
@@ -139,9 +139,18 @@ namespace cm
 		turret.SetTexture("Tank_DefaultMaterial_BaseColor");
 		turret.SetLocalTransform(Transform(Vec3f(0, 1.1f, 0), EulerToQuat(Vec3f(-8, 0, 0)), Vec3f(0.65f)));
 
-		multiplayerState.player1Tank = tank;
-		multiplayerState.player1Turret = turret;
-		multiplayerState.sendTick = true;
+		if (twoPlayerGame)
+		{
+			multiplayerState.player1Tank = tank;
+			multiplayerState.player1Turret = turret;
+			multiplayerState.processTick = 1;
+		}
+		else
+		{
+			singlePlayerState.player1Tank = tank;
+			singlePlayerState.player1Turret = turret;
+		}
+
 		{
 			Entity bulletSpawnPoint = CreateEntity("BulletSpawnPoint");
 			bulletSpawnPoint.SetLocalTransform(Transform(Vec3f(0, 0.6f, 1.3f)));
@@ -188,7 +197,7 @@ namespace cm
 			brain->networkBrain.player1Turret = turret;
 		}
 
-		if (0)
+		if (1)
 		{
 			Entity tankAI = CreateEntity("TankAI");
 			tankAI.SetRendering("TankBase", "Tank_DefaultMaterial_BaseColor");
@@ -296,36 +305,134 @@ namespace cm
 		PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_revolver_pistol_shot_04.wav", false);
 	}
 
+	static void TickGame(Room* room, GameUpdate* gameUpdate, real32 dt)
+	{
+		if (gameUpdate->player1SpawnBullet)
+		{
+			Transform transform = {};
+			transform.position = RotatePointLHS(gameUpdate->player1TurretOri, Vec3f(0, 0.4f, 1.1f)) + gameUpdate->player1TurretPos;
+			transform.orientation = gameUpdate->player1TurretOri;
+			SpawnBullet(room, transform);
+		}
+
+		if (gameUpdate->player2SpawnBullet)
+		{
+			Transform transform = {};
+			transform.position = gameUpdate->player2TurretPos;
+			transform.orientation = gameUpdate->player2TurretOri;
+			SpawnBullet(room, transform);
+		}
+
+		for (uint32 i = 0; i < room->brainComponents.GetCapcity(); i++)
+		{
+			BrainComponent* bc = &room->brainComponents[i];
+			if (bc->enabled)
+			{
+				if (room->entities[i].IsValid())
+				{
+					switch (bc->type.Get())
+					{
+					case BrainType::Value::PLAYER_BRAIN:bc->playerBrain.TickUpdate(room, gameUpdate, dt); break;
+					case BrainType::Value::BULLET: bc->bulletBrain.TickUpdate(room, gameUpdate, room->entities[i], dt); break;
+					case BrainType::Value::PEER_BRAIN: bc->networkBrain.TickUpdate(room, gameUpdate, dt); break;
+					case BrainType::Value::TANK_AI_IMMOBILE: bc->tankAIImmobile.TickUpdate(room, gameUpdate, room->entities[i], dt); break;
+					}
+				}
+			}
+		}
+	}
+
+	void GameUpdate::Reconstruct(int32 index, GameUpdate* last, GameUpdate* closest)
+	{
+		Assert(hostTick != 0, "Host tick cannot be reconstructed !!");
+		Assert(index <= 7, "Can't reconstruct a lead greater than 7");
+		peerTick = hostTick;
+
+		real32 t = 1.0f / (real32)(index + 1);
+		player2TankPos = Lerp(last->player2TankPos, closest->player2TankPos, t);
+		player2TankOri = Slerp(last->player2TankOri, closest->player2TankOri, t);
+		player2TurretPos = Lerp(last->player2TurretPos, closest->player2TurretPos, t);
+		player2TurretOri = Slerp(last->player2TurretOri, closest->player2TurretOri, t);
+	}
+
 	GameUpdate* MultiplayerState::GetLatestValidGameUpdate()
 	{
-		int32 minIndex = -1;
-		int32 minTick = INT32_MAX;
+
+		GameUpdate* temp = GameMemory::PushPermanentStruct<GameUpdate>();
 		for (int32 i = 0; i < (int32)gameUpdates.count; i++)
 		{
-			GameUpdate* gameUpdate = &gameUpdates[i];
-			if (gameUpdate->hostTick != 0 && gameUpdate->hostTick < minTick)
+			bool swapped = false;
+			for (int32 j = 0; j < (int32)gameUpdates.count - i - 1; j++)
 			{
-				minIndex = i;
-				minTick = gameUpdate->hostTick;
+				GameUpdate* e1 = &gameUpdates[j];
+				GameUpdate* e2 = &gameUpdates[j + 1];
+
+				int32 e1Tick = Max(e1->hostTick, e1->peerTick);
+				int32 e2Tick = Max(e2->hostTick, e2->peerTick);
+
+				if (e1Tick > e2Tick)
+				{
+					*temp = *e1;
+					*e1 = *e2;
+					*e2 = *temp;
+					swapped = true;
+				}
 			}
-			if (gameUpdate->peerTick != 0 && gameUpdate->peerTick < minTick)
-			{
-				minIndex = i;
-				minTick = gameUpdate->peerTick;
-			}
+
+			if (!swapped)
+				break;
 		}
 
-		if (minIndex >= 0)
+		if (gameUpdates.count > 0)
 		{
-			GameUpdate* gameUpdate = &gameUpdates[minIndex];
-			if (gameUpdate->hostTick == gameUpdate->peerTick)
+			GameUpdate* current = &gameUpdates[0];
+			if (current->IsComplete())
 			{
-				return gameUpdate;
+				return current;
+			}
+			else
+			{
+				current->ttl++;
+
+				if (current->ttl >= MultiplayerState::TICKS_BEFORE_CONSIDERED_DROPED)
+				{
+					int32 numComplete = 0;
+					int32 closestIndex = 0;
+					for (int32 i = 1; i < (int32)gameUpdates.count; i++)
+					{
+						GameUpdate* next = &gameUpdates[i];
+						if (next->IsComplete())
+						{
+							if (closestIndex == 0)
+								closestIndex = i;
+							numComplete++;
+						}
+					}
+
+					if (closestIndex > 0)
+					{
+						Debug::LogInfo("Reconstructing packet!!");
+						current->Reconstruct(closestIndex, &lastGameUpdate, &gameUpdates[closestIndex]);
+					}
+				}
 			}
 		}
-
 
 		return nullptr;
+	}
+
+	int32 MultiplayerState::GetNumberOfHostTicks()
+	{
+		int32 count = 0;
+		for (uint32 i = 0; i < gameUpdates.count; i++)
+		{
+			if (gameUpdates[i].hostTick != 0)
+			{
+				count++;
+			}
+		}
+
+		return count;
 	}
 
 	GameUpdate* MultiplayerState::GetGameUpdate(int32 tickIndex)
@@ -346,6 +453,8 @@ namespace cm
 
 	void MultiplayerState::Update(Room* room, real32 dt)
 	{
+		pingTimer += dt;
+
 		GetInput();
 		if (!startedNetworkStuff)
 		{
@@ -403,55 +512,98 @@ namespace cm
 
 		if (connectionValid)
 		{
-			timeSinceLastTick += dt;
-			if ((timeSinceLastTick >= 1.0f / (real32)TICKS_PER_SECOND) && sendTick)
+			//Debug::LogInfo(CString("Count").Add(gameUpdates.count));
+
+			timeSinceLastSend += dt;
+			if ((timeSinceLastSend >= 1.0f / (real32)TICKS_PER_SECOND))
 			{
-				currentTick++;
+				bool flooding = false;
 
-				Transform t1 = player1Tank.GetWorldTransform();
-				Transform t2 = player1Turret.GetWorldTransform();
+				if (GetNumberOfHostTicks() >= TICKS_MAX_LEAD)
+				{
+					flooding = true;
+					if (timeSinceLastSend > TIMEOUT_TIME_SECONDS)
+					{
+						//LOG("Connection timing out !!");
+					}
+					else
+					{
+						//LOG("flooding");
+					}
+				}
 
-				SnapShot snap = {};
-				snap.type = SnapShotType::TICK;
-				snap.snapTick.tickNumber = currentTick;
-				snap.snapTick.playerSpawnBullet = spawnBullet;
-				snap.snapTick.tankPosition = t1.position;
-				snap.snapTick.tankOrientation = t1.orientation;
-				snap.snapTick.turretPosition = t2.position;
-				snap.snapTick.turretOrientation = t2.orientation;
+				if (!flooding)
+				{
+					currentTick++;
 
-				Platform::NetworkSend(&snap, sizeof(SnapShot), peerAddress);
+					Transform t1 = player1Tank.GetWorldTransform();
+					Transform t2 = player1Turret.GetWorldTransform();
 
-				sendTick = false;
-				timeSinceLastTick = 0.0f;
+					uint8 temp = 0;
+					if (!lastSentTicks.IsEmpty())
+						temp = (lastSentTicks[lastSentTicks.count - 1].playerSpawnBullet << 1);
 
-				GameUpdate* update = GetGameUpdate(currentTick);
-				update->hostTick = currentTick;
-				update->player1TankPos = snap.snapTick.tankPosition;
-				update->player1TurretPos = snap.snapTick.turretPosition;
-				update->player1TankOri = snap.snapTick.tankOrientation;
-				update->player1TurretOri = snap.snapTick.turretOrientation;
-				update->player1SpawnBullet = spawnBullet;
+					SnapGameTick snap = {};
+					snap.tickNumber = currentTick;
+					snap.playerSpawnBullet = room->spawnBullet;
+					snap.tankPosition = t1.position;
+					snap.tankOrientation = t1.orientation;
+					snap.turretPosition = t2.position;
+					snap.turretOrientation = t2.orientation;
 
-				spawnBullet = false;
-				//Debug::LogInfo(CString("SndTick ").Add(currentTick));
+					unproccessedHostTicks.Add(snap);
+
+					timeSinceLastSend = 0.0f;
+					room->spawnBullet = false;
+				}
 			}
-		}
 
-		if (unproccessedPeerTicks.count > 0)
-		{
+			while (unproccessedHostTicks.count > 0)
+			{
+				SnapGameTick snap = unproccessedHostTicks[0];
+
+				GameUpdate* update = GetGameUpdate(snap.tickNumber);
+				update->hostTick = snap.tickNumber;
+				update->player1TankPos = snap.tankPosition;
+				update->player1TurretPos = snap.turretPosition;
+				update->player1TankOri = snap.tankOrientation;
+				update->player1TurretOri = snap.turretOrientation;
+				update->player1SpawnBullet = snap.playerSpawnBullet;
+
+				SnapShot snapShot = {};
+				snapShot.type = SnapShotType::TICK;
+				snapShot.snapTick = snap;
+
+				Platform::NetworkSend(&snapShot, sizeof(SnapShot), peerAddress);
+
+				if (lastSentTicks.IsFull())
+				{
+					lastSentTicks.Remove((uint32)0);
+				}
+
+				lastSentTicks.Add(snap);
+				unproccessedHostTicks.Remove((uint32)0);
+			}
+
 			while (unproccessedPeerTicks.count > 0)
 			{
 				SnapGameTick snap = unproccessedPeerTicks[0];
 
-				GameUpdate* update = GetGameUpdate(snap.tickNumber);
-				update->peerTick = snap.tickNumber;
-				update->player2TankPos = snap.tankPosition;
-				update->player2TurretPos = snap.turretPosition;
-				update->player2TankOri = snap.tankOrientation;
-				update->player2TurretOri = snap.turretOrientation;
-				update->player2SpawnBullet = snap.playerSpawnBullet;
-
+				if (snap.tickNumber >= processTick)
+				{
+					GameUpdate* update = GetGameUpdate(snap.tickNumber);
+					update->peerTick = snap.tickNumber;
+					update->player2TankPos = snap.tankPosition;
+					update->player2TurretPos = snap.turretPosition;
+					update->player2TankOri = snap.tankOrientation;
+					update->player2TurretOri = snap.turretOrientation;
+					update->player2SpawnBullet = snap.playerSpawnBullet;
+				}
+				else
+				{
+					// @NOTE: We've recived a packet we thought had been lost
+					Debug::LogInfo("We've recived a packet we thought had been lost");
+				}
 				unproccessedPeerTicks.Remove((uint32)0);
 			}
 		}
@@ -459,53 +611,44 @@ namespace cm
 		GameUpdate* gameUpdate = GetLatestValidGameUpdate();
 		if (gameUpdate)
 		{
+			Assert(gameUpdate->hostTick == gameUpdate->peerTick, "Ticks are not the same !!");
+			Assert(gameUpdate->hostTick == processTick, "Process tick is not the same!!");
+
+			//Debug::LogFile(CString("h=").Add(gameUpdate->hostTick).Add(" p=").Add(gameUpdate->peerTick));
+			//Debug::LogFile(CString("p1pos").Add(ToString(gameUpdate->player1TankPos)).Add("p2pos").Add(ToString(gameUpdate->player2TankPos)));
 			//LOG(gameUpdate->hostTick << ":" << gameUpdate->peerTick);
 
+			real32 stepDt = 1.0f / TICKS_PER_SECOND;
+			TickGame(room, gameUpdate, stepDt);
+			lastGameUpdate = *gameUpdate;
 			gameUpdates.Remove(gameUpdate);
-
-			for (uint32 i = 0; i < room->brainComponents.GetCapcity(); i++)
-			{
-				BrainComponent* bc = &room->brainComponents[i];
-				if (bc->enabled)
-				{
-					real32 stepDt = 1.0f / TICKS_PER_SECOND;
-					if (room->entities[i].IsValid())
-					{
-						switch (bc->type.Get())
-						{
-						case BrainType::Value::PLAYER_BRAIN:bc->playerBrain.TickUpdate(room, gameUpdate, stepDt); break;
-						case BrainType::Value::BULLET: bc->bulletBrain.TickUpdate(room, gameUpdate, room->entities[i], stepDt); break;
-						case BrainType::Value::PEER_BRAIN: bc->networkBrain.TickUpdate(room, gameUpdate, stepDt); break;
-						case BrainType::Value::TANK_AI_IMMOBILE:break;
-						}
-					}
-				}
-			}
-
-			if (gameUpdate->player1SpawnBullet)
-			{
-				Transform transform = {};
-				transform.position = gameUpdate->player1TurretPos;
-				transform.orientation = gameUpdate->player1TurretOri;
-				SpawnBullet(room, transform);
-			}
-
-			if (gameUpdate->player2SpawnBullet)
-			{
-				Transform transform = {};
-				transform.position = gameUpdate->player2TurretPos;
-				transform.orientation = gameUpdate->player2TurretOri;
-				SpawnBullet(room, transform);
-			}
-
-			sendTick = true;
+			processTick++;
 		}
-
 	}
 
 	void Room::Update(real32 dt)
 	{
-		multiplayerState.Update(this, dt);
+		if (twoPlayerGame)
+		{
+			multiplayerState.Update(this, dt);
+		}
+		else
+		{
+			GameUpdate* gameUpdate = GameMemory::PushTransientStruct<GameUpdate>();
+			Transform transform = singlePlayerState.player1Tank.GetWorldTransform();
+			gameUpdate->player1TankPos = transform.position;
+			gameUpdate->player1TankOri = transform.orientation;
+
+			transform = singlePlayerState.player1Turret.GetWorldTransform();
+			gameUpdate->player1TurretPos = transform.position;
+			gameUpdate->player1TurretOri = transform.orientation;
+
+			gameUpdate->player1SpawnBullet = spawnBullet;
+
+			TickGame(this, gameUpdate, dt);
+
+			spawnBullet = false;
+		}
 
 		for (uint32 i = 0; i < brainComponents.GetCapcity(); i++)
 		{
@@ -885,7 +1028,7 @@ namespace cm
 			{
 				lastFireTime = 0.0f;
 				canFire = false;
-				room->multiplayerState.spawnBullet = true;
+				room->spawnBullet = true;
 			}
 			else
 			{
@@ -976,13 +1119,15 @@ namespace cm
 		}
 	}
 
-	void TankAIImmobile::FrameUpdate(Room* room, Entity entity, real32 dt)
+	void TankAIImmobile::TickUpdate(Room* room, GameUpdate* update, Entity entity, real32 dt)
 	{
 		Transform transform = entity.GetWorldTransform();
 		if (!player1Tank.IsValid())
 			return;
 
-		Transform tankTransform = player1Tank.GetWorldTransform();
+		Transform tankTransform = {};
+		tankTransform.position = update->player1TankPos;
+		tankTransform.orientation = update->player1TankOri;
 
 		lastFireTime += dt;
 
@@ -1033,8 +1178,13 @@ namespace cm
 				break;
 			}
 		}
+	}
 
+	void TankAIImmobile::FrameUpdate(Room* room, Entity entity, real32 dt)
+	{
 
 	}
+
+
 
 }

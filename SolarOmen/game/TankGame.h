@@ -6,9 +6,7 @@ namespace cm
 {
 	struct TransformComponent
 	{
-		bool32 cached;
 		Transform transform;
-		Transform worldTransform;
 	};
 
 	struct NameComponent
@@ -71,6 +69,7 @@ namespace cm
 	{
 		int32 hostTick;
 		int32 peerTick;
+		int32 ttl;
 
 		Vec3f player1TankPos;
 		Quatf player1TankOri;
@@ -82,31 +81,39 @@ namespace cm
 		Vec3f player2TurretPos;
 		Quatf player2TurretOri;
 
-		bool player1SpawnBullet;
-		bool player2SpawnBullet;
+		uint8 player1SpawnBullet;
+		uint8 player2SpawnBullet;
 
 		FixedArray<CommandType, 64> commands;
+
+		void Reconstruct(int32 index, GameUpdate* last, GameUpdate* closest);
+		inline bool IsComplete() { return hostTick == peerTick; }
 	};
 
 	struct MultiplayerState
 	{
 		static constexpr int32 PACKETS_PER_SECOND = 30;
 		static constexpr int32 TICKS_PER_SECOND = 60;
+		static constexpr int32 TICKS_BEFORE_CONSIDERED_DROPED = 5;
+		static constexpr int32 TICKS_MAX_LEAD = 7;
+		static constexpr int32 TIMEOUT_TIME_SECONDS = 2;
 
 		bool startedNetworkStuff;
 		bool connectionValid;
 		PlatformAddress myAddress;
 		PlatformAddress peerAddress;
 
-		bool sendTick;
 		int32 currentTick;
+		int32 processTick;
 
+		GameUpdate lastGameUpdate;
+		FixedArray<SnapGameTick, TICKS_MAX_LEAD> lastSentTicks;
+		FixedArray<SnapGameTick, 64> unproccessedHostTicks;
 		FixedArray<SnapGameTick, 64> unproccessedPeerTicks;
 		FixedArray<GameUpdate, 64> gameUpdates;
 
-		bool spawnBullet;
-
 		real32 timeSinceLastTick;
+		real32 timeSinceLastSend;
 
 		Entity player1Tank;
 		Entity player1Turret;
@@ -116,9 +123,16 @@ namespace cm
 
 		real32 pingTimer;
 
+		int32 GetNumberOfHostTicks();
 		GameUpdate* GetLatestValidGameUpdate();
 		GameUpdate* GetGameUpdate(int32 tickIndex);
 		void Update(Room* room, real32 dt);
+	};
+
+	struct SinglePlayerState
+	{
+		Entity player1Tank;
+		Entity player1Turret;
 	};
 
 	class Room
@@ -130,7 +144,11 @@ namespace cm
 		Camera playerCamera;
 		Vec3f playerCameraOffset;
 
+		bool spawnBullet;
+
 		Grid grid;
+		bool twoPlayerGame;
+		SinglePlayerState singlePlayerState;
 		MultiplayerState multiplayerState;
 
 		FixedArray<Entity, ENTITY_STORAGE_COUNT> bullets;

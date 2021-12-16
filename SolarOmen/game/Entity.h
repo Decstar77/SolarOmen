@@ -235,7 +235,9 @@ namespace cm
 	struct SnapGameTick
 	{
 		int32 tickNumber;
-		bool playerSpawnBullet;
+
+		uint8 playerSpawnBullet;
+
 		Vec3f tankPosition;
 		Quatf tankOrientation;
 		Vec3f turretPosition;
@@ -294,7 +296,7 @@ namespace cm
 
 	struct BulletBrain
 	{
-		static constexpr real32 BULLET_MOVE_SPEED = 4.0f;
+		static constexpr real32 BULLET_MOVE_SPEED = 8.0f;
 		bool32 initialized;
 		int32 collisionCount;
 		Transform trueTransform;
@@ -340,6 +342,7 @@ namespace cm
 		real32 lastFireTime = 0.0f;
 
 		void FrameUpdate(Room* room, Entity entity, real32 dt);
+		void TickUpdate(Room* room, struct GameUpdate* update, Entity entity, real32 dt);
 	};
 
 	struct BrainComponent
