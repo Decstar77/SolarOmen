@@ -170,17 +170,31 @@ namespace cm
 			instance->transientStorage.used = 0;
 		}
 
-		inline static void AllocateGameMemory(uint64 permanentStorageSize, uint64 transientStorageSize)
+		GameMemory(void* permanentStorageData, uint64 permanentStorageSize, void* transientStorageData, uint64 transientStorageSize)
 		{
-			// @NOTE: Using new here to call the constructor, very rare.
-			GameMemory* gameMemory = new GameMemory(permanentStorageSize, transientStorageSize);
+			permanentStorage.size = permanentStorageSize;
+			transientStorage.size = transientStorageSize;
+			permanentStorage.base = (uint8*)permanentStorageData;
+			transientStorage.base = (uint8*)transientStorageData;
 
-			Assert(gameMemory, "Could not allocate game memory");
-			if (gameMemory)
+			Assert(permanentStorage.base, "Could alloc permanent storage");
+			if (permanentStorage.base)
 			{
-				instance = gameMemory;
+				memset(permanentStorage.base, 0, permanentStorageSize);
 			}
+
+			Assert(transientStorage.base, "Could alloc transient storage");
+			if (transientStorage.base)
+			{
+				memset(transientStorage.base, 0, transientStorageSize);
+			}
+
+			permanentStorage.used = 0;
+			transientStorage.used = 0;
+
+			instance = this;
 		}
+
 	private:
 
 		inline static GameMemory* instance = nullptr;
@@ -212,28 +226,6 @@ namespace cm
 			return result;
 		}
 
-		GameMemory(uint64 permanentStorageSize, uint64 transientStorageSize)
-		{
-			permanentStorage.size = permanentStorageSize;
-			transientStorage.size = transientStorageSize;
-			permanentStorage.base = (uint8*)malloc(permanentStorageSize);
-			transientStorage.base = (uint8*)malloc(transientStorageSize);
-
-			Assert(permanentStorage.base, "Could alloc permanent storage");
-			if (permanentStorage.base)
-			{
-				memset(permanentStorage.base, 0, permanentStorageSize);
-			}
-
-			Assert(transientStorage.base, "Could alloc transient storage");
-			if (transientStorage.base)
-			{
-				memset(transientStorage.base, 0, transientStorageSize);
-			}
-
-			permanentStorage.used = 0;
-			transientStorage.used = 0;
-		}
 	};
 
 

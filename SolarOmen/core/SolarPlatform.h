@@ -55,8 +55,10 @@ namespace cm
 
 	namespace Platform
 	{
+		bool32 AllocateMemory(uint64 permanentStorageSize, uint64 transientStorageSize);
 		bool32 Initialize(PlatformState* ps, const char* title, int32 width, int32 height, bool32 console);
 		void SetWindowPosition(PlatformState* ps, int32 x, int32 y);
+		void DisplayError(const CString& errMsg);
 		bool32 ProcessInput(PlatformState* ps, Input* input);
 		void PostQuitMessage();
 		void Shutdown();

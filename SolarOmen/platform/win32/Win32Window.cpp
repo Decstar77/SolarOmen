@@ -42,16 +42,14 @@ namespace cm
 		return result;
 	}
 
-	// @TODO: Remove std::vector!!
-	ManagedArray<CString> Platform::LoadEntireFolder(const CString& path, const CString& fileTypes)
+	inline static uint32 CountAllFiles(const CString& path, const CString& fileTypes)
 	{
-		WIN32_FIND_DATAA fdFile = {};
+		uint32 count = 0;
 		HANDLE file = {};
+		WIN32_FIND_DATAA fdFile = {};
 
-		std::vector<CString> result;
 		CString searchString = {};
 		searchString.Add(path).Add('*');
-
 		if ((file = FindFirstFileA(searchString.GetCStr(), &fdFile)) != INVALID_HANDLE_VALUE)
 		{
 			do
@@ -63,27 +61,18 @@ namespace cm
 					// @NOTE: Is the entity a File or Folder? 
 					if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 					{
-						ManagedArray<CString> subFolder = Platform::LoadEntireFolder(filePath.Add('/'), fileTypes);
-
-						for (uint32 i = 0; i < subFolder.GetCount(); i++)
-						{
-							result.push_back(subFolder[i]);
-						}
+						count += CountAllFiles(filePath.Add('/'), fileTypes);
 					}
 					else
 					{
 						CString ext = Util::GetFileExtension(filePath);
 						if (ext == fileTypes)
 						{
-							result.push_back(filePath);
+							count++;
 						}
 					}
 				}
 			} while (FindNextFileA(file, &fdFile) != 0);
-		}
-		else
-		{
-			LOG("No files found");
 		}
 
 		if (file)
@@ -91,13 +80,59 @@ namespace cm
 			FindClose(file);
 		}
 
-		ManagedArray<CString> paths = {};
-		paths.data = GameMemory::PushTransientCount<CString>((uint32)result.size());
-		paths.capcity = (uint32)result.size();
+		return count;
+	}
 
-		for (const CString& path : result)
+
+	inline static void GetAllFilePaths(const CString& path, const CString& fileTypes, ManagedArray<CString>& paths)
+	{
+		HANDLE file = {};
+		WIN32_FIND_DATAA fdFile = {};
+
+		CString searchString = {};
+		searchString.Add(path).Add('*');
+		if ((file = FindFirstFileA(searchString.GetCStr(), &fdFile)) != INVALID_HANDLE_VALUE)
 		{
-			paths.Add(path);
+			do
+			{
+				if (strcmp(fdFile.cFileName, ".") != 0
+					&& strcmp(fdFile.cFileName, "..") != 0)
+				{
+					CString filePath = CString(path).Add(CString(fdFile.cFileName));
+					// @NOTE: Is the entity a File or Folder? 
+					if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+					{
+						GetAllFilePaths(filePath.Add('/'), fileTypes, paths);
+					}
+					else
+					{
+						CString ext = Util::GetFileExtension(filePath);
+						if (ext == fileTypes)
+						{
+							paths.Add(filePath);
+						}
+					}
+				}
+			} while (FindNextFileA(file, &fdFile) != 0);
+		}
+
+
+		if (file)
+		{
+			FindClose(file);
+		}
+	}
+
+	ManagedArray<CString> Platform::LoadEntireFolder(const CString& path, const CString& fileTypes)
+	{
+
+		ManagedArray<CString> paths = {};
+		uint32 count = CountAllFiles(path, fileTypes);
+
+		if (count > 0)
+		{
+			paths = GameMemory::PushTransientArray<CString>(count);
+			GetAllFilePaths(path, fileTypes, paths);
 		}
 
 		return paths;
@@ -824,6 +859,24 @@ namespace cm
 		return platformRunning;
 	}
 
+	bool32 Platform::AllocateMemory(uint64 permanentStorageSize, uint64 transientStorageSize)
+	{
+		void* permanentStorageData = (uint8*)malloc(permanentStorageSize);
+		void* transientStorageData = (uint8*)malloc(transientStorageSize);
+
+		Assert(permanentStorageData && transientStorageData, "Could not allocate memory !!");
+
+		if (permanentStorageData && transientStorageData)
+		{
+			GameMemory* memory = new GameMemory(permanentStorageData, permanentStorageSize,
+				transientStorageData, transientStorageSize);
+
+			return true;
+		}
+
+		return false;
+	}
+
 	bool32 cm::Platform::Initialize(PlatformState* ps, const char* title, int32 width, int32 height, bool32 createConsole)
 	{
 		if (createConsole)
@@ -901,6 +954,11 @@ namespace cm
 	void Platform::SetWindowPosition(PlatformState* ps, int32 x, int32 y)
 	{
 		SetWindowPos((HWND)ps->window, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+	}
+
+	void Platform::DisplayError(const CString& errMsg)
+	{
+		MessageBoxA(NULL, errMsg.GetCStr(), "Error", MB_OK);
 	}
 
 	void cm::Platform::Shutdown()
