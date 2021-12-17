@@ -12,6 +12,9 @@ namespace cm
 	{
 		static constexpr uint32 DEBUG_RENDER_VERTEX_COUNT = 200000;
 
+		inline static bool host = false;
+		inline static bool peer = false;
+
 		int32 vertex_stride;
 		int32 vertex_count;
 		int32 vertex_size_bytes;
@@ -27,7 +30,7 @@ namespace cm
 
 	namespace Debug
 	{
-		void Initialize();
+		void Initialize(int32 argc, const char* argv[]);
 		void Shutdown();
 
 		void DrawPoint(const Vec3f& p, real32 size = 0.5f);

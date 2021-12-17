@@ -23,7 +23,7 @@ int main(int argc, const char* argv[])
 		Audio::Initialize();
 
 #if DEBUG
-		Debug::Initialize();
+		Debug::Initialize(argc, argv);
 #endif
 		// @NOTE: Load the assets
 		if (Assets::Initialize())
@@ -86,16 +86,16 @@ int main(int argc, const char* argv[])
 #if EDITOR
 						Editor::Shutdown();
 #endif
-						}
-
-					Game::Shutdown();
 					}
 
-				Renderer::Shutdown();
+					Game::Shutdown();
 				}
 
-			Assets::Shutdown();
+				Renderer::Shutdown();
 			}
+
+			Assets::Shutdown();
+		}
 
 #if DEBUG
 		Debug::Shutdown();
@@ -105,6 +105,6 @@ int main(int argc, const char* argv[])
 		Platform::ShutdownNetworking();
 		Platform::ShutdownThreads();
 		Platform::Shutdown();
-		}
-
 	}
+
+}

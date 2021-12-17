@@ -8,10 +8,11 @@ namespace cm
 {
 	namespace Debug
 	{
-		void Debug::Initialize()
+		void Debug::Initialize(int32 argc, const char* argv[])
 		{
 			DebugState::debugState = (DebugState*)malloc(sizeof(DebugState));
 			GetDebugState();
+			GetPlatofrmState();
 			if (ds)
 			{
 				ZeroStruct(ds);
@@ -25,6 +26,22 @@ namespace cm
 			{
 				Assert(0, "Debug not alloced");
 
+			}
+
+			if (argc >= 4)
+			{
+				int32 x = atol(argv[1]);
+				int32 y = atol(argv[2]);
+				Platform::SetWindowPosition(ps, x, y);
+
+				if (strcmp(argv[3], "host"))
+				{
+					DebugState::host = true;
+				}
+				else if (strcmp(argv[3], "peer"))
+				{
+					DebugState::peer = true;
+				}
 			}
 
 			LogFile("Start");

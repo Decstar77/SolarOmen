@@ -135,6 +135,9 @@
     <ClCompile Include="platform\win32\Win32Audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="game\Multipalyer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\SolarMath.h">
@@ -291,6 +294,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\SolarNetwork.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="game\Multiplayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

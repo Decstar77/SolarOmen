@@ -102,6 +102,7 @@
     <ClCompile Include="core\SolarPlatform.cpp" />
     <ClCompile Include="game\Entity.cpp" />
     <ClCompile Include="game\GameEditor.cpp" />
+    <ClCompile Include="game\Multipalyer.cpp" />
     <ClCompile Include="game\TankGame.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ManifoldTests.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="core\SolarQueue.h" />
     <ClInclude Include="game\Entity.h" />
     <ClInclude Include="game\GameEditor.h" />
+    <ClInclude Include="game\Multiplayer.h" />
     <ClInclude Include="game\TankGame.h" />
     <ClInclude Include="ManifoldTests.h" />
     <ClInclude Include="platform\win32\BlockingQueue.h" />

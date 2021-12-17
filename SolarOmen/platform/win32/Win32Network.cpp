@@ -38,7 +38,7 @@ namespace cm
 			mainSocket.Create();
 			mainSocket.Bind(hostAddr);
 			mainSocket.SetNonBlocking();
-			Debug::LogInfo(CString("Server started on ").Add(hostAddr.GetStringIp()));
+			Debug::LogInfo(CString("Server started on ").Add(hostAddr.GetStringIp()).Add(port));
 			mainSocketBound = true;
 
 			PlatformAddress platformSocket = hostAddr.ToPlatformAddress();

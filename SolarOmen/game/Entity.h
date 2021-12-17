@@ -201,68 +201,6 @@ namespace cm
 		friend class Room;
 	};
 
-
-
-
-	enum class SnapShotType : uint8
-	{
-		INVALID = 0,
-		HANDSHAKE_CONNECTION,
-		PING,
-		TRANSFORM,
-		BULLET_SHOT,
-		TICK,
-	};
-
-	struct SnapShotTransform
-	{
-		SnapShotType type;
-		Vec3f tankPosition;
-		Quatf tankOrientation;
-
-		Vec3f turretPosition;
-		Quatf turretOrientation;
-	};
-
-	struct SnapShotBulletShot
-	{
-		uint32 bulletId;
-		bool ack;
-		Vec3f position;
-		Quatf orientation;
-	};
-
-	struct SnapGameTick
-	{
-		int32 tickNumber;
-
-		uint8 playerSpawnBullet;
-
-		Vec3f tankPosition;
-		Quatf tankOrientation;
-		Vec3f turretPosition;
-		Quatf turretOrientation;
-	};
-
-	struct SnapShotPing
-	{
-		bool ack;
-	};
-
-	struct SnapShot
-	{
-		SnapShotType type;
-		union
-		{
-			SnapShotTransform snapTransform;
-			SnapShotBulletShot snapBullet;
-			SnapGameTick snapTick;
-			SnapShotPing snapPing;
-		};
-	};
-
-	static_assert(sizeof(SnapShotTransform) < 256);
-
 	struct PlayerBrain
 	{
 		static constexpr real32 TANK_MOVE_SPEED = 2.0f;
@@ -272,21 +210,15 @@ namespace cm
 		real32 lastFireTime = 0.0f;
 		bool canFire = false;
 
-		Entity tank;
-		Entity turret;
-		Entity bulletSpawnPoint;
+		Entity visualTank;
+		Entity visualTurret;
+		real32 visualTurretRotation;
+		real32 visualTankRotation;
 
-		bool32 initialized;
-
-		Vec2f tankVelocity;
-		real32 turretRotation;
-		real32 tankRotation;
-
-		void FrameUpdate(Room* room, real32 dt);
-		void TickUpdate(Room* room, struct GameUpdate* update, real32 dt);
+		void FrameUpdate(Room* room, Entity entity, real32 dt);
+		void TickUpdate(Room* room, struct GameUpdate* update, Entity entity, real32 dt);
 
 	private:
-		void Start(Room* room, real32 dt);
 		void UpdateTurret(Room* room, real32 dt);
 		void UpdateBase(Room* room, real32 dt);
 		void UpdateFiring(Room* room, real32 dt);
@@ -299,7 +231,12 @@ namespace cm
 		static constexpr real32 BULLET_MOVE_SPEED = 8.0f;
 		bool32 initialized;
 		int32 collisionCount;
-		Transform trueTransform;
+
+		Vec2f moveDir;
+		Vec2f moveDelta;
+
+		Entity visualBullet;
+		Entity bullet;
 
 		void TickUpdate(Room* room, struct GameUpdate* update, Entity entity, real32 dt);
 		void FrameUpdate(Room* room, Entity entity, real32 dt);
@@ -307,15 +244,9 @@ namespace cm
 
 	struct PeerBrain
 	{
-		static constexpr int32 PACKETS_PER_SECOND = 30;
-
-		real32 timeTillLastSend;
-
-		Entity player1Tank;
-		Entity player1Turret;
-
-		Entity player2Tank;
-		Entity player2Turret;
+		Entity peerTank;
+		Entity visualPeerTank;
+		Entity visualPeerTurret;
 
 		Vec3f player2TankLerpPos;
 		Quatf player2TankLerpOri;
@@ -331,9 +262,6 @@ namespace cm
 		static constexpr real32 SCANNING_TURN_RATE = DegToRad(15.0f);
 		static constexpr real32 SCANNING_LOCKED_RATE = DegToRad(145.0f);
 		static constexpr real32 FIRE_RATE = 1.0f; // @NOTE: shots per second
-
-		Entity player1Tank;
-		Entity player2Tank;
 
 		Entity tank;
 		Entity bulletSpawnPoint;

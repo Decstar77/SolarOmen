@@ -43,6 +43,7 @@ namespace cm
 			// @NOTE: We don't zero the brain beacause if the brain is calling this function it will
 			//		: mess the current state of the brain, and thus any futher code is be broken entirely
 			//		: instead what happens is the brain is zero'd upon being set.
+			brainComponents[index].enabled = false;
 			//ZeroStruct(&brainComponents[index]);
 		}
 	}
@@ -68,6 +69,29 @@ namespace cm
 		}
 
 		return {};
+	}
+
+	Entity Room::SpawnEnemyTank(const Vec3f& pos)
+	{
+		Entity tankAI = CreateEntity("TankAI");
+		tankAI.SetRendering("TankBase", "Tank_DefaultMaterial_BaseColor");
+		tankAI.SetLocalTransform(Transform(pos, EulerToQuat(Vec3f(0, 180, 0)), Vec3f(0.65f)));
+		tankAI.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
+
+		Entity turretAI = CreateEntity("Turret");
+		turretAI.SetRendering("TankTurret", "Tank_DefaultMaterial_BaseColor");
+		turretAI.SetLocalTransform(Transform(Vec3f(pos.x, pos.y + 0.65f, pos.z), Quatf(), Vec3f(0.65f)));
+
+		Entity bulletSpawnPoint = CreateEntity("BulletSpawnPoint");
+		bulletSpawnPoint.SetLocalTransform(Transform(Vec3f(0, 0.6f, 1.3f)));
+		bulletSpawnPoint.SetCollider(CreateSphere(Vec3f(0, 0, 0), 0.1f));
+		bulletSpawnPoint.SetParent(turretAI);
+
+		BrainComponent* brain = turretAI.SetBrain(BrainType::Value::TANK_AI_IMMOBILE);
+		brain->tankAIImmobile.tank = tankAI;
+		brain->tankAIImmobile.bulletSpawnPoint = bulletSpawnPoint;
+
+		return turretAI;
 	}
 
 	RaycastResult Room::ShootRayThrough(const Ray& ray)
@@ -99,6 +123,10 @@ namespace cm
 				{
 					AABB box = UpdateAABB(cc->alignedBox, tr->transform.position, tr->transform.orientation, tr->transform.scale);
 					hit = RaycastAABB(ray, box, &info);
+					if (hit)
+					{
+						Debug::DrawAABB(box);
+					}
 				}
 				break;
 				case ColliderType::BOUDNING_BOX:
@@ -122,46 +150,41 @@ namespace cm
 
 	void Room::Initialize()
 	{
-		twoPlayerGame = true;
+		twoPlayerGame = 0;
 
 		GetPlatofrmState();
 		CreateEntityFreeList();
 
-		Entity tank = CreateEntity("Tank");
-		tank.SetModel("TankBase");
-		tank.SetTexture("Tank_DefaultMaterial_BaseColor");
-		tank.SetLocalTransform(Transform(Vec3f(0, 0.1f, 0), Quatf(), Vec3f(0.65f)));
-		tank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
+		Entity visualTank = CreateEntity("HostVisualTank");
+		visualTank.SetModel("TankBase");
+		visualTank.SetTexture("Tank_DefaultMaterial_BaseColor");
+		visualTank.SetLocalTransform(Transform(Vec3f(0, 0.1f, 0), Quatf(), Vec3f(0.65f)));
 
-		Entity turret = CreateEntity("Turret");
-		turret.EnableRendering();
-		turret.SetModel("TankTurret");
-		turret.SetTexture("Tank_DefaultMaterial_BaseColor");
-		turret.SetLocalTransform(Transform(Vec3f(0, 1.1f, 0), EulerToQuat(Vec3f(-8, 0, 0)), Vec3f(0.65f)));
+		Entity visualTurret = CreateEntity("HostTurret");
+		visualTurret.EnableRendering();
+		visualTurret.SetModel("TankTurret");
+		visualTurret.SetTexture("Tank_DefaultMaterial_BaseColor");
+		visualTurret.SetLocalTransform(Transform(Vec3f(0, 1.1f, 0), EulerToQuat(Vec3f(-8, 0, 0)), Vec3f(0.65f)));
+
+		Entity hostTank = CreateEntity("HostTank");
+		hostTank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
+		PlayerBrain* playerBrain = &hostTank.SetBrain(BrainType::Value::PLAYER_BRAIN)->playerBrain;
+		playerBrain->visualTank = visualTank;
+		playerBrain->visualTurret = visualTurret;
+
+		this->hostTank = hostTank;
+		this->hostVisualTank = visualTank;
+		this->hostVisualTurret = visualTurret;
 
 		if (twoPlayerGame)
 		{
-			multiplayerState.player1Tank = tank;
-			multiplayerState.player1Turret = turret;
 			multiplayerState.processTick = 1;
 		}
 		else
 		{
-			singlePlayerState.player1Tank = tank;
-			singlePlayerState.player1Turret = turret;
 		}
 
 		{
-			Entity bulletSpawnPoint = CreateEntity("BulletSpawnPoint");
-			bulletSpawnPoint.SetLocalTransform(Transform(Vec3f(0, 0.6f, 1.3f)));
-			bulletSpawnPoint.SetCollider(CreateSphere(Vec3f(0, 0, 0), 0.1f));
-			bulletSpawnPoint.SetParent(turret);
-
-			BrainComponent* brain = tank.SetBrain(BrainType::Value::PLAYER_BRAIN);
-			brain->playerBrain.tank = tank;
-			brain->playerBrain.turret = turret;
-			brain->playerBrain.bulletSpawnPoint = bulletSpawnPoint;
-
 			playerCamera = {};
 			playerCamera.far_ = 100.0f;
 			playerCamera.near_ = 0.3f;
@@ -173,57 +196,48 @@ namespace cm
 			playerCamera.transform.position.z = -7;
 			playerCamera.transform.LookAtLH(0);
 
-			playerCameraOffset = playerCamera.transform.position - tank.GetWorldTransform().position;
+			playerCameraOffset = playerCamera.transform.position - visualTank.GetWorldTransform().position;
 		}
 
 		if (twoPlayerGame)
 		{
-			Entity player2Tank = CreateEntity("Tank2");
-			player2Tank.SetModel("TankBase");
-			player2Tank.SetTexture("Tank_DefaultMaterial_BaseColor");
-			player2Tank.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(0.65f)));
-			player2Tank.SetCollider(CreateSphere(Vec3f(0, 0, 0), 1.0f));
+			Entity visualPeerTank = CreateEntity("PeerVisualTank2");
+			visualPeerTank.SetModel("TankBase");
+			visualPeerTank.SetTexture("Tank_DefaultMaterial_BaseColor");
+			visualPeerTank.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(0.65f)));
 
-			Entity player2Turret = CreateEntity("Turret");
-			player2Turret.EnableRendering();
-			player2Turret.SetModel("TankTurret");
-			player2Turret.SetTexture("Tank_DefaultMaterial_BaseColor");
-			player2Turret.SetLocalTransform(Transform(Vec3f(0, 1.1f, 0), EulerToQuat(Vec3f(0, 0, -4)), Vec3f(0.65f)));
+			Entity visualPeerTurret = CreateEntity("PeerVisualTurret");
+			visualPeerTurret.EnableRendering();
+			visualPeerTurret.SetModel("TankTurret");
+			visualPeerTurret.SetTexture("Tank_DefaultMaterial_BaseColor");
+			visualPeerTurret.SetLocalTransform(Transform(Vec3f(0, 1.1f, 0), EulerToQuat(Vec3f(0, 0, -4)), Vec3f(0.65f)));
 
-			BrainComponent* brain = player2Tank.SetBrain(BrainType::Value::PEER_BRAIN);
-			brain->networkBrain.player2Tank = player2Tank;
-			brain->networkBrain.player2Turret = player2Turret;
-			brain->networkBrain.player1Tank = tank;
-			brain->networkBrain.player1Turret = turret;
+			Entity peerTank = CreateEntity("PeerTank");
+			peerTank.SetCollider(CreateSphere(Vec3f(0, 0, 0), 1.0f));
+
+			this->peerTank = peerTank;
+			this->peerVisualTank = visualPeerTank;
+			this->peerVisualTurret = visualPeerTurret;
+
+			BrainComponent* brain = peerTank.SetBrain(BrainType::Value::PEER_BRAIN);
+			brain->networkBrain.peerTank = peerTank;
+			brain->networkBrain.visualPeerTank = visualPeerTank;
+			brain->networkBrain.visualPeerTurret = visualPeerTurret;
 		}
 
 		if (1)
 		{
-			Entity tankAI = CreateEntity("TankAI");
-			tankAI.SetRendering("TankBase", "Tank_DefaultMaterial_BaseColor");
-			tankAI.SetLocalTransform(Transform(Vec3f(7, 0.1f, 7), EulerToQuat(Vec3f(0, 180, 0)), Vec3f(0.65f)));
-			tankAI.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
-
-			Entity turretAI = CreateEntity("Turret");
-			turretAI.SetRendering("TankTurret", "Tank_DefaultMaterial_BaseColor");
-			turretAI.SetLocalTransform(Transform(Vec3f(7, 0.75f, 7), Quatf(), Vec3f(0.65f)));
-
-			Entity bulletSpawnPoint = CreateEntity("BulletSpawnPoint");
-			bulletSpawnPoint.SetLocalTransform(Transform(Vec3f(0, 0.6f, 1.3f)));
-			bulletSpawnPoint.SetCollider(CreateSphere(Vec3f(0, 0, 0), 0.1f));
-			bulletSpawnPoint.SetParent(turretAI);
-
-			BrainComponent* brain = turretAI.SetBrain(BrainType::Value::TANK_AI_IMMOBILE);
-			brain->tankAIImmobile.tank = tankAI;
-			brain->tankAIImmobile.player1Tank = tank;
-			brain->tankAIImmobile.bulletSpawnPoint = bulletSpawnPoint;
+			//SpawnEnemyTank(Vec3f(7.0f, 0.1f, 7.0f));
+			SpawnEnemyTank(Vec3f(-7.0f, 0.1f, -7.0f));
+			//SpawnEnemyTank(Vec3f(7.0f, 0.1f, -7.0f));
+			//SpawnEnemyTank(Vec3f(-7.0f, 0.1f, 7.0f));
 		}
 
-		Entity prop = CreateEntity("Prop01");
-		prop.EnableRendering();
-		prop.SetModel("Prop_01");
-		prop.SetTexture("Prop_01_DefaultMaterial_BaseColor");
-		prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(1)));
+		//Entity prop = CreateEntity("Prop01");
+		//prop.EnableRendering();
+		//prop.SetModel("Prop_01");
+		//prop.SetTexture("Prop_01_DefaultMaterial_BaseColor");
+		//prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(1)));
 
 
 		grid.Initialize();
@@ -291,22 +305,61 @@ namespace cm
 		basis.right = Cross(basis.upward, basis.forward);
 		transform.orientation = Mat3ToQuat(basis.mat);
 
-		Entity entity = room->CreateEntity("Bullet");
-		entity.SetCollider(CreateSphere(Vec3f(0), 0.2f));
-		entity.SetLocalTransform(transform);
-		entity.SetModel("sphere");
+		Entity visualBullet = room->CreateEntity("VisualBullet");
+		visualBullet.SetLocalTransform(transform);
+		visualBullet.SetModel("sphere");
 
-		room->bullets.Add(entity);
+		Entity bullet = room->CreateEntity("Bullet");
+		bullet.SetCollider(CreateSphere(Vec3f(0), 0.2f));
+		bullet.SetLocalTransform(transform);
 
-		BrainComponent* bc = entity.SetBrain(BrainType::Value::BULLET);
-		BulletBrain* bullet = &bc->bulletBrain;
-		bullet->trueTransform = transform;
+		room->bullets.Add(visualBullet);
+
+		BulletBrain* brain = &bullet.SetBrain(BrainType::Value::BULLET)->bulletBrain;
+		brain->visualBullet = visualBullet;
+		brain->bullet = bullet;
 
 		PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_revolver_pistol_shot_04.wav", false);
 	}
 
-	static void TickGame(Room* room, GameUpdate* gameUpdate, real32 dt)
+	static void ApplyGameUpdateInput2Player(Room* room, GameUpdate* gameUpdate)
 	{
+		Transform t = {};
+		if (room->isPlayer1)
+		{
+			t = room->hostTank.GetLocalTransform();
+			t.position = gameUpdate->player1TankPos;
+			t.orientation = gameUpdate->player1TankOri;
+			room->hostTank.SetLocalTransform(t);
+
+			PeerBrain* brain = &room->peerTank.GetBrain()->networkBrain;
+			brain->player2TankLerpPos = gameUpdate->player2TankPos;
+			brain->player2TankLerpOri = gameUpdate->player2TankOri;
+			brain->player2TurretLerpPos = gameUpdate->player2TurretPos;
+			brain->player2TurretLerpOri = gameUpdate->player2TurretOri;
+
+			t.position = gameUpdate->player2TankPos;
+			t.orientation = gameUpdate->player2TankOri;
+			brain->peerTank.SetLocalTransform(t);
+		}
+		else
+		{
+			t = room->hostTank.GetLocalTransform();
+			t.position = gameUpdate->player2TankPos;
+			t.orientation = gameUpdate->player2TankOri;
+			room->hostTank.SetLocalTransform(t);
+
+			PeerBrain* brain = &room->peerTank.GetBrain()->networkBrain;
+			brain->player2TankLerpPos = gameUpdate->player1TankPos;
+			brain->player2TankLerpOri = gameUpdate->player1TankOri;
+			brain->player2TurretLerpPos = gameUpdate->player1TurretPos;
+			brain->player2TurretLerpOri = gameUpdate->player1TurretOri;
+
+			t.position = gameUpdate->player1TankPos;
+			t.orientation = gameUpdate->player1TankOri;
+			brain->peerTank.SetLocalTransform(t);
+		}
+
 		if (gameUpdate->player1SpawnBullet)
 		{
 			Transform transform = {};
@@ -322,6 +375,35 @@ namespace cm
 			transform.orientation = gameUpdate->player2TurretOri;
 			SpawnBullet(room, transform);
 		}
+	}
+
+	static void ApplyGameUpdateInputSinglePlayer(Room* room, GameUpdate* gameUpdate)
+	{
+		Transform t = {};
+		t = room->hostTank.GetLocalTransform();
+		t.position = gameUpdate->player1TankPos;
+		t.orientation = gameUpdate->player1TankOri;
+		room->hostTank.SetLocalTransform(t);
+
+		if (gameUpdate->player1SpawnBullet)
+		{
+			Transform transform = {};
+			transform.position = RotatePointLHS(gameUpdate->player1TurretOri, Vec3f(0, 0.4f, 1.1f)) + gameUpdate->player1TurretPos;
+			transform.orientation = gameUpdate->player1TurretOri;
+			SpawnBullet(room, transform);
+		}
+	}
+
+	static void TickGame(Room* room, GameUpdate* gameUpdate, real32 dt)
+	{
+		if (room->twoPlayerGame)
+		{
+			ApplyGameUpdateInput2Player(room, gameUpdate);
+		}
+		else
+		{
+			ApplyGameUpdateInputSinglePlayer(room, gameUpdate);
+		}
 
 		for (uint32 i = 0; i < room->brainComponents.GetCapcity(); i++)
 		{
@@ -330,325 +412,50 @@ namespace cm
 			{
 				if (room->entities[i].IsValid())
 				{
+					Entity entity = room->entities[i];
 					switch (bc->type.Get())
 					{
-					case BrainType::Value::PLAYER_BRAIN:bc->playerBrain.TickUpdate(room, gameUpdate, dt); break;
-					case BrainType::Value::BULLET: bc->bulletBrain.TickUpdate(room, gameUpdate, room->entities[i], dt); break;
-					case BrainType::Value::PEER_BRAIN: bc->networkBrain.TickUpdate(room, gameUpdate, dt); break;
-					case BrainType::Value::TANK_AI_IMMOBILE: bc->tankAIImmobile.TickUpdate(room, gameUpdate, room->entities[i], dt); break;
+					case BrainType::Value::BULLET: bc->bulletBrain.TickUpdate(room, gameUpdate, entity, dt); break;
+					case BrainType::Value::TANK_AI_IMMOBILE: bc->tankAIImmobile.TickUpdate(room, gameUpdate, entity, dt); break;
 					}
 				}
 			}
-		}
-	}
-
-	void GameUpdate::Reconstruct(int32 index, GameUpdate* last, GameUpdate* closest)
-	{
-		Assert(hostTick != 0, "Host tick cannot be reconstructed !!");
-		Assert(index <= 7, "Can't reconstruct a lead greater than 7");
-		peerTick = hostTick;
-
-		real32 t = 1.0f / (real32)(index + 1);
-		player2TankPos = Lerp(last->player2TankPos, closest->player2TankPos, t);
-		player2TankOri = Slerp(last->player2TankOri, closest->player2TankOri, t);
-		player2TurretPos = Lerp(last->player2TurretPos, closest->player2TurretPos, t);
-		player2TurretOri = Slerp(last->player2TurretOri, closest->player2TurretOri, t);
-	}
-
-	GameUpdate* MultiplayerState::GetLatestValidGameUpdate()
-	{
-
-		GameUpdate* temp = GameMemory::PushPermanentStruct<GameUpdate>();
-		for (int32 i = 0; i < (int32)gameUpdates.count; i++)
-		{
-			bool swapped = false;
-			for (int32 j = 0; j < (int32)gameUpdates.count - i - 1; j++)
-			{
-				GameUpdate* e1 = &gameUpdates[j];
-				GameUpdate* e2 = &gameUpdates[j + 1];
-
-				int32 e1Tick = Max(e1->hostTick, e1->peerTick);
-				int32 e2Tick = Max(e2->hostTick, e2->peerTick);
-
-				if (e1Tick > e2Tick)
-				{
-					*temp = *e1;
-					*e1 = *e2;
-					*e2 = *temp;
-					swapped = true;
-				}
-			}
-
-			if (!swapped)
-				break;
-		}
-
-		if (gameUpdates.count > 0)
-		{
-			GameUpdate* current = &gameUpdates[0];
-			if (current->IsComplete())
-			{
-				return current;
-			}
-			else
-			{
-				current->ttl++;
-
-				if (current->ttl >= MultiplayerState::TICKS_BEFORE_CONSIDERED_DROPED)
-				{
-					int32 numComplete = 0;
-					int32 closestIndex = 0;
-					for (int32 i = 1; i < (int32)gameUpdates.count; i++)
-					{
-						GameUpdate* next = &gameUpdates[i];
-						if (next->IsComplete())
-						{
-							if (closestIndex == 0)
-								closestIndex = i;
-							numComplete++;
-						}
-					}
-
-					if (closestIndex > 0)
-					{
-						Debug::LogInfo("Reconstructing packet!!");
-						current->Reconstruct(closestIndex, &lastGameUpdate, &gameUpdates[closestIndex]);
-					}
-				}
-			}
-		}
-
-		return nullptr;
-	}
-
-	int32 MultiplayerState::GetNumberOfHostTicks()
-	{
-		int32 count = 0;
-		for (uint32 i = 0; i < gameUpdates.count; i++)
-		{
-			if (gameUpdates[i].hostTick != 0)
-			{
-				count++;
-			}
-		}
-
-		return count;
-	}
-
-	GameUpdate* MultiplayerState::GetGameUpdate(int32 tickIndex)
-	{
-		for (uint32 i = 0; i < gameUpdates.count; i++)
-		{
-			GameUpdate* gameUpdate = &gameUpdates[i];
-			if (gameUpdate->hostTick == tickIndex || gameUpdate->peerTick == tickIndex)
-			{
-				return gameUpdate;
-			}
-		}
-
-		// @TODO: This might be too big for the stack !!
-		GameUpdate update = {};
-		return gameUpdates.Add(update);
-	}
-
-	void MultiplayerState::Update(Room* room, real32 dt)
-	{
-		pingTimer += dt;
-
-		GetInput();
-		if (!startedNetworkStuff)
-		{
-			if (IsKeyJustDown(input, f9))
-			{
-				myAddress = Platform::NetworkStart(54000);
-				startedNetworkStuff = true;
-			}
-
-			if (IsKeyJustDown(input, f10))
-			{
-				myAddress = Platform::NetworkStart(54001);
-				startedNetworkStuff = true;
-			}
-		}
-
-		if (startedNetworkStuff && IsKeyJustDown(input, f11))
-		{
-			SnapShot snapShot = {};
-			snapShot.type = SnapShotType::HANDSHAKE_CONNECTION;
-			int32 port = myAddress.port == 54000 ? 54001 : 54000;
-			Platform::NetworkSend((void*)&snapShot, sizeof(SnapShot), "192.168.0.107", port);
-		}
-
-		uint8 buffer[Platform::MAX_NETWORK_PACKET_SIZE] = {};
-		PlatformAddress address = {};
-		while (Platform::NetworkReceive(buffer, sizeof(buffer), &address) > 0)
-		{
-			SnapShot* snap = (SnapShot*)buffer;
-			if (snap->type == SnapShotType::HANDSHAKE_CONNECTION && !connectionValid)
-			{
-				Debug::LogInfo(CString("Connected to").Add((int32)address.port));
-				peerAddress = address;
-				Platform::NetworkSend(snap, sizeof(SnapShot), peerAddress);
-				connectionValid = true;
-			}
-			if (snap->type == SnapShotType::PING)
-			{
-				if (!snap->snapPing.ack)
-				{
-					snap->snapPing.ack = true;
-					Platform::NetworkSend(snap, sizeof(SnapShot), peerAddress);
-				}
-				else
-				{
-					Debug::LogInfo(CString("Ping: ").Add(pingTimer * 1000.0f));
-				}
-			}
-			else if (snap->type == SnapShotType::TICK)
-			{
-				//Debug::LogInfo(CString("RecTick ").Add(snap->snapTick.tickNumber));
-				unproccessedPeerTicks.Add(snap->snapTick);
-			}
-		}
-
-		if (connectionValid)
-		{
-			//Debug::LogInfo(CString("Count").Add(gameUpdates.count));
-
-			timeSinceLastSend += dt;
-			if ((timeSinceLastSend >= 1.0f / (real32)TICKS_PER_SECOND))
-			{
-				bool flooding = false;
-
-				if (GetNumberOfHostTicks() >= TICKS_MAX_LEAD)
-				{
-					flooding = true;
-					if (timeSinceLastSend > TIMEOUT_TIME_SECONDS)
-					{
-						//LOG("Connection timing out !!");
-					}
-					else
-					{
-						//LOG("flooding");
-					}
-				}
-
-				if (!flooding)
-				{
-					currentTick++;
-
-					Transform t1 = player1Tank.GetWorldTransform();
-					Transform t2 = player1Turret.GetWorldTransform();
-
-					uint8 temp = 0;
-					if (!lastSentTicks.IsEmpty())
-						temp = (lastSentTicks[lastSentTicks.count - 1].playerSpawnBullet << 1);
-
-					SnapGameTick snap = {};
-					snap.tickNumber = currentTick;
-					snap.playerSpawnBullet = room->spawnBullet;
-					snap.tankPosition = t1.position;
-					snap.tankOrientation = t1.orientation;
-					snap.turretPosition = t2.position;
-					snap.turretOrientation = t2.orientation;
-
-					unproccessedHostTicks.Add(snap);
-
-					timeSinceLastSend = 0.0f;
-					room->spawnBullet = false;
-				}
-			}
-
-			while (unproccessedHostTicks.count > 0)
-			{
-				SnapGameTick snap = unproccessedHostTicks[0];
-
-				GameUpdate* update = GetGameUpdate(snap.tickNumber);
-				update->hostTick = snap.tickNumber;
-				update->player1TankPos = snap.tankPosition;
-				update->player1TurretPos = snap.turretPosition;
-				update->player1TankOri = snap.tankOrientation;
-				update->player1TurretOri = snap.turretOrientation;
-				update->player1SpawnBullet = snap.playerSpawnBullet;
-
-				SnapShot snapShot = {};
-				snapShot.type = SnapShotType::TICK;
-				snapShot.snapTick = snap;
-
-				Platform::NetworkSend(&snapShot, sizeof(SnapShot), peerAddress);
-
-				if (lastSentTicks.IsFull())
-				{
-					lastSentTicks.Remove((uint32)0);
-				}
-
-				lastSentTicks.Add(snap);
-				unproccessedHostTicks.Remove((uint32)0);
-			}
-
-			while (unproccessedPeerTicks.count > 0)
-			{
-				SnapGameTick snap = unproccessedPeerTicks[0];
-
-				if (snap.tickNumber >= processTick)
-				{
-					GameUpdate* update = GetGameUpdate(snap.tickNumber);
-					update->peerTick = snap.tickNumber;
-					update->player2TankPos = snap.tankPosition;
-					update->player2TurretPos = snap.turretPosition;
-					update->player2TankOri = snap.tankOrientation;
-					update->player2TurretOri = snap.turretOrientation;
-					update->player2SpawnBullet = snap.playerSpawnBullet;
-				}
-				else
-				{
-					// @NOTE: We've recived a packet we thought had been lost
-					Debug::LogInfo("We've recived a packet we thought had been lost");
-				}
-				unproccessedPeerTicks.Remove((uint32)0);
-			}
-		}
-
-		GameUpdate* gameUpdate = GetLatestValidGameUpdate();
-		if (gameUpdate)
-		{
-			Assert(gameUpdate->hostTick == gameUpdate->peerTick, "Ticks are not the same !!");
-			Assert(gameUpdate->hostTick == processTick, "Process tick is not the same!!");
-
-			//Debug::LogFile(CString("h=").Add(gameUpdate->hostTick).Add(" p=").Add(gameUpdate->peerTick));
-			//Debug::LogFile(CString("p1pos").Add(ToString(gameUpdate->player1TankPos)).Add("p2pos").Add(ToString(gameUpdate->player2TankPos)));
-			//LOG(gameUpdate->hostTick << ":" << gameUpdate->peerTick);
-
-			real32 stepDt = 1.0f / TICKS_PER_SECOND;
-			TickGame(room, gameUpdate, stepDt);
-			lastGameUpdate = *gameUpdate;
-			gameUpdates.Remove(gameUpdate);
-			processTick++;
 		}
 	}
 
 	void Room::Update(real32 dt)
 	{
+		GameUpdate* gameUpdate = nullptr;
+		real32 tickDt = 0.0f;
 		if (twoPlayerGame)
 		{
-			multiplayerState.Update(this, dt);
+			gameUpdate = multiplayerState.GetNextGameplayUpdate(this, dt);
+			tickDt = 1.0f / MultiplayerState::TICKS_PER_SECOND;
 		}
 		else
 		{
-			GameUpdate* gameUpdate = GameMemory::PushTransientStruct<GameUpdate>();
-			Transform transform = singlePlayerState.player1Tank.GetWorldTransform();
+			tickDt = dt;
+
+			gameUpdate = GameMemory::PushTransientStruct<GameUpdate>();
+			Transform transform = hostVisualTank.GetWorldTransform();
 			gameUpdate->player1TankPos = transform.position;
 			gameUpdate->player1TankOri = transform.orientation;
 
-			transform = singlePlayerState.player1Turret.GetWorldTransform();
+			transform = hostVisualTurret.GetWorldTransform();
 			gameUpdate->player1TurretPos = transform.position;
 			gameUpdate->player1TurretOri = transform.orientation;
 
 			gameUpdate->player1SpawnBullet = spawnBullet;
-
-			TickGame(this, gameUpdate, dt);
-
+			player1Tank = hostTank;
 			spawnBullet = false;
 		}
+
+		// @NOTE: No gaurantee that, when playing mutliplayer, we can a game update
+		if (gameUpdate)
+		{
+			TickGame(this, gameUpdate, tickDt);
+		}
+
 
 		for (uint32 i = 0; i < brainComponents.GetCapcity(); i++)
 		{
@@ -659,7 +466,7 @@ namespace cm
 				{
 					switch (bc->type.Get())
 					{
-					case BrainType::Value::PLAYER_BRAIN: bc->playerBrain.FrameUpdate(this, dt);  break;
+					case BrainType::Value::PLAYER_BRAIN: bc->playerBrain.FrameUpdate(this, entities[i], dt);  break;
 					case BrainType::Value::BULLET: bc->bulletBrain.FrameUpdate(this, entities[i], dt);  break;
 					case BrainType::Value::PEER_BRAIN: bc->networkBrain.FrameUpdate(this, entities[i], dt);  break;
 					case BrainType::Value::TANK_AI_IMMOBILE: bc->tankAIImmobile.FrameUpdate(this, entities[i], dt);  break;
@@ -668,7 +475,7 @@ namespace cm
 			}
 		}
 
-		DEBUGDrawAllColliders();
+		//DEBUGDrawAllColliders();
 	}
 
 	void Room::ConstructRenderGroup(EntityRenderGroup* renderGroup)
@@ -872,97 +679,30 @@ namespace cm
 		return (a.x * b.y) - (a.y * b.x);
 	}
 
-	void PlayerBrain::FrameUpdate(Room* room, real32 dt)
+	void PlayerBrain::TickUpdate(Room* room, GameUpdate* update, Entity entity, real32 dt)
 	{
-		if (!initialized)
-			Start(room, dt);
-
-		UpdateBase(room, dt);
-		UpdateTurret(room, dt);
-		UpdateFiring(room, dt);
-
-		//Sphere collider = tank.GetSphereColliderWorld();
-		//for (uint32 i = 0; i < room->bullets.count; i++)
-		//{
-		//	Sphere sphere = room->bullets[i].GetSphereColliderWorld();
-		//	if (CheckIntersectionSphere(sphere, collider))
-		//	{
-		//		PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/explosion_large_01.wav", false);
-		//		room->DestoryEntity(tank);
-		//		room->DestoryEntity(turret);
-		//		break;
-		//	}
-		//}
+		Debug::DrawSphere(entity.GetSphereColliderWorld());
 	}
 
-	void PlayerBrain::TickUpdate(Room* room, GameUpdate* update, real32 dt)
-	{
-
-	}
-
-	void PlayerBrain::Start(Room* room, real32 dt)
-	{
-		turretRotation = 0.0f;
-		tankRotation = turretRotation;
-		initialized = true;
-	}
-
-	void PlayerBrain::UpdateTurret(Room* room, real32 dt)
-	{
-		Transform turretTransform = turret.GetLocalTransform();
-		//turretTransform.LocalRotateY(DegToRad(25.5f * dt));
-
-		Ray ray = room->playerCamera.ShootRayFromScreen();
-		RaycastInfo rayInfo = {};
-		if (RaycastPlane(ray, CreatePlane(Vec3f(0), Vec3f(0, 1, 0)), &rayInfo))
-		{
-			Vec2f point = Vec2f(rayInfo.closePoint.x, rayInfo.closePoint.z);
-			Vec3f worldPos = turret.GetWorldTransform().position;
-
-			Vec2f look = point - Vec2f(worldPos.x, worldPos.z);
-			Vec2f dir = Vec2f(Sin(turretRotation), Cos(turretRotation));
-
-			look = Normalize(look);
-			dir = Normalize(dir);
-
-			// @NOTE: 2D Cross product
-			int32 sign = Sign(Cross2DScalar(look, dir));
-
-			//Debug::DrawPoint(rayInfo.closePoint + Vec3f(0, worldPos.y, 0));
-			//Debug::DrawLine(worldPos, worldPos + 100.0f * Vec3f(look.x, 0.0f, look.y));
-			//Debug::DrawLine(worldPos, worldPos + 100.0f * Vec3f(dir.x, 0.0f, dir.y));
-
-			real32 theta = Acos(Clamp(Dot(look, dir), 0.0f, 1.0f)) * sign;
-
-			turretRotation = NormalizeEulerRotation(turretRotation + theta);
-
-			turretTransform.LocalRotateY(theta);
-		}
-
-		turretTransform.position = tank.GetWorldTransform().position + Vec3f(0.0f, 0.65f, 0.0f);
-
-		turret.SetLocalTransform(turretTransform);
-	}
-
-	void PlayerBrain::UpdateBase(Room* room, real32 dt)
+	void PlayerBrain::FrameUpdate(Room* room, Entity entity, real32 dt)
 	{
 		GetInput();
 
-		Transform tankTransform = tank.GetWorldTransform();
+		Transform tankTransform = visualTank.GetWorldTransform();
 
 		int32 turnDir = input->d - input->a;
 		int32 moveDir = input->w - input->s;
 
 		real32 rotationDelta = turnDir * TANK_ROTATION_SPEED * dt;
-		tankRotation += rotationDelta;
+		visualTankRotation += rotationDelta;
 		tankTransform.LocalRotateY(rotationDelta);
 
 		real32 moveDelta = moveDir * TANK_MOVE_SPEED * dt;
-		Vec2f forwardDir = Vec2f(Sin(tankRotation), Cos(tankRotation));
+		Vec2f forwardDir = Vec2f(Sin(visualTankRotation), Cos(visualTankRotation));
 		tankTransform.position += Vec3f(moveDelta * forwardDir.x, 0.0f, moveDelta * forwardDir.y);
 
 		// @NOTE: Collision detection 
-		Sphere tankCollider = tank.GetSphereColliderWorld();
+		Sphere tankCollider = CreateSphere(tankTransform.position, 0.8f);
 		for (uint32 i = 0; i < room->grid.cells.count; i++)
 		{
 			GridCell* cell = &room->grid.cells[i];
@@ -977,37 +717,56 @@ namespace cm
 
 					tankCollider = TranslateSphere(tankCollider, disp);
 				}
-
-				//Debug::DrawAABB(aabb);
 			}
 		}
 
-		Debug::DrawSphere(tankCollider);
-		tank.SetLocalTransform(tankTransform);
+		visualTank.SetLocalTransform(tankTransform);
 		room->playerCamera.transform.position = Lerp(room->playerCamera.transform.position,
 			tankTransform.position + room->playerCameraOffset, 0.1f);
+
+		UpdateTurret(room, dt);
+		UpdateFiring(room, dt);
 	}
 
-	static void DestroyBullet(Room* room, Entity entity)
+	void PlayerBrain::UpdateTurret(Room* room, real32 dt)
 	{
-		int32 indexToRemove = -1;
-		for (int32 i = 0; i < (int32)room->bullets.count; i++)
-		{
-			Assert(room->bullets[i].IsValid(), "");
-			Assert(entity.IsValid(), "");
+		Transform turretTransform = visualTurret.GetLocalTransform();
 
-			if (room->bullets[i] == entity)
-			{
-				indexToRemove = i;
-				room->DestoryEntity(entity);
-				break;
-			}
+		Ray ray = room->playerCamera.ShootRayFromScreen();
+		RaycastInfo rayInfo = {};
+		if (RaycastPlane(ray, CreatePlane(Vec3f(0), Vec3f(0, 1, 0)), &rayInfo))
+		{
+			Vec2f point = Vec2f(rayInfo.closePoint.x, rayInfo.closePoint.z);
+			Vec3f worldPos = visualTurret.GetWorldTransform().position;
+
+			Vec2f look = point - Vec2f(worldPos.x, worldPos.z);
+			Vec2f dir = Vec2f(Sin(visualTurretRotation), Cos(visualTurretRotation));
+
+			look = Normalize(look);
+			dir = Normalize(dir);
+
+			//@NOTE: 2D Cross product
+			int32 sign = Sign(Cross2DScalar(look, dir));
+
+			//Debug::DrawPoint(rayInfo.closePoint + Vec3f(0, worldPos.y, 0));
+			//Debug::DrawLine(worldPos, worldPos + 100.0f * Vec3f(look.x, 0.0f, look.y));
+			//Debug::DrawLine(worldPos, worldPos + 100.0f * Vec3f(dir.x, 0.0f, dir.y));
+
+			real32 theta = Acos(Clamp(Dot(look, dir), 0.0f, 1.0f)) * sign;
+
+			visualTurretRotation = NormalizeEulerRotation(visualTurretRotation + theta);
+
+			turretTransform.LocalRotateY(theta);
 		}
 
-		if (indexToRemove >= 0)
-		{
-			room->bullets.Remove(indexToRemove);
-		}
+		turretTransform.position = visualTank.GetWorldTransform().position + Vec3f(0.0f, 0.65f, 0.0f);
+
+		visualTurret.SetLocalTransform(turretTransform);
+	}
+
+	void PlayerBrain::UpdateBase(Room* room, real32 dt)
+	{
+
 	}
 
 	void PlayerBrain::UpdateFiring(Room* room, real32 dt)
@@ -1039,17 +798,20 @@ namespace cm
 
 	void BulletBrain::TickUpdate(Room* room, GameUpdate* update, Entity entity, real32 dt)
 	{
-		Basisf basis = trueTransform.GetBasis();
+		dt *= 2.0f;
 
-		Vec2f moveDir = Normalize(Vec2(basis.forward.x, basis.forward.z));
-		Vec2f moveDelta = BULLET_MOVE_SPEED * moveDir * dt;
+		Transform transform = bullet.GetLocalTransform();
+		Basisf basis = transform.GetBasis();
 
-		trueTransform.position += Vec3f(moveDelta.x, 0.0f, moveDelta.y);
+		moveDir = Normalize(Vec2(basis.forward.x, basis.forward.z));
+		moveDelta = BULLET_MOVE_SPEED * moveDir * dt;
+
+		transform.position += Vec3f(moveDelta.x, 0.0f, moveDelta.y);
 
 		// @NOTE: Collision detection 
 		bool hitCollider = false;
-		Sphere bulletCollider = entity.GetSphereColliderLocal();
-		bulletCollider = TranslateSphere(bulletCollider, trueTransform.position);
+		Sphere bulletCollider = bullet.GetSphereColliderLocal();
+		bulletCollider = TranslateSphere(bulletCollider, transform.position);
 		for (uint32 i = 0; i < room->grid.cells.count; i++)
 		{
 			GridCell* cell = &room->grid.cells[i];
@@ -1064,10 +826,10 @@ namespace cm
 					basis.forward = r;
 					basis.upward = Vec3f(0, 1, 0);
 					basis.right = Cross(basis.upward, basis.forward);
-					trueTransform.orientation = Mat3ToQuat(basis.mat);
+					transform.orientation = Mat3ToQuat(basis.mat);
 
 					Vec3f disp = manifold.normal * manifold.seperationDistance;
-					trueTransform.position += disp;
+					transform.position += disp;
 
 					bulletCollider = TranslateSphere(bulletCollider, disp);
 					hitCollider = true;
@@ -1075,6 +837,7 @@ namespace cm
 			}
 		}
 
+		bullet.SetLocalTransform(transform);
 
 
 		if (hitCollider)
@@ -1082,16 +845,16 @@ namespace cm
 
 		if (collisionCount == 2)
 		{
-			DestroyBullet(room, entity);
+			room->DestoryEntity(bullet);
+			room->DestoryEntity(visualBullet);
 		}
 	}
 
 	void BulletBrain::FrameUpdate(Room* room, Entity entity, real32 dt)
 	{
-		Transform t = entity.GetLocalTransform();
-		t.position = Lerp(trueTransform.position, t.position, NETWORK_INTERPOLATE_AMOUNT);
-		t.orientation = Slerp(trueTransform.orientation, t.orientation, NETWORK_INTERPOLATE_AMOUNT);
-		entity.SetLocalTransform(t);
+		Transform visualTransform = visualBullet.GetLocalTransform();
+		visualTransform.position = Lerp(bullet.GetWorldTransform().position, visualTransform.position, NETWORK_INTERPOLATE_AMOUNT);
+		visualBullet.SetLocalTransform(visualTransform);
 	}
 
 	void PeerBrain::TickUpdate(Room* room, GameUpdate* update, real32 dt)
@@ -1106,28 +869,44 @@ namespace cm
 	void PeerBrain::FrameUpdate(Room* room, Entity entity, real32 dt)
 	{
 		{
-			Transform transform = player2Tank.GetWorldTransform();
+			Transform transform = visualPeerTank.GetWorldTransform();
 			transform.position = Lerp(player2TankLerpPos, transform.position, NETWORK_INTERPOLATE_AMOUNT);
 			transform.orientation = Slerp(player2TankLerpOri, transform.orientation, NETWORK_INTERPOLATE_AMOUNT);
-			player2Tank.SetLocalTransform(transform);
+			visualPeerTank.SetLocalTransform(transform);
 		}
 		{
-			Transform transform = player2Turret.GetWorldTransform();
+			Transform transform = visualPeerTurret.GetWorldTransform();
 			transform.position = Lerp(player2TurretLerpPos, transform.position, NETWORK_INTERPOLATE_AMOUNT);
 			transform.orientation = Slerp(player2TurretLerpOri, transform.orientation, NETWORK_INTERPOLATE_AMOUNT);
-			player2Turret.SetLocalTransform(transform);
+			visualPeerTurret.SetLocalTransform(transform);
 		}
 	}
 
 	void TankAIImmobile::TickUpdate(Room* room, GameUpdate* update, Entity entity, real32 dt)
 	{
-		Transform transform = entity.GetWorldTransform();
-		if (!player1Tank.IsValid())
+		Transform transform = entity.GetLocalTransform();
+
+
+		real32 dist = 0.0f;
+		Entity shootTank = {};
+		if (room->player1Tank.IsValid())
+		{
+			dist = DistanceSqrd(room->player1Tank.GetWorldTransform().position, transform.position);
+			shootTank = room->player1Tank;
+		}
+		if (room->player2Tank.IsValid())
+		{
+			real32 d2 = DistanceSqrd(room->player2Tank.GetWorldTransform().position, transform.position);
+			if (d2 < dist)
+			{
+				shootTank = room->player2Tank;
+			}
+		}
+
+		if (!shootTank.IsValid())
 			return;
 
-		Transform tankTransform = {};
-		tankTransform.position = update->player1TankPos;
-		tankTransform.orientation = update->player1TankOri;
+		Transform tankTransform = shootTank.GetWorldTransform();
 
 		lastFireTime += dt;
 
@@ -1136,12 +915,13 @@ namespace cm
 		viewRay.origin = transform.position;
 
 		RaycastResult result = room->ShootRayThrough(viewRay);
-		if (result.hit && result.entity == player1Tank)
+		if (result.hit && (result.entity.GetBrain()->type == BrainType::Value::PLAYER_BRAIN
+			|| result.entity.GetBrain()->type == BrainType::Value::PEER_BRAIN))
 		{
 			Vec2f dir = Vec2f(Sin(rotation), Cos(rotation));
 			Vec2f look = Normalize(Vec2f(viewRay.direction.x, viewRay.direction.z));
 
-			if (Abs(Dot(dir, look)) < 0.998f)
+			if (Abs(Dot(dir, look)) < 0.999f)
 			{
 				int32 sign = Sign(Cross2DScalar(look, dir));
 				real32 theta = SCANNING_LOCKED_RATE * dt * sign;
@@ -1149,11 +929,14 @@ namespace cm
 				rotation = NormalizeEulerRotation(rotation + theta);
 				transform.LocalRotateY(theta);
 
-				Debug::DrawLine(transform.position, result.entity.GetWorldTransform().position);
+				//Debug::DrawLine(transform.position, result.entity.GetWorldTransform().position);
 			}
 			else if (lastFireTime > FIRE_RATE)
 			{
 				lastFireTime = 0.0f;
+				transform.LookAtLH(transform.position + Vec3f(look.x, 0.0f, look.y));
+				entity.SetLocalTransform(transform);
+
 				SpawnBullet(room, bulletSpawnPoint.GetWorldTransform());
 			}
 		}
@@ -1166,18 +949,46 @@ namespace cm
 
 		entity.SetLocalTransform(transform);
 
-		Sphere collider = tank.GetSphereColliderWorld();
-		for (uint32 i = 0; i < room->bullets.count; i++)
-		{
-			Sphere sphere = room->bullets[i].GetSphereColliderWorld();
-			if (CheckIntersectionSphere(sphere, collider))
-			{
-				PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/explosion_large_01.wav", false);
-				room->DestoryEntity(tank);
-				room->DestoryEntity(entity);
-				break;
-			}
-		}
+
+		//Sphere collider = tank.GetSphereColliderWorld();
+		//for (uint32 i = 0; i < room->brainComponents.GetCapcity(); i++)
+		//{
+		//	BrainComponent* bc = &room->brainComponents[i];
+		//	if (bc->enabled)
+		//	{
+		//		if (room->entities[i].IsValid())
+		//		{
+		//			switch (bc->type.Get())
+		//			{
+		//			case BrainType::Value::BULLET:
+		//			{
+		//				if (CheckIntersectionSphere(bc->bulletBrain.bullet.GetSphereColliderWorld(), collider))
+		//				{
+		//					PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/explosion_large_01.wav", false);
+		//					room->DestoryEntity(tank);
+		//					room->DestoryEntity(entity);
+		//					room->DestoryEntity(bc->bulletBrain.bullet);
+		//					room->DestoryEntity(bc->bulletBrain.visualBullet);
+		//					break;
+		//				}
+		//			}break;
+		//			}
+		//		}
+		//	}
+		//}
+
+
+		//for (uint32 i = 0; i < room->bullets.count; i++)
+		//{
+		//	Sphere sphere = room->bullets[i].GetSphereColliderWorld();
+		//	if (CheckIntersectionSphere(sphere, collider))
+		//	{
+		//		PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/explosion_large_01.wav", false);
+		//		room->DestoryEntity(tank);
+		//		room->DestoryEntity(entity);
+		//		break;
+		//	}
+		//}
 	}
 
 	void TankAIImmobile::FrameUpdate(Room* room, Entity entity, real32 dt)

@@ -898,6 +898,11 @@ namespace cm
 		return false;
 	}
 
+	void Platform::SetWindowPosition(PlatformState* ps, int32 x, int32 y)
+	{
+		SetWindowPos((HWND)ps->window, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+	}
+
 	void cm::Platform::Shutdown()
 	{
 		// TODO:

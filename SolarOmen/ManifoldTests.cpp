@@ -61,58 +61,44 @@ namespace cm
 
 	bool RaycastAABB(const Ray& ray, const AABB& aabb, RaycastInfo* info)
 	{
-		Vec3f min = (aabb.min - ray.origin) / ray.direction;
-		Vec3f max = (aabb.max - ray.origin) / ray.direction;
+		real32 t1 = (aabb.min.x - ray.origin.x) / ray.direction.x;
+		real32 t2 = (aabb.max.x - ray.origin.x) / ray.direction.x;
+		real32 t3 = (aabb.min.y - ray.origin.y) / ray.direction.y;
+		real32 t4 = (aabb.max.y - ray.origin.y) / ray.direction.y;
+		real32 t5 = (aabb.min.z - ray.origin.z) / ray.direction.z;
+		real32 t6 = (aabb.max.z - ray.origin.z) / ray.direction.z;
 
-		if (min.x > max.x)
-		{
-			Swap(&min.x, &max.x);
+		real32 tmin = Max(Max(Min(t1, t2), Min(t3, t4)), Min(t5, t6));
+		real32 tmax = Min(Min(Max(t1, t2), Max(t3, t4)), Max(t5, t6));
+
+		// if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+		if (tmax < 0) {
+			return false;
 		}
 
-		if (min.y > max.y)
-		{
-			Swap(&min.y, &max.y);
+		// if tmin > tmax, ray doesn't intersect AABB
+		if (tmin > tmax) {
+			return false;
 		}
 
-		if (min.z > max.z)
-		{
-			Swap(&min.z, &max.z);
+		if (tmin < 0.0f) {
+			return false;
 		}
 
-		bool result = false;
-		real32 tmin = min.x;
-		real32 tmax = max.x;
+		return tmin;
 
-		if ((tmin < max.y) && (min.y < tmax))
-		{
-			tmin = (min.y > tmin) ? min.y : tmin;
-			tmax = (max.y < tmax) ? max.y : tmax;
+		info->closePoint = TravelDownRay(ray, tmin);
+		info->farPoint = TravelDownRay(ray, tmax);
+		info->t = tmin;
 
-			if ((tmin < max.z) && (min.z < tmax))
-			{
-				tmin = (min.z > tmin) ? min.z : tmin;
-				tmax = (max.z < tmax) ? max.z : tmax;
+		Vec3f dmin = info->closePoint - aabb.min;
+		Vec3f dmax = info->closePoint - aabb.max;
 
-				if (tmin > 0.0001f)
-				{
-					info->closePoint = TravelDownRay(ray, tmin);
-					info->farPoint = TravelDownRay(ray, tmax);
-					info->t = tmin;
+		Vec3f n1((real32)Equal(dmin.x, 0.0f), (real32)Equal(dmin.y, 0.0f), (real32)Equal(dmin.z, 0.0f));
+		Vec3f n2((real32)Equal(dmax.x, 0.0f), (real32)Equal(dmax.y, 0.0f), (real32)Equal(dmax.z, 0.0f));
+		info->normal = n2 - n1;
 
-					Vec3f dmin = info->closePoint - aabb.min;
-					Vec3f dmax = info->closePoint - aabb.max;
-
-					Vec3f n1((real32)Equal(dmin.x, 0.0f), (real32)Equal(dmin.y, 0.0f), (real32)Equal(dmin.z, 0.0f));
-					Vec3f n2((real32)Equal(dmax.x, 0.0f), (real32)Equal(dmax.y, 0.0f), (real32)Equal(dmax.z, 0.0f));
-
-					info->normal = n2 - n1;
-
-					result = true;
-				}
-			}
-		}
-
-		return result;
+		return true;
 	}
 
 	bool RaycastMeshCollider(const Ray& ray, const ManagedArray<Triangle>& triangles, RaycastInfo* info)

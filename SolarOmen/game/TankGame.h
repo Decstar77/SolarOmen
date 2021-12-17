@@ -1,6 +1,7 @@
 #pragma once
 #include "components/SolarCamera.h"
 #include "Entity.h"
+#include "Multiplayer.h"
 #include "ManifoldTests.h"
 namespace cm
 {
@@ -59,82 +60,6 @@ namespace cm
 		RaycastInfo rayInfo;
 	};
 
-	enum class CommandType : uint8
-	{
-		INVALID = 0,
-		PLAYER1_SPAWN_BULLET,
-	};
-
-	struct GameUpdate
-	{
-		int32 hostTick;
-		int32 peerTick;
-		int32 ttl;
-
-		Vec3f player1TankPos;
-		Quatf player1TankOri;
-		Vec3f player1TurretPos;
-		Quatf player1TurretOri;
-
-		Vec3f player2TankPos;
-		Quatf player2TankOri;
-		Vec3f player2TurretPos;
-		Quatf player2TurretOri;
-
-		uint8 player1SpawnBullet;
-		uint8 player2SpawnBullet;
-
-		FixedArray<CommandType, 64> commands;
-
-		void Reconstruct(int32 index, GameUpdate* last, GameUpdate* closest);
-		inline bool IsComplete() { return hostTick == peerTick; }
-	};
-
-	struct MultiplayerState
-	{
-		static constexpr int32 PACKETS_PER_SECOND = 30;
-		static constexpr int32 TICKS_PER_SECOND = 60;
-		static constexpr int32 TICKS_BEFORE_CONSIDERED_DROPED = 5;
-		static constexpr int32 TICKS_MAX_LEAD = 7;
-		static constexpr int32 TIMEOUT_TIME_SECONDS = 2;
-
-		bool startedNetworkStuff;
-		bool connectionValid;
-		PlatformAddress myAddress;
-		PlatformAddress peerAddress;
-
-		int32 currentTick;
-		int32 processTick;
-
-		GameUpdate lastGameUpdate;
-		FixedArray<SnapGameTick, TICKS_MAX_LEAD> lastSentTicks;
-		FixedArray<SnapGameTick, 64> unproccessedHostTicks;
-		FixedArray<SnapGameTick, 64> unproccessedPeerTicks;
-		FixedArray<GameUpdate, 64> gameUpdates;
-
-		real32 timeSinceLastTick;
-		real32 timeSinceLastSend;
-
-		Entity player1Tank;
-		Entity player1Turret;
-
-		Entity player2Tank;
-		Entity player2Turret;
-
-		real32 pingTimer;
-
-		int32 GetNumberOfHostTicks();
-		GameUpdate* GetLatestValidGameUpdate();
-		GameUpdate* GetGameUpdate(int32 tickIndex);
-		void Update(Room* room, real32 dt);
-	};
-
-	struct SinglePlayerState
-	{
-		Entity player1Tank;
-		Entity player1Turret;
-	};
-
 	class Room
 	{
 	public:
@@ -146,9 +71,20 @@ namespace cm
 
 		bool spawnBullet;
 
+		Entity player1Tank;
+		Entity player2Tank;
+
+		Entity hostTank;
+		Entity hostVisualTank;
+		Entity hostVisualTurret;
+		Entity peerTank;
+		Entity peerVisualTank;
+		Entity peerVisualTurret;
+
 		Grid grid;
+
+		bool isPlayer1;
 		bool twoPlayerGame;
-		SinglePlayerState singlePlayerState;
 		MultiplayerState multiplayerState;
 
 		FixedArray<Entity, ENTITY_STORAGE_COUNT> bullets;
@@ -173,6 +109,7 @@ namespace cm
 		void BeginEntityLoop();
 		Entity GetNextEntity();
 
+		Entity SpawnEnemyTank(const Vec3f& pos);
 		RaycastResult ShootRayThrough(const Ray& ray);
 
 		void Initialize();
