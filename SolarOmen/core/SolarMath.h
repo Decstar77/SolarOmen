@@ -693,7 +693,7 @@ namespace cm
 	{
 		union
 		{
-			T ptr[4];
+			T ptr[3];
 			struct
 			{
 				union
@@ -711,11 +711,6 @@ namespace cm
 					T z;
 					T b;
 				};
-				union
-				{
-					T pad0;
-					T pad1;
-				};
 			};
 		};
 
@@ -724,7 +719,6 @@ namespace cm
 			this->x = static_cast<T>(0.0);
 			this->y = static_cast<T>(0.0);
 			this->z = static_cast<T>(0.0);
-			this->pad0 = static_cast<T>(0.0);
 		}
 
 		Vec3(const T& x, const T& y, const T& z)
@@ -732,7 +726,7 @@ namespace cm
 			this->x = x;
 			this->y = y;
 			this->z = z;
-			this->pad0 = static_cast<T>(0.0);
+
 		}
 
 		Vec3(const T& all)
@@ -740,7 +734,6 @@ namespace cm
 			this->x = all;
 			this->y = all;
 			this->z = all;
-			this->pad0 = static_cast<T>(0.0);
 		}
 
 		//TODO: Template this for type
@@ -749,7 +742,6 @@ namespace cm
 			this->x = xy.x;
 			this->y = xy.y;
 			this->z = z;
-			this->pad0 = static_cast<T>(0.0);
 		}
 
 		//TODO: Template this for type
@@ -758,7 +750,6 @@ namespace cm
 			this->x = a.x;
 			this->y = a.y;
 			this->z = a.z;
-			this->pad0 = static_cast<T>(0.0);
 		}
 
 		T& operator[](const int32& index)
@@ -1743,7 +1734,7 @@ namespace cm
 	{
 		union
 		{
-			T ptr[4]; // @NOTE: 12 because padding byte
+			T ptr[4];
 			struct
 			{
 				Vec2<T> row0;
@@ -1843,7 +1834,7 @@ namespace cm
 	{
 		union
 		{
-			T ptr[12]; // @NOTE: 12 because padding byte
+			T ptr[9];
 			struct
 			{
 				Vec3<T> row0;
@@ -1903,7 +1894,7 @@ namespace cm
 	template <typename T>
 	T GetMatrixElement(const Mat3<T>& a, const int32& row, const int32& col)
 	{
-		return a.ptr[4 * row + col];
+		return a.ptr[3 * row + col];
 	}
 
 	template <typename T>
@@ -1911,9 +1902,9 @@ namespace cm
 	{
 		Vec3<T> column(0, 0, 0);
 
-		column.x = a.ptr[4 * 0 + col];
-		column.y = a.ptr[4 * 1 + col];
-		column.z = a.ptr[4 * 2 + col];
+		column.x = a.ptr[3 * 0 + col];
+		column.y = a.ptr[3 * 1 + col];
+		column.z = a.ptr[3 * 2 + col];
 
 		return column;
 	}
@@ -1969,14 +1960,14 @@ namespace cm
 
 		result.Add("| ");
 
-		for (int32 i = 4; i < 7; i++)
+		for (int32 i = 3; i < 6; i++)
 		{
 			result.Add(a.ptr[i]).Add(" ");
 		}
 
 		result.Add("| ");
 
-		for (int32 i = 8; i < 11; i++)
+		for (int32 i = 6; i < 9; i++)
 		{
 			result.Add(a.ptr[i]).Add(" ");
 		}
@@ -1989,9 +1980,9 @@ namespace cm
 	template <typename T>
 	inline T Det(const Mat3<T>& a)
 	{
-		T f = a.ptr[0] * (a.ptr[5] * a.ptr[10] - a.ptr[9] * a.ptr[6]);
-		T b = a.ptr[1] * (a.ptr[4] * a.ptr[10] - a.ptr[8] * a.ptr[6]);
-		T c = a.ptr[2] * (a.ptr[4] * a.ptr[9] - a.ptr[8] * a.ptr[5]);
+		T f = a.ptr[0] * (a.ptr[4] * a.ptr[8] - a.ptr[7] * a.ptr[5]);
+		T b = a.ptr[1] * (a.ptr[3] * a.ptr[8] - a.ptr[6] * a.ptr[5]);
+		T c = a.ptr[2] * (a.ptr[3] * a.ptr[7] - a.ptr[6] * a.ptr[4]);
 
 		return f - b + c;
 	}
@@ -2199,7 +2190,7 @@ namespace cm
 	{
 		Mat3<T> result;
 
-		for (int32 i = 0; i < 12; i++)
+		for (int32 i = 0; i < 9; i++)
 		{
 			result.ptr[i] = a.ptr[i] + b.ptr[i];
 		}
@@ -2212,7 +2203,7 @@ namespace cm
 	{
 		Mat3<T> result;
 
-		for (int32 i = 0; i < 12; i++)
+		for (int32 i = 0; i < 9; i++)
 		{
 			result.ptr[i] = a.ptr[i] / b;
 		}
@@ -2225,7 +2216,7 @@ namespace cm
 	{
 		Mat3<T> result;
 
-		for (int32 i = 0; i < 12; i++)
+		for (int32 i = 0; i < 9; i++)
 		{
 			result.ptr[i] = b.ptr[i] / a;
 		}
@@ -2263,7 +2254,7 @@ namespace cm
 					col[x] = GetMatrixElement(b, x, y);
 				}
 
-				result.ptr[4 * i + y] = Dot(col, a[i]);
+				result.ptr[3 * i + y] = Dot(col, a[i]);
 			}
 		}
 
@@ -2275,7 +2266,7 @@ namespace cm
 	{
 		Mat3<T> result;
 
-		for (int32 i = 0; i < 12; i++)
+		for (int32 i = 0; i < 9; i++)
 		{
 			result.ptr[i] = b.ptr[i] * a;
 		}
@@ -2610,7 +2601,6 @@ namespace cm
 		Mat3<T> result(1);
 		int32 index = 0;
 
-		// @SPEEDS: To many branches
 		for (int32 r = 0; r < 4; r++)
 		{
 			if (row == r)
@@ -2622,11 +2612,6 @@ namespace cm
 				if (c == col || c == col + 4 || c == col + 8 || c == col + 12)
 				{
 					continue;
-				}
-
-				if (index == 3 || index == 7) // @NOTE: REMEMBER THE PADDING BYTE!!
-				{
-					index++;
 				}
 
 				result.ptr[index++] = GetMatrixElement(a, r, c);
@@ -3100,7 +3085,6 @@ namespace cm
 
 		Basis(const Mat3f& orientation)
 		{
-			// @TODO: Assert orthogonal //CheckOrthogonal()
 			this->mat = orientation;
 		}
 

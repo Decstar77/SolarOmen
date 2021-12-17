@@ -74,7 +74,7 @@ namespace cm
 
 	struct ShaderConstBufferLightingInfo
 	{
-		Float4Align Vec3f viewPos;
+		Float4Align Vec4f viewPos;
 		Float4Align struct {
 			int32 dirLightCount;
 			int32 spotLightCount;

@@ -373,7 +373,7 @@ namespace cm
 		rs->viewConstBuffer.data.view = v;
 		RenderCommand::UpdateConstBuffer(rs->viewConstBuffer);
 
-		rs->lightingConstBuffer.data.viewPos = renderGroup->playerCamera.transform.position;
+		rs->lightingConstBuffer.data.viewPos = Vec4f(renderGroup->playerCamera.transform.position, 0.0f);
 		RenderCommand::UpdateConstBuffer(rs->lightingConstBuffer);
 
 		AssetId lastModelId = 0;

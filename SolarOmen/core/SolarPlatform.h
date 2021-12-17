@@ -8,7 +8,6 @@
 
 #endif
 
-
 namespace cm
 {
 #define PROFILE_FUNCTION() ProfileClock __PROFILE_CLOCK__(__func__)
