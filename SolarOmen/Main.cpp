@@ -7,7 +7,6 @@
 
 #include "game/TankGame.h"
 
-
 using namespace cm;
 
 int main(int argc, const char* argv[])
@@ -28,7 +27,6 @@ int main(int argc, const char* argv[])
 			// @NOTE: Load the assets
 			if (Assets::Initialize())
 			{
-
 				// @NOTE: Create the renderer
 				if (Renderer::Initialize())
 				{
@@ -89,13 +87,13 @@ int main(int argc, const char* argv[])
 						}
 
 						Game::Shutdown();
-					}
+						}
 
 					Renderer::Shutdown();
-				}
+					}
 
 				Assets::Shutdown();
-			}
+				}
 
 #if DEBUG
 			Debug::Shutdown();
@@ -105,11 +103,11 @@ int main(int argc, const char* argv[])
 			Platform::ShutdownNetworking();
 			Platform::ShutdownThreads();
 			Platform::Shutdown();
+			}
 		}
-	}
 	else
 	{
 		Platform::DisplayError("Could not allocate the game memory, minimun required 4GB RAM");
 	}
 
-}
+	}

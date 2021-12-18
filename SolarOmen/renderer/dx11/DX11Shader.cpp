@@ -81,6 +81,33 @@ namespace cm
 
 			return shader;
 		}break;
+		case VertexShaderLayout::TEXT:
+		{
+			D3D11_INPUT_ELEMENT_DESC desc = {};
+			desc.SemanticName = "POSITION";
+			desc.SemanticIndex = 0;
+			desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			desc.InputSlot = 0;
+			desc.AlignedByteOffset = 0;
+			desc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			desc.InstanceDataStepRate = 0;
+			D3D11_INPUT_ELEMENT_DESC layouts[] = { desc };
+
+			ShaderInstance shader = {};
+			shader.id = shaderAsset.id;
+
+			DXCHECK(rs->device->CreateInputLayout(layouts, ArrayCount(layouts), shaderAsset.vertexData.data,
+				shaderAsset.vertexData.GetCount(), &shader.layout));
+
+			DXCHECK(rs->device->CreateVertexShader(shaderAsset.vertexData.data,
+				shaderAsset.vertexData.GetCount(), nullptr, &shader.vs));
+
+			DXCHECK(rs->device->CreatePixelShader(shaderAsset.pixelData.data,
+				shaderAsset.pixelData.GetCount(), nullptr, &shader.ps));
+
+			return shader;
+
+		}break;
 		}
 
 		return {};

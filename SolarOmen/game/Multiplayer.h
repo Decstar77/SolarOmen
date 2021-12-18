@@ -71,6 +71,15 @@ namespace cm
 		bool ack;
 	};
 
+	struct Command
+	{
+		uint32 type;
+		union
+		{
+
+		};
+	};
+
 	struct SnapShot
 	{
 		SnapShotType type;

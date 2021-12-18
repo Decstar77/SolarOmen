@@ -45,6 +45,52 @@ namespace cm
 		return result;
 	}
 
+	TextureInstance TextureInstance::Create(const FontCharacter& fontChar)
+	{
+		TextureInstance result = {};
+		result.width = fontChar.size.x;
+		result.height = fontChar.size.y;
+		result.format = TextureFormat::R8_BYTE;
+		result.cpuFlags = TextureCPUFlags::NONE;
+		result.usage[0] = TextureUsage::SHADER_RESOURCE;
+
+		int32 bind_flags = 0;
+		for (int32 i = 0; i < ArrayCount(result.usage); i++)
+		{
+			result.usage[i] = result.usage[i];
+			bind_flags |= GetTextureUsageToD3DBindFlags(result.usage[i]);
+		}
+
+		GetRenderState();
+
+		D3D11_TEXTURE2D_DESC desc = {};
+		desc.Width = result.width;
+		desc.Height = result.height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Usage = result.cpuFlags == TextureCPUFlags::NONE ? D3D11_USAGE_DEFAULT : D3D11_USAGE_STAGING;
+		desc.BindFlags = bind_flags;
+		desc.CPUAccessFlags = GetTextureCPUFlagsToD3DFlags(result.cpuFlags);
+		desc.MiscFlags = 0;
+
+		D3D11_SUBRESOURCE_DATA sd = {};
+		sd.pSysMem = fontChar.data.data;
+		sd.SysMemPitch = result.width * GetTextureFormatElementSizeBytes(result.format) * GetTextureFormatElementCount(result.format);
+		DXCHECK(rs->device->CreateTexture2D(&desc, &sd, &result.texture));
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {};
+		view_desc.Format = desc.Format;
+		view_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		view_desc.Texture2D.MostDetailedMip = 0;
+		view_desc.Texture2D.MipLevels = 1;
+		DXCHECK(rs->device->CreateShaderResourceView(result.texture, &view_desc, &result.shaderView));
+
+		return result;
+	}
+
 	TextureInstance TextureInstance::Create(const TextureAsset& textureAsset)
 	{
 		Assert(!textureAsset.mips, "Todo mips");

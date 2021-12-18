@@ -18,6 +18,7 @@ namespace cm
 	{
 		R8G8B8A8_UNORM,
 		R16G16_UNORM,
+		R8_BYTE,
 		R32_FLOAT,
 		D32_FLOAT,
 		R32_TYPELESS,
@@ -71,6 +72,7 @@ namespace cm
 		P_PAD,	// @NOTE: Postion and a padd
 		PNT,	// @NOTE: Postions, normal, texture coords(uv)
 		PNTM,	// @NOTE: Postions, normal, texture coords(uv), and an instanced model transform matrix
+		TEXT,	// @NOTE: Layout for text rendering
 	};
 
 	typedef uint64 AssetId;
@@ -124,6 +126,22 @@ namespace cm
 		bool32 mips;
 	};
 
+	struct FontCharacter
+	{
+		uint8 character;
+		int32 advance;
+		Vec2i size;
+		Vec2i bearing;
+		ManagedArray<uint8> data;
+	};
+
+	struct FontAsset
+	{
+		AssetId id;
+		CString name;
+		ManagedArray<FontCharacter> chars;
+	};
+
 #define GetAssetState() AssetState* as = AssetState::Get()
 
 	class AssetState
@@ -132,6 +150,8 @@ namespace cm
 		HashMap<ModelAsset> models;
 		HashMap<ShaderAsset> shaders;
 		HashMap<TextureAsset> textures;
+
+		FontAsset font;
 
 		inline static void Initialize(AssetState* as) { assetState = as; };
 		inline static AssetState* Get() { return assetState; }

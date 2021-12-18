@@ -103,7 +103,6 @@ namespace cm
 		Entity CreateEntity();
 		Entity CreateEntity(const CString& name);
 
-		// @TODO: Remember to reconstruct parent/child and clear any components too !!
 		void DestoryEntity(Entity entity);
 
 		void BeginEntityLoop();

@@ -64,11 +64,13 @@ namespace cm
 	{
 		Float4Align Mat4f persp;
 		Float4Align Mat4f view;
+		Float4Align Mat4f screeenProjection;
 
 		inline void Prepare()
 		{
 			persp = Transpose(persp);
 			view = Transpose(view);
+			screeenProjection = Transpose(screeenProjection);
 		}
 	};
 

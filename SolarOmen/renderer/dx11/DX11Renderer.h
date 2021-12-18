@@ -58,9 +58,13 @@ namespace cm
 
 		ShaderInstance unlitShader;
 		ShaderInstance phongShader;
+		ShaderInstance textShader;
 
 		HashMap<StaticMesh> meshes;
 		HashMap<TextureInstance> textures;
+
+		FixedArray<TextureInstance, 128> fontTextures;
+		StaticMesh fontMesh;
 
 		RenderDebug debug;
 
@@ -120,6 +124,7 @@ namespace cm
 		{
 		case TextureFormat::R8G8B8A8_UNORM: return DXGI_FORMAT_R8G8B8A8_UNORM;
 		case TextureFormat::R16G16_UNORM: return DXGI_FORMAT_R16G16_UNORM;
+		case TextureFormat::R8_BYTE: return DXGI_FORMAT_R8_UINT;
 		case TextureFormat::R32_FLOAT: return DXGI_FORMAT_R32_FLOAT;
 		case TextureFormat::D32_FLOAT: return DXGI_FORMAT_D32_FLOAT;
 		case TextureFormat::R32_TYPELESS: return DXGI_FORMAT_R32_TYPELESS;
@@ -142,6 +147,7 @@ namespace cm
 		{
 		case TextureFormat::R8G8B8A8_UNORM: return sizeof(uint8);
 		case TextureFormat::R16G16_UNORM: return sizeof(uint16);
+		case TextureFormat::R8_BYTE: return sizeof(uint8);
 		case TextureFormat::R32_FLOAT: return sizeof(real32);
 		case TextureFormat::D32_FLOAT: return sizeof(real32);
 		case TextureFormat::R32_TYPELESS: return sizeof(real32);
@@ -164,6 +170,7 @@ namespace cm
 		{
 		case TextureFormat::R8G8B8A8_UNORM: return 4;
 		case TextureFormat::R16G16_UNORM: return 2;
+		case TextureFormat::R8_BYTE: return 1;
 		case TextureFormat::R32_FLOAT: return 1;
 		case TextureFormat::D32_FLOAT: return 1;
 		case TextureFormat::R32_TYPELESS: return 1;

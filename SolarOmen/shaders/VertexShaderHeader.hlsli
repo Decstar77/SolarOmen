@@ -9,4 +9,5 @@ cbuffer ViewData : register(b1)
 {
 	matrix persp;
 	matrix view;
+	matrix screenProjection;
 }

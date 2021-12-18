@@ -7,6 +7,7 @@
 #include "serialization/RawModelImporter.h"
 #include "serialization/RawTextureImporter.h"
 #include "serialization/RawShaderImporter.h"
+#include "serialization/RawFontImporter.h"
 #else
 
 #endif 
@@ -258,6 +259,8 @@ namespace cm
 
 			as->shaders.Put(shaderAsset.id, shaderAsset);
 		}
+
+		as->font = LoadFont(CString(ASSET_PATH).Add("Fonts/arial.ttf"));
 
 		GameMemory::ReleaseAllTransientMemory();
 

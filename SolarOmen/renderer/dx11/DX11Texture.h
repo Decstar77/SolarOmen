@@ -21,6 +21,7 @@ namespace cm
 		ID3D11DepthStencilView* depthView;
 		ID3D11RenderTargetView* renderView;
 
+		static TextureInstance Create(const FontCharacter& fontChar);
 		static TextureInstance Create(const TextureAsset& textureAsset);
 	};
 

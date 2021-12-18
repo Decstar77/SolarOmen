@@ -130,6 +130,14 @@ namespace cm
 		}
 
 		template<typename T>
+		inline static T* PushTransientClass()
+		{
+			void* storage = instance->TransientPushSize(sizeof(T));
+			T* t = new (storage) T();
+			return t;
+		}
+
+		template<typename T>
 		inline static ManagedArray<T> PushPermanentArray(uint32 capcity)
 		{
 			ManagedArray<T> arr = ManagedArray<T>((T*)instance->PermanentPushSize(sizeof(T) * capcity), capcity);
@@ -225,7 +233,6 @@ namespace cm
 
 			return result;
 		}
-
 	};
 
 

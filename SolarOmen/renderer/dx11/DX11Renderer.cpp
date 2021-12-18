@@ -258,7 +258,7 @@ namespace cm
 
 		{
 			D3D11_BLEND_DESC blend_desc = {};
-			blend_desc.RenderTarget[0].BlendEnable = FALSE;
+			blend_desc.RenderTarget[0].BlendEnable = true;
 			blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 			blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 			blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
@@ -313,6 +313,77 @@ namespace cm
 		}
 	}
 
+	static void LoadFont(const FontAsset& font)
+	{
+		GetRenderState();
+
+		for (uint32 i = 0; i < font.chars.count; i++)
+		{
+			const FontCharacter& c = font.chars[i];
+			if (c.size.x > 0 && c.size.y > 0)
+			{
+				rs->fontTextures.Add(TextureInstance::Create(c));
+			}
+			else
+			{
+				rs->fontTextures.Add({});
+			}
+		}
+
+		rs->fontMesh = StaticMesh::Create(nullptr, sizeof(float) * 6 * 4);
+	}
+
+	static void RenderText(const CString& text, float x, float y, float scale, Vec3f color)
+	{
+		GetRenderState();
+		GetAssetState();
+		GetPlatofrmState();
+		RenderCommand::BindShader(rs->textShader);
+
+		for (int32 i = 0; i < text.GetLength(); i++)
+		{
+			FontCharacter ch = {};
+			TextureInstance te = {};
+			for (uint32 j = 0; j < rs->fontTextures.count; j++)
+			{
+				if (text[i] == as->font.chars[j].character)
+				{
+					ch = as->font.chars[j];
+					te = rs->fontTextures[j];
+					break;
+				}
+			}
+
+			if (ch.size.x > 0)
+			{
+				real32 xpos = x + ch.bearing.x * scale;
+				real32 ypos = y - (ch.size.y - ch.bearing.y) * scale;
+
+				real32 w = ch.size.x * scale;
+				real32 h = ch.size.y * scale;
+
+				real32 vertices[] = {
+					 xpos,     ypos + h,   0.0f, 1.0f,
+					 xpos,     ypos,       0.0f, 0.0f,
+					 xpos + w, ypos,       1.0f, 0.0f,
+
+					 xpos,     ypos + h,   0.0f, 1.0f,
+					 xpos + w, ypos,       1.0f, 0.0f,
+					 xpos + w, ypos + h,   1.0f, 1.0f
+				};
+
+				rs->fontMesh.UpdateVertexBuffer(vertices, sizeof(vertices));
+
+				uint32 offset = 0;
+				RenderCommand::BindTexture(te, 0);
+				DXINFO(rs->context->IASetVertexBuffers(0, 1, &rs->fontMesh.vertexBuffer, &rs->fontMesh.strideBytes, &offset));
+				DXINFO(rs->context->Draw(6, 0));
+
+				x += (ch.advance >> 6) * scale;
+			}
+		}
+	}
+
 	bool32 Renderer::Initialize()
 	{
 		RenderState::Initialize(GameMemory::PushPermanentStruct<RenderState>());
@@ -328,6 +399,7 @@ namespace cm
 		CreateAllBlendState();
 		CreateAllSamplerState();
 
+		LoadFont(as->font);
 
 		rs->modelConstBuffer = ShaderConstBuffer<ShaderConstBufferModel>::Create();
 		RenderCommand::BindShaderConstBuffer(rs->modelConstBuffer, ShaderStage::VERTEX, 0);
@@ -345,6 +417,10 @@ namespace cm
 
 		rs->unlitShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "unlit"));
 		rs->phongShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "phong"));
+
+		ShaderAsset textShader = GetAssetFromName(shaders, "text");
+		textShader.vertexLayout = VertexShaderLayout::TEXT;
+		rs->textShader = ShaderInstance::CreateGraphics(textShader);
 		//rs->testBuffer = CreateShaderBuffer(rs, sizeof(Mat4f) * 3);
 		//rs->testBuffer.BindShaderBuffer(ShaderStage::VERTEX, 0);
 
@@ -371,6 +447,7 @@ namespace cm
 
 		rs->viewConstBuffer.data.persp = p;
 		rs->viewConstBuffer.data.view = v;
+		rs->viewConstBuffer.data.screeenProjection = OrthographicLH(0.0f, (real32)ps->clientWidth, 0.0f, (real32)ps->clientHeight, 0.0f, 1.0f);
 		RenderCommand::UpdateConstBuffer(rs->viewConstBuffer);
 
 		rs->lightingConstBuffer.data.viewPos = Vec4f(renderGroup->playerCamera.transform.position, 0.0f);
@@ -413,6 +490,8 @@ namespace cm
 				//Debug::LogInfo("Could not find mesh");
 			}
 		}
+
+		//RenderText("Hello", 100, 100, 1.0f, Vec3f(1));
 
 		DEBUGRenderAndFlushDebugDraws();
 	}

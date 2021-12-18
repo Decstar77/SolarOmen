@@ -798,8 +798,6 @@ namespace cm
 
 	void BulletBrain::TickUpdate(Room* room, GameUpdate* update, Entity entity, real32 dt)
 	{
-		dt *= 2.0f;
-
 		Transform transform = bullet.GetLocalTransform();
 		Basisf basis = transform.GetBasis();
 
@@ -885,7 +883,6 @@ namespace cm
 	void TankAIImmobile::TickUpdate(Room* room, GameUpdate* update, Entity entity, real32 dt)
 	{
 		Transform transform = entity.GetLocalTransform();
-
 
 		real32 dist = 0.0f;
 		Entity shootTank = {};
