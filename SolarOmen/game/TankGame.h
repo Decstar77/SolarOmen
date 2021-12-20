@@ -5,11 +5,6 @@
 #include "ManifoldTests.h"
 namespace cm
 {
-	struct TransformComponent
-	{
-		Transform transform;
-	};
-
 	struct NameComponent
 	{
 		CString name;
@@ -66,52 +61,48 @@ namespace cm
 		static constexpr uint32 ENTITY_STORAGE_COUNT = 1000;
 		static constexpr uint32 INVALID_ENTITY_INDEX = 0;
 
+		bool32 initialized;
+
 		Camera playerCamera;
 		Vec3f playerCameraOffset;
 
-		bool spawnBullet;
-
-		Entity player1Tank;
-		Entity player2Tank;
-
-		Entity hostTank;
-		Entity hostVisualTank;
-		Entity hostVisualTurret;
-		Entity peerTank;
-		Entity peerVisualTank;
-		Entity peerVisualTurret;
-
 		Grid grid;
 
-		bool isPlayer1;
+		FixedArray<GameCommand, 256> commands;
+
 		bool twoPlayerGame;
 		MultiplayerState multiplayerState;
 
-		FixedArray<Entity, ENTITY_STORAGE_COUNT> bullets;
-
 		FixedArray<Entity, ENTITY_STORAGE_COUNT> entities;
 		FixedArray<EntityId, ENTITY_STORAGE_COUNT - 1> entityFreeList;
+
 
 		FixedArray<TransformComponent, ENTITY_STORAGE_COUNT> transformComponents;
 		FixedArray<NameComponent, ENTITY_STORAGE_COUNT> nameComponents;
 		FixedArray<RenderComponent, ENTITY_STORAGE_COUNT> renderComponents;
 		FixedArray<ColliderComponent, ENTITY_STORAGE_COUNT> colliderComponents;
 		FixedArray<BrainComponent, ENTITY_STORAGE_COUNT> brainComponents;
+		FixedArray<NetworkComponent, ENTITY_STORAGE_COUNT> networkComponents;
 
 		uint32 entityLoopIndex = 0;
 	public:
+		void BeginEntityLoop();
+		Entity GetNextEntity();
+
 		Entity CreateEntity();
 		Entity CreateEntity(const CString& name);
 
 		void DestoryEntity(Entity entity);
 
-		void BeginEntityLoop();
-		Entity GetNextEntity();
-
+		Entity SpawnBullet(Transform transform);
 		Entity SpawnEnemyTank(const Vec3f& pos);
 		RaycastResult ShootRayThrough(const Ray& ray);
 
-		void Initialize();
+		void GameCommandSpawnBullet(const Vec3f& pos, const Quatf& ori);
+		void GameCommandDestroyEntity(Entity entity);
+
+
+		void Initialize(bool32 twoPlayer);
 		void Update(real32 dt);
 		void ConstructRenderGroup(EntityRenderGroup* renderGroup);
 		void Shutdown();
@@ -120,6 +111,10 @@ namespace cm
 		void DEBUGDrawAllColliders();
 
 	private:
+		void PerformGameCommands(FixedArray<GameCommand, 256>* commands, PlayerNumber playerNumber);
+		void CreatePeerTank();
+		void CreateHostTank();
+		void Initialize();
 		void CreateEntityFreeList();
 		EntityId GetNextFreeEntityId();
 		void PushFreeEntityId(EntityId id);

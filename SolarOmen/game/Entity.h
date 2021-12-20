@@ -1,6 +1,6 @@
 #pragma once
 #include "core/SolarCore.h"
-
+#include "EntityId.h"
 
 namespace cm
 {
@@ -110,23 +110,18 @@ namespace cm
 		};
 	};
 
-	struct EntityId
+	struct TransformComponent
 	{
-		int32 index;
-		int32 generation;
+		Transform transform;
+	};
 
-		class Entity* Get() const;
-		CString ToString();
 
-		inline bool operator==(const EntityId& rhs) const
-		{
-			return this->index == rhs.index && this->generation == rhs.generation;
-		}
-
-		inline bool operator!=(const EntityId& rhs) const
-		{
-			return this->index != rhs.index || this->generation != rhs.generation;
-		}
+	struct NetworkComponent
+	{
+		PlayerNumber playerOwner;
+		bool32 markedDestroyed;
+		Vec3f lerpPosition;
+		Quatf lerpOrientation;
 	};
 
 	class Entity
@@ -146,6 +141,8 @@ namespace cm
 		Entity* GetSiblingBehind();
 		ManagedArray<Entity*> GetChildren();
 		void SetParent(Entity entity);
+
+		void SetNetworkOwner(const PlayerNumber& owner);
 
 		void SetLocalTransform(const Transform& transform);
 		Transform GetLocalTransform() const;
@@ -216,7 +213,6 @@ namespace cm
 		real32 visualTankRotation;
 
 		void FrameUpdate(Room* room, Entity entity, real32 dt);
-		void TickUpdate(Room* room, struct GameUpdate* update, Entity entity, real32 dt);
 
 	private:
 		void UpdateTurret(Room* room, real32 dt);
@@ -235,10 +231,6 @@ namespace cm
 		Vec2f moveDir;
 		Vec2f moveDelta;
 
-		Entity visualBullet;
-		Entity bullet;
-
-		void TickUpdate(Room* room, struct GameUpdate* update, Entity entity, real32 dt);
 		void FrameUpdate(Room* room, Entity entity, real32 dt);
 	};
 
@@ -253,7 +245,6 @@ namespace cm
 		Vec3f player2TurretLerpPos;
 		Quatf player2TurretLerpOri;
 
-		void TickUpdate(Room* room, struct GameUpdate* update, real32 dt);
 		void FrameUpdate(Room* room, Entity entity, real32 dt);
 	};
 
@@ -270,7 +261,6 @@ namespace cm
 		real32 lastFireTime = 0.0f;
 
 		void FrameUpdate(Room* room, Entity entity, real32 dt);
-		void TickUpdate(Room* room, struct GameUpdate* update, Entity entity, real32 dt);
 	};
 
 	struct BrainComponent

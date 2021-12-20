@@ -244,6 +244,12 @@ namespace cm
 		*this = *stored;
 	}
 
+	void Entity::SetNetworkOwner(const PlayerNumber& owner)
+	{
+		Assert(IsValid(), "Entity invalid");
+		room->networkComponents[id.index].playerOwner = owner;
+	}
+
 	void Entity::SetLocalTransform(const Transform& transform)
 	{
 		Assert(IsValid(), "Entity invalid");

@@ -135,7 +135,7 @@
     <ClCompile Include="platform\win32\Win32Audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game\Multipalyer.cpp">
+    <ClCompile Include="game\Multiplayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="serialization\RawFontImporter.cpp">
@@ -303,6 +303,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="serialization\RawFontImporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="game\EntityId.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

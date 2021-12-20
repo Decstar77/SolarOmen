@@ -289,7 +289,7 @@ namespace cm
 		{
 			GetGameState();
 			ZeroStruct(&gs->currentRoom);
-			gs->currentRoom.Initialize();
+			gs->currentRoom.Initialize(false);
 		}
 
 		if (inGame)
