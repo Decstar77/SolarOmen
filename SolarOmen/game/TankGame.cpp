@@ -55,6 +55,7 @@ namespace cm
 			ZeroStruct(&nameComponents[index]);
 			ZeroStruct(&renderComponents[index]);
 			ZeroStruct(&colliderComponents[index]);
+			ZeroStruct(&tagComponents[index]);
 
 			// @NOTE: We don't zero the brain beacause if the brain is calling this function it will
 			//		: mess the current state of the brain, and thus any futher code is be broken entirely
@@ -68,6 +69,8 @@ namespace cm
 	{
 		Entity entity = CreateEntity();
 		entity.SetName(name);
+
+		LOG("Creating entity: " << entity.id.index << " " << name.GetCStr());
 
 		return entity;
 	}
@@ -131,10 +134,19 @@ namespace cm
 		bullet.SetCollider(CreateSphere(Vec3f(0), 0.2f));
 		bullet.SetLocalTransform(transform);
 		bullet.SetModel("sphere");
-		bullet.SetBrain(BrainType::Value::BULLET);
+		BulletBrain* brain = &bullet.SetBrain(BrainType::Value::BULLET)->bulletBrain;
 
 		networkComponents[bullet.id.index].lerpPosition = transform.position;
 		networkComponents[bullet.id.index].lerpOrientation = transform.orientation;
+
+		//for (uint32 i = 0; i < bullets.GetCapcity(); i++)
+		//{
+		//	if (!bullets[i].IsValid())
+		//	{
+		//		brain->index = i;
+		//		bullets[i] = bullet;
+		//	}
+		//}
 
 		PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_revolver_pistol_shot_04.wav", false);
 
@@ -221,26 +233,27 @@ namespace cm
 	void Room::CreateHostTank()
 	{
 		GetPlatofrmState();
-		Entity visualTank = CreateEntity("Player1VisualTank");
+		Entity visualTank = CreateEntity("HostVisualTank");
 		visualTank.SetModel("TankBase");
 		visualTank.SetTexture("Tank_DefaultMaterial_BaseColor");
 		visualTank.SetLocalTransform(Transform(Vec3f(0, 0.1f, 0), Quatf(), Vec3f(0.65f)));
 		visualTank.SetNetworkOwner(multiplayerState.playerNumber);
+		visualTank.SetTag(Tag::Value::TEAM1_TANK);
+		visualTank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
 
-		Entity visualTurret = CreateEntity("Player1VisualTurret");
+		Entity visualTurret = CreateEntity("HostVisualTurret");
 		visualTurret.EnableRendering();
 		visualTurret.SetModel("TankTurret");
 		visualTurret.SetTexture("Tank_DefaultMaterial_BaseColor");
 		visualTurret.SetLocalTransform(Transform(Vec3f(0, 1.1f, 0), EulerToQuat(Vec3f(-8, 0, 0)), Vec3f(0.65f)));
 		visualTurret.SetNetworkOwner(multiplayerState.playerNumber);
 
-		Entity hostTank = CreateEntity("Player1VisualTank");
+		Entity hostTank = CreateEntity("HostTank");
 		hostTank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
 		hostTank.SetNetworkOwner(multiplayerState.playerNumber);
 		PlayerBrain* playerBrain = &hostTank.SetBrain(BrainType::Value::PLAYER_BRAIN)->playerBrain;
 		playerBrain->visualTank = visualTank;
 		playerBrain->visualTurret = visualTurret;
-
 
 		playerCamera = {};
 		playerCamera.far_ = 100.0f;
@@ -258,11 +271,13 @@ namespace cm
 
 	void Room::CreatePeerTank()
 	{
-		Entity visualPeerTank = CreateEntity("PeerVisualTank2");
+		Entity visualPeerTank = CreateEntity("PeerVisualTank");
 		visualPeerTank.SetModel("TankBase");
 		visualPeerTank.SetTexture("Tank_DefaultMaterial_BaseColor");
 		visualPeerTank.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(0.65f)));
 		visualPeerTank.SetNetworkOwner(GetOppositePlayer(multiplayerState.playerNumber));
+		visualPeerTank.SetTag(Tag::Value::TEAM1_TANK);
+		visualPeerTank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
 
 		Entity visualPeerTurret = CreateEntity("PeerVisualTurret");
 		visualPeerTurret.EnableRendering();
@@ -272,12 +287,6 @@ namespace cm
 		visualPeerTurret.SetNetworkOwner(GetOppositePlayer(multiplayerState.playerNumber));
 
 		Entity peerTank = CreateEntity("PeerTank");
-		peerTank.SetCollider(CreateSphere(Vec3f(0, 0, 0), 1.0f));
-
-		BrainComponent* brain = peerTank.SetBrain(BrainType::Value::PEER_BRAIN);
-		brain->networkBrain.peerTank = peerTank;
-		brain->networkBrain.visualPeerTank = visualPeerTank;
-		brain->networkBrain.visualPeerTurret = visualPeerTurret;
 	}
 
 	void Room::Initialize()
@@ -288,23 +297,30 @@ namespace cm
 		ENABLE_CALLS_ON_TICK();
 
 		CreateEntityFreeList();
-		multiplayerState.tickCounter = 1;
-		// @NOTE: Ensure that entity id's line up
-		if (multiplayerState.playerNumber == PlayerNumber::ONE)
+		if (twoPlayerGame)
 		{
-			CreateHostTank();
-			CreatePeerTank();
+			multiplayerState.tickCounter = 1;
+			// @NOTE: Ensure that entity id's line up
+			if (multiplayerState.playerNumber == PlayerNumber::ONE)
+			{
+				CreateHostTank();
+				CreatePeerTank();
+			}
+			else if (multiplayerState.playerNumber == PlayerNumber::TWO)
+			{
+				CreatePeerTank();
+				CreateHostTank();
+			}
 		}
-		else if (multiplayerState.playerNumber == PlayerNumber::TWO)
+		else
 		{
-			CreatePeerTank();
 			CreateHostTank();
 		}
 
 		if (1)
 		{
-			//SpawnEnemyTank(Vec3f(7.0f, 0.1f, 7.0f));
-			SpawnEnemyTank(Vec3f(-7.0f, 0.1f, -7.0f));
+			SpawnEnemyTank(Vec3f(7.0f, 0.1f, 7.0f)).SetNetworkOwner(PlayerNumber::ONE);
+			//SpawnEnemyTank(Vec3f(-7.0f, 0.1f, -7.0f)).SetNetworkOwner(PlayerNumber::ONE);
 			//SpawnEnemyTank(Vec3f(7.0f, 0.1f, -7.0f));
 			//SpawnEnemyTank(Vec3f(-7.0f, 0.1f, 7.0f));
 		}
@@ -369,9 +385,12 @@ namespace cm
 
 	void Room::Initialize(bool32 twoPlayer)
 	{
-		twoPlayerGame = 1;
+		twoPlayerGame = 0;
 		if (!twoPlayerGame)
+		{
+			multiplayerState.playerNumber = PlayerNumber::ONE;
 			Initialize();
+		}
 	}
 
 	void Room::PerformGameCommands(FixedArray<GameCommand, 256>* commands, PlayerNumber playerNumber)
@@ -403,13 +422,23 @@ namespace cm
 		if (!initialized && multiplayerState.IsValid())
 			Initialize();
 
-		GameCommands* gameCommands = multiplayerState.GetNextGameCommands(this, dt);
-		if (gameCommands)
+		if (twoPlayerGame)
+		{
+			GameCommands* gameCommands = multiplayerState.GetNextGameCommands(this, dt);
+			if (gameCommands)
+			{
+				ENABLE_CALLS_ON_TICK();
+				PerformGameCommands(&gameCommands->player1Commands, PlayerNumber::ONE);
+				PerformGameCommands(&gameCommands->player2Commands, PlayerNumber::TWO);
+				DISABLE_CALLS_ON_TICK();
+			}
+		}
+		else
 		{
 			ENABLE_CALLS_ON_TICK();
-			PerformGameCommands(&gameCommands->player1Commands, PlayerNumber::ONE);
-			PerformGameCommands(&gameCommands->player2Commands, PlayerNumber::TWO);
+			PerformGameCommands(&commands, PlayerNumber::ONE);
 			DISABLE_CALLS_ON_TICK();
+			commands.Clear();
 		}
 
 		for (uint32 i = 0; i < transformComponents.GetCapcity(); i++)
@@ -437,14 +466,13 @@ namespace cm
 					{
 					case BrainType::Value::PLAYER_BRAIN: bc->playerBrain.FrameUpdate(this, entities[i], dt);  break;
 					case BrainType::Value::BULLET: bc->bulletBrain.FrameUpdate(this, entities[i], dt);  break;
-					case BrainType::Value::PEER_BRAIN: bc->networkBrain.FrameUpdate(this, entities[i], dt);  break;
 					case BrainType::Value::TANK_AI_IMMOBILE: bc->tankAIImmobile.FrameUpdate(this, entities[i], dt);  break;
 					}
 				}
 			}
 		}
 
-		//DEBUGDrawAllColliders();
+		DEBUGDrawAllColliders();
 	}
 
 	void Room::ConstructRenderGroup(EntityRenderGroup* renderGroup)
@@ -653,24 +681,6 @@ namespace cm
 		UpdateBase(room, dt);
 		UpdateTurret(room, dt);
 		UpdateFiring(room, dt);
-
-		if (room->multiplayerState.IsValid())
-		{
-			/*SnapShotTransform snap = {};
-			snap.type = SnapShotType::TRANSFORM;
-
-			Transform tankTransform = visualTank.GetWorldTransform();
-			snap.entityId = room->peerVisualTank.GetId();
-			snap.position = tankTransform.position;
-			snap.orientation = tankTransform.orientation;
-			room->multiplayerState.AddSnapShotToStagingBuffer(&snap);
-
-			Transform turretTransform = visualTurret.GetWorldTransform();
-			snap.entityId = room->peerVisualTurret.GetId();
-			snap.position = turretTransform.position;
-			snap.orientation = turretTransform.orientation;
-			room->multiplayerState.AddSnapShotToStagingBuffer(&snap);*/
-		}
 	}
 
 	void PlayerBrain::UpdateBase(Room* room, real32 dt)
@@ -707,6 +717,9 @@ namespace cm
 				}
 			}
 		}
+
+		CompressedQuatf comp = CompressQuatf(tankTransform.orientation);
+		tankTransform.orientation = DecompressQuatf(comp);
 
 		visualTank.SetLocalTransform(tankTransform);
 		room->playerCamera.transform.position = Lerp(room->playerCamera.transform.position,
@@ -829,87 +842,73 @@ namespace cm
 		}
 	}
 
-	void PeerBrain::FrameUpdate(Room* room, Entity entity, real32 dt)
-	{
-		//{
-		//	Transform transform = visualPeerTank.GetWorldTransform();
-		//	transform.position = Lerp(player2TankLerpPos, transform.position, NETWORK_INTERPOLATE_AMOUNT);
-		//	transform.orientation = Slerp(player2TankLerpOri, transform.orientation, NETWORK_INTERPOLATE_AMOUNT);
-		//	visualPeerTank.SetLocalTransform(transform);
-		//}
-		//{
-		//	Transform transform = visualPeerTurret.GetWorldTransform();
-		//	transform.position = Lerp(player2TurretLerpPos, transform.position, NETWORK_INTERPOLATE_AMOUNT);
-		//	transform.orientation = Slerp(player2TurretLerpOri, transform.orientation, NETWORK_INTERPOLATE_AMOUNT);
-		//	visualPeerTurret.SetLocalTransform(transform);
-		//}
-	}
-
 	void TankAIImmobile::FrameUpdate(Room* room, Entity entity, real32 dt)
 	{
-		//Transform transform = entity.GetLocalTransform();
+		Transform transform = entity.GetLocalTransform();
 
-		//real32 dist = 0.0f;
-		//Entity shootTank = {};
-		//if (room->player1Tank.IsValid())
-		//{
-		//	dist = DistanceSqrd(room->player1Tank.GetWorldTransform().position, transform.position);
-		//	shootTank = room->player1Tank;
-		//}
-		//if (room->player2Tank.IsValid())
-		//{
-		//	real32 d2 = DistanceSqrd(room->player2Tank.GetWorldTransform().position, transform.position);
-		//	if (d2 < dist)
-		//	{
-		//		shootTank = room->player2Tank;
-		//	}
-		//}
+		Entity shootTank = {};
+		room->BeginEntityLoop();
+		real32 dist = 100000;
+		while (Entity ent = room->GetNextEntity())
+		{
+			if (ent.GetTag() == Tag::Value::TEAM1_TANK)
+			{
+				real32 d = DistanceSqrd(ent.GetWorldTransform().position, transform.position);
+				if (d < dist)
+				{
+					dist = d;
+					shootTank = ent;
+				}
+			}
+		}
 
-		//if (!shootTank.IsValid())
-		//	return;
 
-		//Transform tankTransform = shootTank.GetWorldTransform();
+		if (!shootTank.IsValid())
+			return;
 
-		//lastFireTime += dt;
+		Transform tankTransform = shootTank.GetWorldTransform();
 
-		//Ray viewRay = {};
-		//viewRay.direction = Normalize(tankTransform.position - transform.position);
-		//viewRay.origin = transform.position;
+		lastFireTime += dt;
 
-		//RaycastResult result = room->ShootRayThrough(viewRay);
-		//if (result.hit && (result.entity.GetBrain()->type == BrainType::Value::PLAYER_BRAIN
-		//	|| result.entity.GetBrain()->type == BrainType::Value::PEER_BRAIN))
-		//{
-		//	Vec2f dir = Vec2f(Sin(rotation), Cos(rotation));
-		//	Vec2f look = Normalize(Vec2f(viewRay.direction.x, viewRay.direction.z));
+		Ray viewRay = {};
+		viewRay.direction = Normalize(tankTransform.position - transform.position);
+		viewRay.origin = transform.position;
 
-		//	if (Abs(Dot(dir, look)) < 0.999f)
-		//	{
-		//		int32 sign = Sign(Cross2DScalar(look, dir));
-		//		real32 theta = SCANNING_LOCKED_RATE * dt * sign;
+		RaycastResult result = room->ShootRayThrough(viewRay);
+		if (result.hit && result.entity == shootTank)
+		{
+			Vec2f dir = Vec2f(Sin(rotation), Cos(rotation));
+			Vec2f look = Normalize(Vec2f(viewRay.direction.x, viewRay.direction.z));
 
-		//		rotation = NormalizeEulerRotation(rotation + theta);
-		//		transform.LocalRotateY(theta);
+			if (Abs(Dot(dir, look)) < 0.99f)
+			{
+				int32 sign = Sign(Cross2DScalar(look, dir));
+				real32 theta = SCANNING_LOCKED_RATE * dt * sign;
 
-		//		//Debug::DrawLine(transform.position, result.entity.GetWorldTransform().position);
-		//	}
-		//	else if (lastFireTime > FIRE_RATE)
-		//	{
-		//		lastFireTime = 0.0f;
-		//		transform.LookAtLH(transform.position + Vec3f(look.x, 0.0f, look.y));
-		//		entity.SetLocalTransform(transform);
+				rotation = NormalizeEulerRotation(rotation + theta);
+				transform.LocalRotateY(theta);
 
-		//		SpawnBullet(room, bulletSpawnPoint.GetWorldTransform());
-		//	}
-		//}
-		//else
-		//{
-		//	real32 delta = SCANNING_TURN_RATE * dt;
-		//	rotation = NormalizeEulerRotation(rotation + delta);
-		//	transform.LocalRotateY(delta);
-		//}
+				Debug::DrawLine(transform.position, result.entity.GetWorldTransform().position);
+			}
+			else if (lastFireTime > FIRE_RATE)
+			{
+				lastFireTime = 0.0f;
+				transform.LookAtLH(transform.position + Vec3f(look.x, 0.0f, look.y));
+				entity.SetLocalTransform(transform);
 
-		//entity.SetLocalTransform(transform);
+				Transform t = bulletSpawnPoint.GetWorldTransform();
+				room->GameCommandSpawnBullet(t.position, t.orientation);
+
+			}
+		}
+		else
+		{
+			real32 delta = SCANNING_TURN_RATE * dt;
+			rotation = NormalizeEulerRotation(rotation + delta);
+			transform.LocalRotateY(delta);
+		}
+
+		entity.SetLocalTransform(transform);
 
 
 		//Sphere collider = tank.GetSphereColliderWorld();

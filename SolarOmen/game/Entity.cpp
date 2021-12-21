@@ -244,6 +244,19 @@ namespace cm
 		*this = *stored;
 	}
 
+	void Entity::SetTag(const Tag& tag)
+	{
+		Assert(IsValid(), "Entity invalid");
+		room->tagComponents[id.index].tag = tag;
+	}
+
+	Tag Entity::GetTag() const
+	{
+		Assert(IsValid(), "Entity invalid");
+
+		return room->tagComponents[id.index].tag;
+	}
+
 	void Entity::SetNetworkOwner(const PlayerNumber& owner)
 	{
 		Assert(IsValid(), "Entity invalid");

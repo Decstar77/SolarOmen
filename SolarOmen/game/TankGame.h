@@ -73,9 +73,12 @@ namespace cm
 		bool twoPlayerGame;
 		MultiplayerState multiplayerState;
 
+		FixedArray<Entity, 256> friendlyTanks;
+		FixedArray<Entity, 256> enemyTanks;
+		FixedArray<Entity, 1024> bullets;
+
 		FixedArray<Entity, ENTITY_STORAGE_COUNT> entities;
 		FixedArray<EntityId, ENTITY_STORAGE_COUNT - 1> entityFreeList;
-
 
 		FixedArray<TransformComponent, ENTITY_STORAGE_COUNT> transformComponents;
 		FixedArray<NameComponent, ENTITY_STORAGE_COUNT> nameComponents;
@@ -83,6 +86,7 @@ namespace cm
 		FixedArray<ColliderComponent, ENTITY_STORAGE_COUNT> colliderComponents;
 		FixedArray<BrainComponent, ENTITY_STORAGE_COUNT> brainComponents;
 		FixedArray<NetworkComponent, ENTITY_STORAGE_COUNT> networkComponents;
+		FixedArray<TagComponent, ENTITY_STORAGE_COUNT> tagComponents;
 
 		uint32 entityLoopIndex = 0;
 	public:

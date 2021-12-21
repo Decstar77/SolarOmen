@@ -1599,8 +1599,8 @@ namespace cm
 	template <typename T>
 	Quat<T> Slerp(const Quat<T>& a, const Quat<T>& b, const T& t)
 	{
-		Quat<T> an = Normalize(a);
-		Quat<T> bn = Normalize(b);
+		Quat<T> an = a;
+		Quat<T> bn = b;
 
 		T d = an.x * bn.x + an.y * bn.y + an.z * bn.z + an.w * bn.w;
 		T tinv = 1.0f - t;

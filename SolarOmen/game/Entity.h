@@ -115,6 +115,88 @@ namespace cm
 		Transform transform;
 	};
 
+	class Tag
+	{
+	public:
+		enum class Value
+		{
+			NONE = 0,
+			BULLET,
+			TEAM1_TANK,
+			TEAM2_TANK,
+			COUNT,
+		};
+
+		Tag()
+		{
+			value = Value::NONE;
+		}
+
+		Tag(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline Value Get() const { return value; }
+
+		inline static Tag ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (Tag::Value)v;
+		}
+
+		inline static Tag ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::NONE;
+		}
+
+		inline bool operator==(const Tag& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const Tag& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+		inline operator uint32() const
+		{
+			return (uint32)value;
+		}
+
+	private:
+		Value value;
+
+		inline static const CString __STRINGS__[] = {
+			"NONE",
+			"BULLET",
+			"TEAM1_TANK",
+			"TEAM2_TANK",
+			"COUNT"
+		};
+	};
+
+	struct TagComponent
+	{
+		Tag tag;
+	};
 
 	struct NetworkComponent
 	{
@@ -141,6 +223,9 @@ namespace cm
 		Entity* GetSiblingBehind();
 		ManagedArray<Entity*> GetChildren();
 		void SetParent(Entity entity);
+
+		void SetTag(const Tag& tag);
+		Tag GetTag() const;
 
 		void SetNetworkOwner(const PlayerNumber& owner);
 
@@ -227,23 +312,10 @@ namespace cm
 		static constexpr real32 BULLET_MOVE_SPEED = 8.0f;
 		bool32 initialized;
 		int32 collisionCount;
+		int32 index;
 
 		Vec2f moveDir;
 		Vec2f moveDelta;
-
-		void FrameUpdate(Room* room, Entity entity, real32 dt);
-	};
-
-	struct PeerBrain
-	{
-		Entity peerTank;
-		Entity visualPeerTank;
-		Entity visualPeerTurret;
-
-		Vec3f player2TankLerpPos;
-		Quatf player2TankLerpOri;
-		Vec3f player2TurretLerpPos;
-		Quatf player2TurretLerpOri;
 
 		void FrameUpdate(Room* room, Entity entity, real32 dt);
 	};
@@ -271,7 +343,6 @@ namespace cm
 		{
 			PlayerBrain playerBrain;
 			BulletBrain bulletBrain;
-			PeerBrain networkBrain;
 			TankAIImmobile tankAIImmobile;
 		};
 	};
