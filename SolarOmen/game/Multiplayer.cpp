@@ -478,15 +478,17 @@ namespace cm
 				}break;
 				case SnapShotType::TRANSFORM:
 				{
-					SnapShotTransform* snap = inputMemoryStream.GetNext<SnapShotTransform>();
-					EntityId id = snap->entityId;
-					Entity* entity = id.Get();
+					inputMemoryStream.GetNext<SnapShotType>();
+					SnapShotTransform snap = {};
+					snap.Deserialize(&inputMemoryStream);
+
+					Entity* entity = snap.entityId.Get();
 					if (entity)
 					{
 						//CString name = entity->GetName(); LOG(name.GetCStr());
-						NetworkComponent* comp = &room->networkComponents[id.index];
-						comp->lerpPosition = snap->position;
-						comp->lerpOrientation = snap->orientation;
+						NetworkComponent* comp = &room->networkComponents[snap.entityId.index];
+						comp->lerpPosition = snap.position;
+						comp->lerpOrientation = snap.orientation;
 					}
 				}break;
 				case SnapShotType::RESEND:
@@ -576,7 +578,9 @@ namespace cm
 					//LOG("SENDING: " << tickCounter);
 					//LOG("COMMANDS = " << commands->count);
 				}
+				//LOG("Bytes: " << outputMemoryStream.buffer.count);
 
+				uint32 count = 0;
 				for (uint32 i = 0; i < room->transformComponents.GetCapcity(); i++)
 				{
 					TransformComponent* comp = &room->transformComponents[i];
@@ -588,14 +592,17 @@ namespace cm
 						snap.entityId = room->entities[i].GetId();
 						snap.position = comp->transform.position;
 						snap.orientation = comp->transform.orientation;
+						count++;
 
-						if (!outputMemoryStream.Add<SnapShotTransform>(snap))
+						if (!snap.Serialize(&outputMemoryStream))
 						{
 							LOG("FULL");
 							break;
 						}
 					}
 				}
+
+				LOG("Bytes: " << outputMemoryStream.buffer.count << " Count: " << count);
 
 				Platform::NetworkSend(outputMemoryStream.buffer.data, outputMemoryStream.buffer.count, peerAddress);
 				outputMemoryStream.buffer.Clear();

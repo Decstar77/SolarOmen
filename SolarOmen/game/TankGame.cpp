@@ -70,7 +70,7 @@ namespace cm
 		Entity entity = CreateEntity();
 		entity.SetName(name);
 
-		LOG("Creating entity: " << entity.id.index << " " << name.GetCStr());
+		//LOG("Creating entity: " << entity.id.index << " " << name.GetCStr());
 
 		return entity;
 	}
@@ -383,9 +383,37 @@ namespace cm
 		DISABLE_CALLS_ON_TICK();
 	}
 
+
+
+
 	void Room::Initialize(bool32 twoPlayer)
 	{
-		twoPlayerGame = 0;
+		//CompressedVec3f comp = {};
+		//comp.SetX(-0b11111111111111111111);
+		//comp.SetY(-0b11111111111111111111);
+		//comp.SetZ(-0b11111111111111111111);
+
+		//int x = comp.GetX();
+		//int y = comp.GetY();
+		//int z = comp.GetZ();
+
+		//std::bitset<64> l(comp.data);
+		//LOG(l);
+
+		//real32 err = 0.0f;
+		//for (int32 i = 0; i < 1000; i++)
+		//{
+		//	Vec3f test = Vec3f(RandomReal(-250.0f, 250.0f), RandomReal(-250.0f, 250.0f), RandomReal(-250.0f, 250.0f));
+		//	CompressedVec3f comp = CompressVec3f(test);
+		//	Vec3f res = DecompressVec3f(comp);
+		//	Vec3f delta = test - res;
+		//	err += Mag(delta);
+		//}
+
+		//err /= 1000.0f;
+		//LOG(err);
+
+		twoPlayerGame = 1;
 		if (!twoPlayerGame)
 		{
 			multiplayerState.playerNumber = PlayerNumber::ONE;

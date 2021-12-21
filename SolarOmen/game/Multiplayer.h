@@ -5,133 +5,6 @@
 
 namespace cm
 {
-	enum class SnapShotType : uint8
-	{
-		INVALID = 0,
-		HANDSHAKE_CONNECTION,
-		PING,
-		RESEND,
-		TRANSFORM,
-		BEGIN_COMMANDS,
-		END_COMMANDS,
-	};
-
-	struct SnapShotHeader
-	{
-		SnapShotType type;
-	};
-
-	struct SnapShotHandShake : public SnapShotHeader
-	{
-
-	};
-
-	struct SnapShotResend : public SnapShotHeader
-	{
-		uint32 tickNumber;
-	};
-
-	struct SnapShotTransform : public SnapShotHeader
-	{
-		EntityId entityId;
-		Vec3f position;
-		Quatf orientation;
-	};
-
-	struct SnapShotCommand : public SnapShotHeader
-	{
-		uint32 tickNumber;
-	};
-
-	struct SnapShotSpawnBullet : public SnapShotHeader
-	{
-		Vec3f position;
-		Quatf orientation;
-	};
-
-	struct SnapShotDestroyEntity : public SnapShotHeader
-	{
-		EntityId entityId;
-	};
-
-	struct SnapShotActivatePressurePad : public SnapShotHeader
-	{
-		EntityId entityId;
-	};
-
-	struct SnapShotPing
-	{
-		bool ack;
-	};
-
-	struct SnapShot
-	{
-		SnapShotType type;
-		uint32 sq;
-		uint32 ack;
-		union
-		{
-			SnapShotHandShake handShake;
-			SnapShotTransform snapTransform;
-			SnapShotPing snapPing;
-		};
-	};
-
-	static_assert(sizeof(SnapShotTransform) < 256);
-
-	struct MemoryStream
-	{
-		uint32 bufferCursor;
-		FixedArray<uint8, Platform::MAX_NETWORK_PACKET_SIZE> buffer;
-
-		void BeginBufferLoop() { bufferCursor = 0; }
-		bool BufferLoopIncomplete() {
-			return bufferCursor < buffer.count;
-		}
-
-		template<typename T>
-		inline T GetNextType()
-		{
-			static_assert(std::is_enum<T>::value, "Not enum!!");
-			return (T)buffer.data[bufferCursor];
-		}
-
-		template<typename T>
-		inline T* GetNext()
-		{
-			uint32 index = bufferCursor;
-			if (index < buffer.count)
-			{
-				bufferCursor += sizeof(T);
-				return (T*)&buffer.data[index];
-			}
-
-			return nullptr;
-		}
-
-		template<typename T>
-		bool Add(const T& t)
-		{
-			int32 bytes = sizeof(T);
-			if (bytes + buffer.count < buffer.GetCapcity())
-			{
-				int32 index = buffer.count;
-				buffer.count += bytes;
-				memcpy(&buffer.data[index], (void*)(&t), bytes);
-
-				return true;
-			}
-
-			return false;
-		}
-	};
-
-	enum class GameCommandType : uint8
-	{
-		INVALID,
-		SPAWN_BULLET,
-		DESTROY_ENTITY,
-	};
 
 	struct CompressedQuatf
 	{
@@ -148,8 +21,55 @@ namespace cm
 		};
 	};
 
-	static_assert(sizeof(CompressedQuatf) == sizeof(uint32));
+	// @NOTE: Can't use bifields because of padding, or so I think, I haven't found away online to do so.
+	struct CompressedVec3f
+	{
+		uint64 data;
 
+		inline int32 GetX() const {
+			int32 result = ((int32)((data >> 0) & 0b011111111111111111111));
+			result *= (int32)((data >> 60) & 0b1) == 1 ? -1 : 1;
+
+			return result;
+		};
+
+		inline int32 GetY() const {
+			int32 result = ((int32)((data >> 20) & 0b011111111111111111111));
+			result *= (int32)((data >> 61) & 0b1) == 1 ? -1 : 1;
+
+			return result;
+		};
+
+		inline int32 GetZ() const {
+			int32 result = ((int32)((data >> 40) & 0b011111111111111111111));
+			result *= (int32)((data >> 62) & 0b1) == 1 ? -1 : 1;
+
+			return result;
+		};
+
+		inline void SetX(int32 bits) {
+			data = (((uint64)(Abs(bits) & 0b011111111111111111111)) << 0) | data;
+			data = ((uint64)(bits < 0 ? 1 : 0) << 60) | data;
+		}
+
+		inline void SetY(int32 bits) {
+			data = (((uint64)(Abs(bits) & 0b011111111111111111111)) << 20) | data;
+			data = ((uint64)(bits < 0 ? 1 : 0) << 61) | data;
+		}
+
+		inline void SetZ(int32 bits) {
+			data = (((uint64)(Abs(bits) & 0b011111111111111111111)) << 40) | data;
+			data = ((uint64)(bits < 0 ? 1 : 0) << 62) | data;
+		}
+	};
+
+	static_assert(sizeof(EntityId) == sizeof(uint64));
+	static_assert(sizeof(CompressedQuatf) == sizeof(uint32));
+	static_assert(sizeof(CompressedVec3f) == sizeof(uint64));
+
+#define MAX_WORLD_SIZE 255
+#define MAX_SIZE_20_BIT 1048575
+#define COMPRESSED_VEC_MULTIPIER ((real32)((MAX_SIZE_20_BIT / MAX_WORLD_SIZE) - 2))
 #define MAX_SIZE_10_BIT 510.0f
 #define CompressFloatTo10Bits(f) (((int32)(f < 0.0f ? 1 : 0) << 9) | (int32)Abs(f))
 #define Decompress10BitsToFloat(f) (real32)((((int32)f & 0b0111111111) | 0) * ((f >> 9) == 1 ? -1 : 1))
@@ -230,6 +150,170 @@ namespace cm
 		return Quatf();
 	}
 
+	inline Vec3f DecompressVec3f(const CompressedVec3f& compressed)
+	{
+		int32 x = compressed.GetX();
+		int32 y = compressed.GetY();
+		int32 z = compressed.GetZ();
+
+		Vec3f result = {};
+		result.x = x / COMPRESSED_VEC_MULTIPIER;
+		result.y = y / COMPRESSED_VEC_MULTIPIER;
+		result.z = z / COMPRESSED_VEC_MULTIPIER;
+
+		return result;
+	}
+
+	inline CompressedVec3f CompressVec3f(const Vec3f& v)
+	{
+		int32 x = (int32)(v.x * COMPRESSED_VEC_MULTIPIER);
+		int32 y = (int32)(v.y * COMPRESSED_VEC_MULTIPIER);
+		int32 z = (int32)(v.z * COMPRESSED_VEC_MULTIPIER);
+
+		CompressedVec3f result = {};
+		result.SetX(x);
+		result.SetY(y);
+		result.SetZ(z);
+
+		return result;
+	}
+
+	struct MemoryStream
+	{
+		uint32 bufferCursor;
+		FixedArray<uint8, Platform::MAX_NETWORK_PACKET_SIZE> buffer;
+
+		void BeginBufferLoop() { bufferCursor = 0; }
+		bool BufferLoopIncomplete() {
+			return bufferCursor < buffer.count;
+		}
+
+		template<typename T>
+		inline T GetNextType()
+		{
+			static_assert(std::is_enum<T>::value, "Not enum!!");
+			return (T)buffer.data[bufferCursor];
+		}
+
+		template<typename T>
+		inline T* GetNext()
+		{
+			uint32 index = bufferCursor;
+			if (index < buffer.count)
+			{
+				bufferCursor += sizeof(T);
+				return (T*)&buffer.data[index];
+			}
+
+			return nullptr;
+		}
+
+		template<typename T>
+		bool Add(const T& t)
+		{
+			int32 bytes = sizeof(T);
+			if (bytes + buffer.count < buffer.GetCapcity())
+			{
+				int32 index = buffer.count;
+				buffer.count += bytes;
+				memcpy(&buffer.data[index], (void*)(&t), bytes);
+
+				return true;
+			}
+
+			return false;
+		}
+	};
+
+
+	enum class SnapShotType : uint8
+	{
+		INVALID = 0,
+		HANDSHAKE_CONNECTION,
+		PING,
+		RESEND,
+		TRANSFORM,
+		BEGIN_COMMANDS,
+		END_COMMANDS,
+	};
+
+	struct SnapShotHeader
+	{
+		SnapShotType type;
+	};
+
+	struct SnapShotHandShake : public SnapShotHeader
+	{
+
+	};
+
+	struct SnapShotResend : public SnapShotHeader
+	{
+		uint32 tickNumber;
+	};
+
+	struct SnapShotTransform : public SnapShotHeader
+	{
+		EntityId entityId;
+		Vec3f position;
+		Quatf orientation;
+
+		void Deserialize(MemoryStream* stream)
+		{
+			entityId = *stream->GetNext<EntityId>();
+			position = DecompressVec3f(*stream->GetNext<CompressedVec3f>());
+			orientation = DecompressQuatf(*stream->GetNext<CompressedQuatf>());
+		}
+
+		bool Serialize(MemoryStream* stream)
+		{
+			if (stream->buffer.count + 21 < stream->buffer.GetCapcity())
+			{
+				stream->Add(SnapShotType::TRANSFORM);
+				stream->Add(entityId);
+				stream->Add(CompressVec3f(position));
+				stream->Add(CompressQuatf(orientation));
+
+				return true;
+			}
+
+			return false;
+		}
+	};
+
+	struct SnapShotCommand : public SnapShotHeader
+	{
+		uint32 tickNumber;
+	};
+
+	struct SnapShotPing
+	{
+		bool ack;
+	};
+
+	struct SnapShot
+	{
+		SnapShotType type;
+		uint32 sq;
+		uint32 ack;
+		union
+		{
+			SnapShotHandShake handShake;
+			SnapShotTransform snapTransform;
+			SnapShotPing snapPing;
+		};
+	};
+
+	static_assert(sizeof(SnapShotTransform) < 256);
+
+
+	enum class GameCommandType : uint8
+	{
+		INVALID,
+		SPAWN_BULLET,
+		DESTROY_ENTITY,
+	};
+
 	struct SpawnBulletCommand
 	{
 		Vec3f pos;
@@ -237,15 +321,15 @@ namespace cm
 
 		void Deserialize(MemoryStream* stream)
 		{
-			pos = *stream->GetNext<Vec3f>();
-			ori = *stream->GetNext<Quatf>();
+			pos = DecompressVec3f(*stream->GetNext<CompressedVec3f>());
+			ori = DecompressQuatf(*stream->GetNext<CompressedQuatf>());
 		}
 
 		void Serialize(MemoryStream* stream)
 		{
 			stream->Add(GameCommandType::SPAWN_BULLET);
-			stream->Add(pos);
-			stream->Add(ori);
+			stream->Add(CompressVec3f(pos));
+			stream->Add(CompressQuatf(ori));
 		}
 	};
 
