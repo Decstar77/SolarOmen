@@ -83,6 +83,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)SolarOmen\vendor\assimp\include;$(SolutionDir)SolarOmen;$(SolutionDir)SolarOmen\vendor\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>26495</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

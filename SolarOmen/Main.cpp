@@ -15,7 +15,8 @@ int main(int argc, const char* argv[])
 	{
 		PlatformState* platformState = GameMemory::PushPermanentStruct<PlatformState>();
 		//if (Platform::Initialize(platformState, "Solar omen", 1900, 1000, true))
-		if (Platform::Initialize(platformState, "Solar omen", 800, 600, true))
+		if (Platform::Initialize(platformState, "Solar omen", 1280, 720, true))
+			//if (Platform::Initialize(platformState, "Solar omen", 800, 600, true))
 		{
 			Platform::IntializeThreads();
 			Platform::IntializeNetworking();
@@ -87,13 +88,13 @@ int main(int argc, const char* argv[])
 						}
 
 						Game::Shutdown();
-						}
-
-					Renderer::Shutdown();
 					}
 
-				Assets::Shutdown();
+					Renderer::Shutdown();
 				}
+
+				Assets::Shutdown();
+			}
 
 #if DEBUG
 			Debug::Shutdown();
@@ -103,11 +104,11 @@ int main(int argc, const char* argv[])
 			Platform::ShutdownNetworking();
 			Platform::ShutdownThreads();
 			Platform::Shutdown();
-			}
 		}
+	}
 	else
 	{
 		Platform::DisplayError("Could not allocate the game memory, minimun required 4GB RAM");
 	}
 
-	}
+}

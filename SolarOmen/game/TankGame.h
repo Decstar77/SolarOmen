@@ -18,22 +18,98 @@ namespace cm
 		AssetId shaderId;
 	};
 
+	class GridCellType
+	{
+	public:
+		enum class Value
+		{
+			EMPTY = 0,
+			FLOOR,
+			WALL,
+			COUNT,
+		};
+
+		GridCellType()
+		{
+			value = Value::EMPTY;
+		}
+
+		GridCellType(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline Value Get() const { return value; }
+
+		inline static GridCellType ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (GridCellType::Value)v;
+		}
+
+		inline static GridCellType ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::EMPTY;
+		}
+
+		inline bool operator==(const GridCellType& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const GridCellType& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+		inline operator uint32() const
+		{
+			return (uint32)value;
+		}
+
+		inline static const CString __STRINGS__[] = {
+			"EMPTY",
+			"FLOOR",
+			"WALL",
+			"COUNT"
+		};
+
+	private:
+		Value value;
+	};
+
 	struct GridCell
 	{
 		int32 xIndex;
 		int32 yIndex;
 		int32 index;
-		bool32 occupied;
 		Entity entity;
 		Vec2f position;
+		GridCellType type;
 	};
 
 	inline int32 IndexOf2DArray(int32 width, int32 x, int32 y) { return y * width + x; }
 
 	struct Grid
 	{
-		static constexpr uint32 HORIZONTAL_CELL_COUNT = 10;
-		static constexpr uint32 VERTICAL_CELL_COUNT = 10;
+		static constexpr uint32 HORIZONTAL_CELL_COUNT = RoomAsset::ROOM_HORIZTONAL_SIZE;
+		static constexpr uint32 VERTICAL_CELL_COUNT = RoomAsset::ROOM_VERTICAL_SIZE;
 		static constexpr real32 CELL_EXTENT = 2.0f;
 
 		Vec2f topLeft;
@@ -44,6 +120,8 @@ namespace cm
 
 		FixedArray<GridCell, HORIZONTAL_CELL_COUNT* VERTICAL_CELL_COUNT> cells;
 
+		GridCell* GetCellFromPosition(const Vec3f& position);
+		bool IsValidIndex(int32 xIndex, int32 yIndex);
 		void Initialize();
 		void DebugDraw();
 	};
@@ -55,19 +133,69 @@ namespace cm
 		RaycastInfo rayInfo;
 	};
 
+	struct UIText
+	{
+		CString text;
+		real32 oX;
+		real32 oY;
+		real32 scale;
+	};
+
+	struct UIButton
+	{
+		real32 oX;
+		real32 oY;
+		real32 width;
+		real32 height;
+	};
+
+	enum class UIElementType
+	{
+		INVALID = 0,
+		BUTTON,
+	};
+
+
+
+	struct UIElement
+	{
+
+	};
+
+	struct UserInterfaceState
+	{
+		real32 totalTime;
+		uint32 selectionPos;
+		real32 selectionScale;
+
+		FixedArray<UIText, 256> texts;
+
+		void Start();
+		void Window(uint32 id);
+		void Text(const CString& text, real32 oX, real32 oY, real32 scale);
+		bool Button(real32 oX, real32 oY, real32 width, real32 height);
+		void End();
+	};
+
 	class Room
 	{
 	public:
 		static constexpr uint32 ENTITY_STORAGE_COUNT = 1000;
 		static constexpr uint32 INVALID_ENTITY_INDEX = 0;
 
-		bool32 initialized;
+
+		AssetId id;
+		CString name;
+		RoomType type;
+		bool initialized;
 
 		Camera playerCamera;
 		Vec3f playerCameraOffset;
 
 		Grid grid;
+		Entity gridEntity;
 
+		UserInterfaceState uiState;
 		FixedArray<GameCommand, 256> commands;
 
 		bool twoPlayerGame;
@@ -105,33 +233,49 @@ namespace cm
 		void GameCommandSpawnBullet(const Vec3f& pos, const Quatf& ori);
 		void GameCommandDestroyEntity(Entity entity);
 
+		void CreateEntitiesFromGripMap();
 
-		void Initialize(bool32 twoPlayer);
+		void Initialize(const RoomAsset& roomAsset);
 		void Update(real32 dt);
 		void ConstructRenderGroup(EntityRenderGroup* renderGroup);
 		void Shutdown();
 
-
+		void DEBUGEnableTickCalls();
+		void DEBUGDisableTickCalls();
 		void DEBUGDrawAllColliders();
 
 	private:
 		void PerformGameCommands(FixedArray<GameCommand, 256>* commands, PlayerNumber playerNumber);
-		void CreatePeerTank();
-		void CreateHostTank();
-		void Initialize();
+
+		void CreatePeerTank(const Vec3f& position);
+		void CreateHostTank(const Vec3f& position);
+
+		void InitializeMenuRoom();
+		void UpdateMenuRoom(real32 dt);
+
+		void InitializeMultiplayerRoom();
+		void UpdateMultiplayerRoom(real32 dt);
+
+		void InitializeGameRoom();
+		void UpdateGameRoom(real32 dt);
+
+
 		void CreateEntityFreeList();
 		EntityId GetNextFreeEntityId();
 		void PushFreeEntityId(EntityId id);
+		void RemoveEntityChildParentRelationship(Entity entity);
 
 	};
 
 #define GetGameState() GameState *gs = GameState::Get()
 	struct GameState
 	{
+		RoomType nextRoom;
 		Room currentRoom;
 
 		static inline void Initialize(GameState* gs) { gameState = gs; }
 		static inline GameState* Get() { return gameState; }
+
 	private:
 		inline static GameState* gameState = nullptr;
 	};
@@ -158,6 +302,7 @@ namespace cm
 		Camera mainCamera;
 		Camera playerCamera;
 
+		UserInterfaceState uiState;
 		FixedArray<RenderEntry, 1000> entries;
 	};
 }

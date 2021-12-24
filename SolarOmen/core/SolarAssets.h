@@ -142,6 +142,32 @@ namespace cm
 		ManagedArray<FontCharacter> chars;
 	};
 
+	enum class RoomType
+	{
+		INVALID = 0,
+		MAIN_MENU,
+		SINGLE_PLAYER,
+		MULTIPLAYER,
+		OPTIONS,
+		GAME_ROOM,
+	};
+
+	struct RoomAsset
+	{
+		static constexpr uint32 ROOM_HORIZTONAL_SIZE = 255;
+		static constexpr uint32 ROOM_VERTICAL_SIZE = 255;
+
+		AssetId id;
+		CString name;
+		RoomType type;
+
+		bool isTwoPlayerMap;
+		Vec3f player1StartPos;
+		Vec3f player2StartPos;
+
+		FixedArray<int32, ROOM_HORIZTONAL_SIZE* ROOM_VERTICAL_SIZE> map;
+	};
+
 #define GetAssetState() AssetState* as = AssetState::Get()
 
 	class AssetState

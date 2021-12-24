@@ -5,7 +5,6 @@
 
 namespace cm
 {
-
 	struct CompressedQuatf
 	{
 		union
@@ -21,7 +20,7 @@ namespace cm
 		};
 	};
 
-	// @NOTE: Can't use bifields because of padding, or so I think, I haven't found away online to do so.
+	// @NOTE: Can't use bitfields because of padding, or so I think, I haven't found away online to do so.
 	struct CompressedVec3f
 	{
 		uint64 data;

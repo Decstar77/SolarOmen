@@ -79,13 +79,4 @@ namespace cm
 		ManagedArray<CString> LoadEntireFolder(const CString& path, const CString& fileTypes);
 		PlatformFile LoadEntireFile(const CString& path, bool32 metaDataOnly);
 	}
-
-	//CString PlatformOpenNFileDialogAndReturnPath();
-	//int32 PlatformCompareFileTimes(uint64 fileTime1, uint64 fileTime2);
-
-	//PlatformFolder DEBUGLoadEnitreFolder(const CString& file, const CString& fileTypes, bool32 metaDataOnly) { return {}; };
-	//PlatformFile DEBUGLoadEntireFile(const CString& file, bool32 metaDataOnly);
-	//void DEBUGFreeFile(PlatformFile* file);
-	//void DEBUGFreeFolder(PlatformFolder* folder) {};
-	//bool32 DEBUGWriteFile(PlatformFile file, const CString& name);
 }

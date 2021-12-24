@@ -222,7 +222,7 @@ namespace cm
 		Entity* GetSiblingAhead();
 		Entity* GetSiblingBehind();
 		ManagedArray<Entity*> GetChildren();
-		void SetParent(Entity entity);
+		void SetParent(Entity* entity);
 
 		void SetTag(const Tag& tag);
 		Tag GetTag() const;

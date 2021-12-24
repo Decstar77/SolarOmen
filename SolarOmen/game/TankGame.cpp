@@ -13,6 +13,8 @@ namespace cm
 #define DISABLE_CALLS_ON_TICK() DEBUG_CALL_MUST_HAPPEN_ON_TICK = false;
 #else
 #define	CHECK_CALLER_IS_ON_TICK()
+#define ENABLE_CALLS_ON_TICK() 
+#define DISABLE_CALLS_ON_TICK()
 #endif
 
 	Entity Room::CreateEntity()
@@ -40,6 +42,34 @@ namespace cm
 		return *entity;
 	}
 
+	void Room::RemoveEntityChildParentRelationship(Entity entity)
+	{
+		Assert(entity.IsValid(), "RemoveEntityChildParentRelationship");
+
+		for (Entity* child = entity.GetFirstChild(); child != nullptr; child = child->GetSiblingAhead())
+		{
+			DestoryEntity(*child);
+		}
+
+		if (Entity* parent = entity.GetParent())
+		{
+			Assert(*parent->child.Get() == entity, "RemoveEntityChildParentRelationship");
+			parent->child = entity.siblingAhead;
+		}
+
+		if (Entity* sibling = entity.GetSiblingAhead())
+		{
+			Assert(*sibling->GetSiblingBehind() == entity, "RemoveEntityChildParentRelationship");
+			sibling->siblingBehind = entity.siblingBehind;
+		}
+
+		if (Entity* sibling = entity.GetSiblingBehind())
+		{
+			Assert(*sibling->GetSiblingAhead() == entity, "RemoveEntityChildParentRelationship");
+			sibling->siblingAhead = entity.siblingAhead;
+		}
+	}
+
 	void Room::DestoryEntity(Entity entity)
 	{
 		CHECK_CALLER_IS_ON_TICK();
@@ -47,6 +77,7 @@ namespace cm
 		if (entity.IsValid())
 		{
 			//LOG("Destorying entity: " << entity.id.index);
+			RemoveEntityChildParentRelationship(entity);
 
 			PushFreeEntityId(entity.id);
 
@@ -115,6 +146,11 @@ namespace cm
 			}
 
 			entityLoopIndex++;
+
+			if (entityLoopIndex == entities.count)
+			{
+				return entity;
+			}
 		}
 
 		return {};
@@ -134,19 +170,11 @@ namespace cm
 		bullet.SetCollider(CreateSphere(Vec3f(0), 0.2f));
 		bullet.SetLocalTransform(transform);
 		bullet.SetModel("sphere");
+		bullet.SetTag(Tag::Value::BULLET);
 		BulletBrain* brain = &bullet.SetBrain(BrainType::Value::BULLET)->bulletBrain;
 
 		networkComponents[bullet.id.index].lerpPosition = transform.position;
 		networkComponents[bullet.id.index].lerpOrientation = transform.orientation;
-
-		//for (uint32 i = 0; i < bullets.GetCapcity(); i++)
-		//{
-		//	if (!bullets[i].IsValid())
-		//	{
-		//		brain->index = i;
-		//		bullets[i] = bullet;
-		//	}
-		//}
 
 		PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_revolver_pistol_shot_04.wav", false);
 
@@ -167,7 +195,7 @@ namespace cm
 		Entity bulletSpawnPoint = CreateEntity("BulletSpawnPoint");
 		bulletSpawnPoint.SetLocalTransform(Transform(Vec3f(0, 0.6f, 1.3f)));
 		bulletSpawnPoint.SetCollider(CreateSphere(Vec3f(0, 0, 0), 0.1f));
-		bulletSpawnPoint.SetParent(turretAI);
+		bulletSpawnPoint.SetParent(&turretAI);
 
 		BrainComponent* brain = turretAI.SetBrain(BrainType::Value::TANK_AI_IMMOBILE);
 		brain->tankAIImmobile.tank = tankAI;
@@ -230,13 +258,13 @@ namespace cm
 		return result;
 	}
 
-	void Room::CreateHostTank()
+	void Room::CreateHostTank(const Vec3f& position)
 	{
 		GetPlatofrmState();
 		Entity visualTank = CreateEntity("HostVisualTank");
 		visualTank.SetModel("TankBase");
 		visualTank.SetTexture("Tank_DefaultMaterial_BaseColor");
-		visualTank.SetLocalTransform(Transform(Vec3f(0, 0.1f, 0), Quatf(), Vec3f(0.65f)));
+		visualTank.SetLocalTransform(Transform(position, Quatf(), Vec3f(0.65f)));
 		visualTank.SetNetworkOwner(multiplayerState.playerNumber);
 		visualTank.SetTag(Tag::Value::TEAM1_TANK);
 		visualTank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
@@ -245,7 +273,7 @@ namespace cm
 		visualTurret.EnableRendering();
 		visualTurret.SetModel("TankTurret");
 		visualTurret.SetTexture("Tank_DefaultMaterial_BaseColor");
-		visualTurret.SetLocalTransform(Transform(Vec3f(0, 1.1f, 0), EulerToQuat(Vec3f(-8, 0, 0)), Vec3f(0.65f)));
+		visualTurret.SetLocalTransform(Transform(position + Vec3f(0, 1.0f, 0), EulerToQuat(Vec3f(-8, 0, 0)), Vec3f(0.65f)));
 		visualTurret.SetNetworkOwner(multiplayerState.playerNumber);
 
 		Entity hostTank = CreateEntity("HostTank");
@@ -269,12 +297,12 @@ namespace cm
 		playerCameraOffset = playerCamera.transform.position - visualTank.GetWorldTransform().position;
 	}
 
-	void Room::CreatePeerTank()
+	void Room::CreatePeerTank(const Vec3f& position)
 	{
 		Entity visualPeerTank = CreateEntity("PeerVisualTank");
 		visualPeerTank.SetModel("TankBase");
 		visualPeerTank.SetTexture("Tank_DefaultMaterial_BaseColor");
-		visualPeerTank.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(0.65f)));
+		visualPeerTank.SetLocalTransform(Transform(position, Quatf(), Vec3f(0.65f)));
 		visualPeerTank.SetNetworkOwner(GetOppositePlayer(multiplayerState.playerNumber));
 		visualPeerTank.SetTag(Tag::Value::TEAM1_TANK);
 		visualPeerTank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
@@ -283,143 +311,12 @@ namespace cm
 		visualPeerTurret.EnableRendering();
 		visualPeerTurret.SetModel("TankTurret");
 		visualPeerTurret.SetTexture("Tank_DefaultMaterial_BaseColor");
-		visualPeerTurret.SetLocalTransform(Transform(Vec3f(0, 1.1f, 0), EulerToQuat(Vec3f(0, 0, -4)), Vec3f(0.65f)));
+		visualPeerTurret.SetLocalTransform(Transform(position + Vec3f(0, 1.0f, 0), EulerToQuat(Vec3f(0, 0, -4)), Vec3f(0.65f)));
 		visualPeerTurret.SetNetworkOwner(GetOppositePlayer(multiplayerState.playerNumber));
 
 		Entity peerTank = CreateEntity("PeerTank");
 	}
 
-	void Room::Initialize()
-	{
-		if (initialized)
-			return;
-
-		ENABLE_CALLS_ON_TICK();
-
-		CreateEntityFreeList();
-		if (twoPlayerGame)
-		{
-			multiplayerState.tickCounter = 1;
-			// @NOTE: Ensure that entity id's line up
-			if (multiplayerState.playerNumber == PlayerNumber::ONE)
-			{
-				CreateHostTank();
-				CreatePeerTank();
-			}
-			else if (multiplayerState.playerNumber == PlayerNumber::TWO)
-			{
-				CreatePeerTank();
-				CreateHostTank();
-			}
-		}
-		else
-		{
-			CreateHostTank();
-		}
-
-		if (1)
-		{
-			SpawnEnemyTank(Vec3f(7.0f, 0.1f, 7.0f)).SetNetworkOwner(PlayerNumber::ONE);
-			//SpawnEnemyTank(Vec3f(-7.0f, 0.1f, -7.0f)).SetNetworkOwner(PlayerNumber::ONE);
-			//SpawnEnemyTank(Vec3f(7.0f, 0.1f, -7.0f));
-			//SpawnEnemyTank(Vec3f(-7.0f, 0.1f, 7.0f));
-		}
-
-
-		//Entity prop = CreateEntity("Prop01");
-		//prop.EnableRendering();
-		//prop.SetModel("Prop_01");
-		//prop.SetTexture("Prop_01_DefaultMaterial_BaseColor");
-		//prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(1)));
-
-
-		grid.Initialize();
-
-		int32 map[] =
-		{
-			1,1,1,1,1,1,1,1,1,1,
-			1,0,0,0,0,0,0,0,0,1,
-			1,0,0,0,1,1,0,0,0,1,
-			1,0,0,0,1,1,0,0,0,1,
-			1,1,0,0,0,0,0,0,1,1,
-			1,1,0,0,0,0,0,0,1,1,
-			1,0,0,0,1,1,0,0,0,1,
-			1,0,0,0,1,1,0,0,0,1,
-			1,0,0,0,0,0,0,0,0,1,
-			1,1,1,1,1,1,1,1,1,1,
-		};
-
-		Entity gridEntity = CreateEntity("Grid");
-
-		for (int32 index = 0; index < ArrayCount(map); index++)
-		{
-			GridCell* cell = &grid.cells[index];
-			int32 occupied = map[index];
-			cell->occupied = occupied;
-			if (occupied == 0)
-			{
-				Entity entity = CreateEntity("EmptyCell");
-				entity.SetLocalTransform(Transform(Vec3f(cell->position.x, 0.0f, cell->position.y)));
-				entity.SetModel("20x20_Floor");
-				entity.SetTexture("Set0_Texture");
-				entity.SetParent(gridEntity);
-				cell->entity = entity;
-			}
-			else if (occupied == 1)
-			{
-				Entity entity = CreateEntity("Cell");
-				entity.SetLocalTransform(Transform(Vec3f(cell->position.x, 0.0f, cell->position.y)));
-				entity.SetModel("20x20_Full");
-				entity.SetTexture("Set0_Texture");
-				entity.EnableCollider();
-				entity.SetCollider(CreateAABBFromCenterRadius(Vec3f(0, 1, 0), Vec3f(1)));
-				entity.SetParent(gridEntity);
-				cell->entity = entity;
-			}
-		}
-
-		initialized = true;
-
-		DISABLE_CALLS_ON_TICK();
-	}
-
-
-
-
-	void Room::Initialize(bool32 twoPlayer)
-	{
-		//CompressedVec3f comp = {};
-		//comp.SetX(-0b11111111111111111111);
-		//comp.SetY(-0b11111111111111111111);
-		//comp.SetZ(-0b11111111111111111111);
-
-		//int x = comp.GetX();
-		//int y = comp.GetY();
-		//int z = comp.GetZ();
-
-		//std::bitset<64> l(comp.data);
-		//LOG(l);
-
-		//real32 err = 0.0f;
-		//for (int32 i = 0; i < 1000; i++)
-		//{
-		//	Vec3f test = Vec3f(RandomReal(-250.0f, 250.0f), RandomReal(-250.0f, 250.0f), RandomReal(-250.0f, 250.0f));
-		//	CompressedVec3f comp = CompressVec3f(test);
-		//	Vec3f res = DecompressVec3f(comp);
-		//	Vec3f delta = test - res;
-		//	err += Mag(delta);
-		//}
-
-		//err /= 1000.0f;
-		//LOG(err);
-
-		twoPlayerGame = 1;
-		if (!twoPlayerGame)
-		{
-			multiplayerState.playerNumber = PlayerNumber::ONE;
-			Initialize();
-		}
-	}
 
 	void Room::PerformGameCommands(FixedArray<GameCommand, 256>* commands, PlayerNumber playerNumber)
 	{
@@ -445,10 +342,247 @@ namespace cm
 		}
 	}
 
-	void Room::Update(real32 dt)
+	void Room::CreateEntitiesFromGripMap()
+	{
+		ENABLE_CALLS_ON_TICK();
+
+		DestoryEntity(gridEntity);
+		gridEntity = CreateEntity("Grid");
+		for (uint32 i = 0; i < grid.cells.GetCapcity(); i++)
+		{
+			GridCell* cell = &grid.cells[i];
+
+			switch (cell->type.Get())
+			{
+			case GridCellType::Value::WALL:
+			{
+				Entity entity = CreateEntity("Wall");
+				entity.SetLocalTransform(Transform(Vec3f(cell->position.x, 0.0f, cell->position.y)));
+				entity.SetModel("20x20_Full");
+				entity.SetTexture("Set0_Texture");
+				entity.EnableCollider();
+				entity.SetCollider(CreateAABBFromCenterRadius(Vec3f(0, 1, 0), Vec3f(1)));
+				entity.SetParent(&gridEntity);
+				cell->entity = entity;
+			}break;
+			}
+
+			//	{
+			//		Entity entity = CreateEntity("EmptyCell");
+			//		entity.SetLocalTransform(Transform(Vec3f(cell->position.x, 0.0f, cell->position.y)));
+			//		entity.SetModel("20x20_Floor");
+			//		entity.SetTexture("Set0_Texture");
+			//		entity.SetParent(&gridEntity);
+			//		cell->entity = entity;
+			//	}
+			//	else if (occupied == 1)
+			//	{
+			//		Entity entity = CreateEntity("Cell");
+			//		entity.SetLocalTransform(Transform(Vec3f(cell->position.x, 0.0f, cell->position.y)));
+			//		entity.SetModel("20x20_Full");
+			//		entity.SetTexture("Set0_Texture");
+			//		entity.EnableCollider();
+			//		entity.SetCollider(CreateAABBFromCenterRadius(Vec3f(0, 1, 0), Vec3f(1)));
+			//		entity.SetParent(&gridEntity);
+			//		cell->entity = entity;
+			//	}
+		}
+
+		//int32 map[] =
+		//{
+		//	1,1,1,1,1,1,1,1,1,1,
+		//	1,0,0,0,0,0,0,0,0,1,
+		//	1,0,0,0,1,1,0,0,0,1,
+		//	1,0,0,0,1,1,0,0,0,1,
+		//	1,1,0,0,0,0,0,0,1,1,
+		//	1,1,0,0,0,0,0,0,1,1,
+		//	1,0,0,0,1,1,0,0,0,1,
+		//	1,0,0,0,1,1,0,0,0,1,
+		//	1,0,0,0,0,0,0,0,0,1,
+		//	1,1,1,1,1,1,1,1,1,1,
+		//};
+
+		//Entity gridEntity = CreateEntity("Grid");
+		//for (int32 index = 0; index < ArrayCount(map); index++)
+		//{
+		//	GridCell* cell = &grid.cells[index];
+		//	int32 occupied = map[index];
+		//	cell->occupied = occupied;
+		//	if (occupied == 0)
+		//	{
+		//		Entity entity = CreateEntity("EmptyCell");
+		//		entity.SetLocalTransform(Transform(Vec3f(cell->position.x, 0.0f, cell->position.y)));
+		//		entity.SetModel("20x20_Floor");
+		//		entity.SetTexture("Set0_Texture");
+		//		entity.SetParent(&gridEntity);
+		//		cell->entity = entity;
+		//	}
+		//	else if (occupied == 1)
+		//	{
+		//		Entity entity = CreateEntity("Cell");
+		//		entity.SetLocalTransform(Transform(Vec3f(cell->position.x, 0.0f, cell->position.y)));
+		//		entity.SetModel("20x20_Full");
+		//		entity.SetTexture("Set0_Texture");
+		//		entity.EnableCollider();
+		//		entity.SetCollider(CreateAABBFromCenterRadius(Vec3f(0, 1, 0), Vec3f(1)));
+		//		entity.SetParent(&gridEntity);
+		//		cell->entity = entity;
+		//	}
+		//}
+
+		DISABLE_CALLS_ON_TICK();
+	}
+
+	void Room::InitializeMenuRoom()
+	{
+		uiState.selectionPos = 0;
+	}
+
+	void Room::UpdateMenuRoom(real32 dt)
+	{
+		uiState.Start();
+
+		uint32 oldSelection = uiState.selectionPos;
+
+		uiState.totalTime += dt;
+		uiState.selectionScale = 0.1f * Sin(uiState.totalTime) + 0.9f;
+
+		uiState.Text("Single Player", 0.5f, 0.4f, uiState.selectionPos == 0 ? uiState.selectionScale : 0.8f);
+		uiState.Text("Multiplayer", 0.5f, 0.5f, uiState.selectionPos == 1 ? uiState.selectionScale : 0.8f);
+		uiState.Text("Options", 0.5f, 0.6f, uiState.selectionPos == 2 ? uiState.selectionScale : 0.8f);
+		uiState.Text("Exit", 0.5f, 0.7f, uiState.selectionPos == 3 ? uiState.selectionScale : 0.8f);
+
+		GetInput();
+
+		uiState.selectionPos += (IsKeyJustDown(input, s) - IsKeyJustDown(input, w));
+		uiState.selectionPos %= 4;
+
+		if (oldSelection != uiState.selectionPos)
+			uiState.totalTime = 0.0f;
+
+		if (IsKeyJustDown(input, e))
+		{
+			GetGameState();
+			if (uiState.selectionPos == 0)
+			{
+				gs->nextRoom = RoomType::GAME_ROOM;
+			}
+			else if (uiState.selectionPos == 1)
+			{
+				gs->nextRoom = RoomType::MULTIPLAYER;
+			}
+			else if (uiState.selectionPos == 2)
+			{
+				gs->nextRoom = RoomType::OPTIONS;
+			}
+			else if (uiState.selectionPos == 3)
+			{
+				Platform::PostQuitMessage();
+			}
+		}
+
+		uiState.End();
+	}
+
+	void Room::InitializeMultiplayerRoom()
+	{
+		uiState.selectionPos = 0;
+	}
+
+	void Room::UpdateMultiplayerRoom(real32 dt)
+	{
+		uiState.Start();
+
+		uint32 oldSelection = uiState.selectionPos;
+		uiState.totalTime += dt;
+		uiState.selectionScale = 0.1f * Sin(uiState.totalTime) + 0.9f;
+
+		uiState.Text("Host", 0.5f, 0.4f, uiState.selectionPos == 0 ? uiState.selectionScale : 0.8f);
+		uiState.Text("Connect", 0.5f, 0.5f, uiState.selectionPos == 1 ? uiState.selectionScale : 0.8f);
+		uiState.Text("Back", 0.5f, 0.6f, uiState.selectionPos == 2 ? uiState.selectionScale : 0.8f);
+
+		GetInput();
+
+		uiState.selectionPos += (IsKeyJustDown(input, s) - IsKeyJustDown(input, w));
+		uiState.selectionPos %= 4;
+
+		if (oldSelection != uiState.selectionPos)
+			uiState.totalTime = 0.0f;
+
+		if (IsKeyJustDown(input, e))
+		{
+			GetGameState();
+			if (uiState.selectionPos == 0)
+			{
+
+			}
+			else if (uiState.selectionPos == 1)
+			{
+
+			}
+			else if (uiState.selectionPos == 2)
+			{
+				gs->nextRoom = RoomType::MAIN_MENU;
+			}
+		}
+
+		uiState.End();
+	}
+
+	void Room::InitializeGameRoom()
+	{
+		if (initialized)
+			return;
+
+		ENABLE_CALLS_ON_TICK();
+
+		CreateEntityFreeList();
+		if (twoPlayerGame)
+		{
+			multiplayerState.tickCounter = 1;
+			// @NOTE: Ensure that entity id's line up
+			if (multiplayerState.playerNumber == PlayerNumber::ONE)
+			{
+				CreateHostTank(Vec3f(0.0f, 0.1f, 0.0f));
+				CreatePeerTank(Vec3f(0.0f, 0.1f, 0.0f));
+			}
+			else if (multiplayerState.playerNumber == PlayerNumber::TWO)
+			{
+				CreatePeerTank(Vec3f(0.0f, 0.1f, 0.0f));
+				CreateHostTank(Vec3f(0.0f, 0.1f, 0.0f));
+			}
+		}
+		else
+		{
+			CreateHostTank(Vec3f(0.0f, 0.1f, 0.0f));
+		}
+
+		if (1)
+		{
+			SpawnEnemyTank(Vec3f(7.0f, 0.1f, 7.0f)).SetNetworkOwner(PlayerNumber::ONE);
+			SpawnEnemyTank(Vec3f(-7.0f, 0.1f, -7.0f)).SetNetworkOwner(PlayerNumber::ONE);
+			SpawnEnemyTank(Vec3f(7.0f, 0.1f, -7.0f)).SetNetworkOwner(PlayerNumber::ONE);
+			SpawnEnemyTank(Vec3f(-7.0f, 0.1f, 7.0f)).SetNetworkOwner(PlayerNumber::ONE);
+		}
+
+
+		//Entity prop = CreateEntity("Prop01");
+		//prop.EnableRendering();
+		//prop.SetModel("Prop_01");
+		//prop.SetTexture("Prop_01_DefaultMaterial_BaseColor");
+		//prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(1)));
+		grid.Initialize();
+
+		CreateEntitiesFromGripMap();
+
+		initialized = true;
+		DISABLE_CALLS_ON_TICK();
+	}
+
+	void Room::UpdateGameRoom(real32 dt)
 	{
 		if (!initialized && multiplayerState.IsValid())
-			Initialize();
+			InitializeGameRoom();
 
 		if (twoPlayerGame)
 		{
@@ -500,7 +634,40 @@ namespace cm
 			}
 		}
 
-		DEBUGDrawAllColliders();
+		//DEBUGDrawAllColliders();
+	}
+
+
+
+	void Room::Initialize(const RoomAsset& roomAsset)
+	{
+		type = roomAsset.type;
+
+		switch (type)
+		{
+		case RoomType::MAIN_MENU: InitializeMenuRoom(); break;
+		case RoomType::MULTIPLAYER: InitializeMultiplayerRoom(); break;
+		case RoomType::GAME_ROOM:
+		{
+			twoPlayerGame = 0;
+			if (!twoPlayerGame)
+			{
+				multiplayerState.playerNumber = PlayerNumber::ONE;
+				InitializeGameRoom();
+			}
+		}break;
+		}
+	}
+
+
+	void Room::Update(real32 dt)
+	{
+		switch (type)
+		{
+		case RoomType::MAIN_MENU:  UpdateMenuRoom(dt); break;
+		case RoomType::MULTIPLAYER: UpdateMultiplayerRoom(dt); break;
+		case RoomType::GAME_ROOM: UpdateGameRoom(dt); break;
+		}
 	}
 
 	void Room::ConstructRenderGroup(EntityRenderGroup* renderGroup)
@@ -524,11 +691,23 @@ namespace cm
 
 			renderGroup->entries.Add(entry);
 		}
+
+		renderGroup->uiState = uiState;
 	}
 
 	void Room::Shutdown()
 	{
 
+	}
+
+	void Room::DEBUGEnableTickCalls()
+	{
+		ENABLE_CALLS_ON_TICK();
+	}
+
+	void Room::DEBUGDisableTickCalls()
+	{
+		DISABLE_CALLS_ON_TICK();
 	}
 
 	void Room::DEBUGDrawAllColliders()
@@ -600,34 +779,28 @@ namespace cm
 		entityFreeList[index] = id;
 	}
 
-	bool32 Game::Initialize()
+
+	GridCell* Grid::GetCellFromPosition(const Vec3f& position)
 	{
-		GameState::Initialize(GameMemory::PushPermanentStruct<GameState>());
+		Vec3f p = (position - Vec3f(topLeft.x, 0.0f, topLeft.y)) / CELL_EXTENT;
 
-		GetGameState();
-		gs->currentRoom.Initialize(false);
+		int32 xIndex = (int32)(p.x);
+		int32 yIndex = (int32)(p.z);
 
-		return true;
+		if (IsValidIndex(xIndex, yIndex)) {
+			int32 index = IndexOf2DArray(HORIZONTAL_CELL_COUNT, xIndex, yIndex);
+
+			return &cells[index];
+		}
+
+		return nullptr;
 	}
 
-	void Game::UpdateGame(real32 dt)
+	bool Grid::IsValidIndex(int32 xIndex, int32 yIndex)
 	{
-		GetGameState();
-		gs->currentRoom.Update(dt);
-		//gs->currentRoom.grid.DebugDraw();
+		return (xIndex < HORIZONTAL_CELL_COUNT) && (xIndex >= 0) &&
+			(yIndex < VERTICAL_CELL_COUNT) && (yIndex >= 0);
 	}
-
-	void Game::ConstructRenderGroup(EntityRenderGroup* renderGroup)
-	{
-		GetGameState();
-		gs->currentRoom.ConstructRenderGroup(renderGroup);
-	}
-
-	void Game::Shutdown()
-	{
-
-	}
-
 
 	void Grid::Initialize()
 	{
@@ -652,7 +825,7 @@ namespace cm
 				cell.index = index;
 				cell.xIndex = x;
 				cell.yIndex = y;
-				cell.occupied = false;
+				cell.type = GridCellType::Value::EMPTY;
 				cell.position = (Vec2f(CELL_EXTENT) * Vec2f((real32)x, (real32)y)) + Vec2f(hasCellExtent) + topLeft;
 
 				cells[index] = cell;
@@ -677,12 +850,12 @@ namespace cm
 			Debug::DrawLine(p1, p2);
 		}
 
-		for (uint32 i = 0; i < cells.GetCapcity(); i++)
-		{
-			Vec3f p1 = Vec3f(cells[i].position.x, h, cells[i].position.y);
-			Vec3f p2 = p1 + Vec3f(0, 1, 0);
-			Debug::DrawLine(p1, p2);
-		}
+		//for (uint32 i = 0; i < cells.GetCapcity(); i++)
+		//{
+		//	Vec3f p1 = Vec3f(cells[i].position.x, h, cells[i].position.y);
+		//	Vec3f p2 = p1 + Vec3f(0, 1, 0);
+		//	Debug::DrawLine(p1, p2);
+		//}
 	}
 
 	static real32 NormalizeEulerRotation(real32 angle)
@@ -724,15 +897,15 @@ namespace cm
 		tankTransform.LocalRotateY(rotationDelta);
 
 		real32 moveDelta = moveDir * TANK_MOVE_SPEED * dt;
-		Vec2f forwardDir = Vec2f(Sin(visualTankRotation), Cos(visualTankRotation));
-		tankTransform.position += Vec3f(moveDelta * forwardDir.x, 0.0f, moveDelta * forwardDir.y);
+		Vec3f forwardDir = QuatToBasis(tankTransform.orientation).forward;
+		tankTransform.position += Vec3f(moveDelta * forwardDir.x, 0.0f, moveDelta * forwardDir.z);
 
 		// @NOTE: Collision detection 
 		Sphere tankCollider = CreateSphere(tankTransform.position, 0.8f);
 		for (uint32 i = 0; i < room->grid.cells.count; i++)
 		{
 			GridCell* cell = &room->grid.cells[i];
-			if (cell->occupied == 1)
+			if (cell->type == GridCellType::Value::WALL)
 			{
 				AABB aabb = cell->entity.GetAlignedBoxColliderWorld();
 				Manifold manifold = {};
@@ -836,7 +1009,7 @@ namespace cm
 		for (uint32 i = 0; i < room->grid.cells.count; i++)
 		{
 			GridCell* cell = &room->grid.cells[i];
-			if (cell->occupied == 1)
+			if (cell->type == GridCellType::Value::WALL)
 			{
 				AABB aabb = cell->entity.GetAlignedBoxColliderWorld();
 				Manifold manifold = {};
@@ -877,6 +1050,7 @@ namespace cm
 		Entity shootTank = {};
 		room->BeginEntityLoop();
 		real32 dist = 100000;
+		Sphere collider = tank.GetSphereColliderWorld();
 		while (Entity ent = room->GetNextEntity())
 		{
 			if (ent.GetTag() == Tag::Value::TEAM1_TANK)
@@ -886,6 +1060,19 @@ namespace cm
 				{
 					dist = d;
 					shootTank = ent;
+				}
+			}
+			else if (ent.GetTag() == Tag::Value::BULLET)
+			{
+				if (CheckIntersectionSphere(ent.GetSphereColliderWorld(), collider))
+				{
+					PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/explosion_large_01.wav", false);
+					room->GameCommandDestroyEntity(tank);
+					room->GameCommandDestroyEntity(bulletSpawnPoint);
+					room->GameCommandDestroyEntity(entity);
+					room->GameCommandDestroyEntity(ent);
+
+					return;
 				}
 			}
 		}
@@ -981,5 +1168,79 @@ namespace cm
 	}
 
 
+	bool32 Game::Initialize()
+	{
+		GameState::Initialize(GameMemory::PushPermanentStruct<GameState>());
 
+		GetGameState();
+
+		RoomAsset* testRoom = GameMemory::PushTransientStruct<RoomAsset>();
+		testRoom->type = RoomType::MAIN_MENU;
+		gs->currentRoom.Initialize(*testRoom);
+
+		return true;
+	}
+
+	void Game::UpdateGame(real32 dt)
+	{
+		GetGameState();
+		if (gs->nextRoom != RoomType::INVALID)
+		{
+			gs->currentRoom.Shutdown();
+			ZeroStruct(&gs->currentRoom);
+
+			RoomAsset* testRoom = GameMemory::PushTransientStruct<RoomAsset>();
+			testRoom->type = gs->nextRoom;
+
+			gs->currentRoom.Initialize(*testRoom);
+
+			gs->nextRoom = RoomType::INVALID;
+		}
+		else
+		{
+			gs->currentRoom.Update(dt);
+		}
+	}
+
+	void Game::ConstructRenderGroup(EntityRenderGroup* renderGroup)
+	{
+		GetGameState();
+		gs->currentRoom.ConstructRenderGroup(renderGroup);
+	}
+
+	void Game::Shutdown()
+	{
+
+	}
+
+	void UserInterfaceState::Start()
+	{
+		texts.Clear();
+	}
+
+	void UserInterfaceState::Text(const CString& text, real32 oX, real32 oY, real32 scale)
+	{
+		UIText tex = {};
+		tex.text = text;
+		tex.oX = oX;
+		tex.oY = oY;
+		tex.scale = scale;
+
+		texts.Add(tex);
+	}
+
+	bool UserInterfaceState::Button(real32 oX, real32 oY, real32 width, real32 height)
+	{
+		UIButton button = {};
+		button.oX = oX;
+		button.oY = oY;
+		button.width = width;
+		button.height = height;
+
+		return false;
+	}
+
+	void UserInterfaceState::End()
+	{
+	}
 }

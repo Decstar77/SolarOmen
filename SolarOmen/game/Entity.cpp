@@ -166,10 +166,10 @@ namespace cm
 		return siblingBehind.Get();
 	}
 
-	void Entity::SetParent(Entity entity)
+	void Entity::SetParent(Entity* entity)
 	{
 		Assert(IsValid(), "Entity invalid");
-		Assert(this->id != entity.id, "Cannot parent an entity to its self !!");
+		Assert(this->id != entity->id, "Cannot parent an entity to its self !!");
 
 		if (Entity* existingParent = parent.Get())
 		{
@@ -205,10 +205,8 @@ namespace cm
 		}
 
 		Entity* stored = id.Get();
-		if (Entity* newParent = entity.id.Get())
+		if (Entity* newParent = entity->id.Get())
 		{
-
-
 			stored->parent = newParent->id;
 
 			if (Entity* child = newParent->GetFirstChild())
@@ -233,6 +231,8 @@ namespace cm
 			{
 				newParent->child = stored->id;
 			}
+
+			*entity = *newParent;
 		}
 		else
 		{

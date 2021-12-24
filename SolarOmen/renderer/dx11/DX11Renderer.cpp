@@ -333,13 +333,38 @@ namespace cm
 		rs->fontMesh = StaticMesh::Create(nullptr, sizeof(float) * 6 * 4);
 	}
 
+	static real32 GetWidthOfText(const CString& text, real32 scale)
+	{
+		GetRenderState();
+		GetAssetState();
+		GetPlatofrmState();
+
+		real32 width = 0;
+		for (int32 i = 0; i < text.GetLength(); i++)
+		{
+			FontCharacter ch = {};
+			for (uint32 j = 0; j < rs->fontTextures.count; j++)
+			{
+				if (text[i] == as->font.chars[j].character)
+				{
+					ch = as->font.chars[j];
+					break;
+				}
+			}
+
+			width += (ch.advance >> 6) * scale;
+		}
+
+		return width;
+	}
+
 	static void RenderText(const CString& text, float x, float y, float scale, Vec3f color)
 	{
 		GetRenderState();
 		GetAssetState();
 		GetPlatofrmState();
 		RenderCommand::BindShader(rs->textShader);
-
+		RenderCommand::SetRasterState(rs->rasterNoFaceCullState);
 		for (int32 i = 0; i < text.GetLength(); i++)
 		{
 			FontCharacter ch = {};
@@ -357,19 +382,19 @@ namespace cm
 			if (ch.size.x > 0)
 			{
 				real32 xpos = x + ch.bearing.x * scale;
-				real32 ypos = y - (ch.size.y - ch.bearing.y) * scale;
+				real32 ypos = y + (ch.size.y - ch.bearing.y) * scale;
 
 				real32 w = ch.size.x * scale;
 				real32 h = ch.size.y * scale;
 
 				real32 vertices[] = {
-					 xpos,     ypos + h,   0.0f, 1.0f,
-					 xpos,     ypos,       0.0f, 0.0f,
-					 xpos + w, ypos,       1.0f, 0.0f,
+					 xpos,     ypos - h,   0.0f, 0.0f,
+					 xpos,     ypos,       0.0f, 1.0f,
+					 xpos + w, ypos,       1.0f, 1.0f,
 
-					 xpos,     ypos + h,   0.0f, 1.0f,
-					 xpos + w, ypos,       1.0f, 0.0f,
-					 xpos + w, ypos + h,   1.0f, 1.0f
+					 xpos,     ypos - h,   0.0f, 0.0f,
+					 xpos + w, ypos,       1.0f, 1.0f,
+					 xpos + w, ypos - h,   1.0f, 0.0f
 				};
 
 				rs->fontMesh.UpdateVertexBuffer(vertices, sizeof(vertices));
@@ -379,9 +404,11 @@ namespace cm
 				DXINFO(rs->context->IASetVertexBuffers(0, 1, &rs->fontMesh.vertexBuffer, &rs->fontMesh.strideBytes, &offset));
 				DXINFO(rs->context->Draw(6, 0));
 
-				x += (ch.advance >> 6) * scale;
 			}
+			x += (ch.advance >> 6) * scale;
 		}
+
+		RenderCommand::SetRasterState(rs->rasterBackFaceCullingState);
 	}
 
 	bool32 Renderer::Initialize()
@@ -491,7 +518,18 @@ namespace cm
 			}
 		}
 
-		//RenderText("Hello", 100, 100, 1.0f, Vec3f(1));
+		for (uint32 i = 0; i < renderGroup->uiState.texts.count; i++)
+		{
+			UIText* text = &renderGroup->uiState.texts[i];
+
+			real32 w = GetWidthOfText(text->text, text->scale);
+
+			real32 x = text->oX * ps->clientWidth - w / 2.0f;
+			real32 y = text->oY * ps->clientHeight;
+
+			RenderText(text->text, x, y, text->scale, Vec3f(1));
+		}
+
 
 		DEBUGRenderAndFlushDebugDraws();
 	}

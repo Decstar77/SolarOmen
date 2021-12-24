@@ -68,6 +68,7 @@ namespace cm
 				if (ImGui::MenuItem("Render Settings")) { es->showRenderSettingsWindow = true; }
 				if (ImGui::MenuItem("Performance")) { es->showPerformanceWindow = true; }
 				if (ImGui::MenuItem("Console")) { es->showConsoleWindow = true; }
+				if (ImGui::MenuItem("Build")) { es->showBuildWindow = true; }
 				//if (ImGui::MenuItem("Main window")) { es->windowOpen = true; }
 				//if (ImGui::MenuItem("Physics")) { es->physicsWindowOpen = true; }
 				ImGui::EndMenu();
@@ -134,6 +135,103 @@ namespace cm
 		{
 			Debug::ExecuteCommand(inputBuf);
 		}
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
+	template<typename T>
+	bool ComboEnum(const CString& lable, int32* currentItem)
+	{
+		constexpr int32 count = (int32)T::Value::COUNT;
+		const char* items[count] = {};
+		for (int32 i = 0; i < count; i++)
+		{
+			items[i] = T::__STRINGS__[i].GetCStr();
+		}
+
+		return ImGui::Combo("Type", currentItem, items, count);
+	}
+
+	static void SaveRoomAsset(RoomAsset* asset)
+	{
+		LargeString<1000000>* roomData = GameMemory::PushTransientStruct<LargeString<1000000>>();
+		roomData->Add("Player1 Start Pos:").Add(ToString(asset->player1StartPos));
+		roomData->Add("Player2 Start Pos:").Add(ToString(asset->player2StartPos));
+		roomData->Add("Two Player Game: ?");
+
+
+		roomData->Add("Map: \n");
+		for (uint32 i = 0; i < asset->map.GetCapcity(); i++)
+		{
+			int32 data = asset->map[i];
+			roomData->Add(data).Add(" ");
+			if (i % 25 == 0 && i != 0)
+			{
+				roomData->Add("\n");
+			}
+		}
+
+		Platform::WriteFile("../Assets/Raw/Rooms/Room_001.txt", roomData->GetCStr(), (uint32)roomData->GetLength());
+		LOG("Save");
+	}
+
+	static void ShowBuildWindow()
+	{
+		GetEditorState();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Build", &es->showBuildWindow);
+
+		ImGui::DragFloat3("Player1 Start Position", es->currentRoomAsset.player1StartPos.ptr);
+		ImGui::DragFloat3("Player2 Start Position", es->currentRoomAsset.player2StartPos.ptr);
+
+		static int32 currentItem = 0;
+		ComboEnum<GridCellType>("Build type", &currentItem);
+
+		GetInput();
+		GetGameState();
+
+		Room* room = &gs->currentRoom;
+		Grid* grid = &room->grid;
+
+		room->grid.DebugDraw();
+
+		Ray ray = es->camera.ShootRayFromScreen();
+		Plane plane = CreatePlane(0.0f, Vec3f(0, 1, 0));
+
+		RaycastInfo info = {};
+		if (RaycastPlane(ray, plane, &info))
+		{
+
+
+			if (IsKeyJustDown(input, mb1))
+			{
+				ImGuiIO& io = ImGui::GetIO();
+				if (!io.WantCaptureMouse)
+				{
+					GridCell* cell = room->grid.GetCellFromPosition(info.closePoint);
+					if (cell)
+					{
+						cell->type = GridCellType::Value::WALL;
+						room->CreateEntitiesFromGripMap();
+					}
+				}
+			}
+			//Debug::DrawPoint(info.closePoint);
+		}
+
+		if (IsKeyJustDown(input, s) && input->ctrl)
+		{
+			for (uint32 i = 0; i < grid->cells.GetCapcity(); i++)
+			{
+				es->currentRoomAsset.map[i] = (int32)grid->cells[i].type;
+			}
+
+			SaveRoomAsset(&es->currentRoomAsset);
+		}
+
 
 		ImGui::End();
 		ImGui::PopStyleVar();
@@ -289,7 +387,7 @@ namespace cm
 		{
 			GetGameState();
 			ZeroStruct(&gs->currentRoom);
-			gs->currentRoom.Initialize(false);
+			//gs->currentRoom.Initialize(false);
 		}
 
 		if (inGame)
@@ -303,12 +401,13 @@ namespace cm
 			ShowMainMenuBar();
 			OperateCamera(&es->camera, dt);
 			renderGroup->playerCamera = es->camera;
+
+			if (es->showRoomWindow) ShowRoomWindow();
+			if (es->showBuildWindow) ShowBuildWindow();
 		}
 
-		if (es->showConsoleWindow) ShowConsoleWindow();
 		if (es->showPerformanceWindow) ShowPerformanceWindow(dt);
-		if (es->showRoomWindow) ShowRoomWindow();
-
+		if (es->showConsoleWindow) ShowConsoleWindow();
 
 
 	}
