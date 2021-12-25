@@ -14,14 +14,13 @@ int main(int argc, const char* argv[])
 	if (Platform::AllocateMemory(Gigabytes(1), Gigabytes(2)))
 	{
 		PlatformState* platformState = GameMemory::PushPermanentStruct<PlatformState>();
-		//if (Platform::Initialize(platformState, "Solar omen", 1900, 1000, true))
-		if (Platform::Initialize(platformState, "Solar omen", 1280, 720, true))
+		if (Platform::Initialize(platformState, "Solar omen", 1900, 1000, true))
+			//if (Platform::Initialize(platformState, "Solar omen", 1280, 720, true))
 			//if (Platform::Initialize(platformState, "Solar omen", 800, 600, true))
 		{
 			Platform::IntializeThreads();
 			Platform::IntializeNetworking();
 			Audio::Initialize();
-
 #if DEBUG
 			Debug::Initialize(argc, argv);
 #endif

@@ -51,6 +51,7 @@ namespace cm
 	{
 		uint16 port;
 		uint32 ipAddress;
+		CString stringIP;
 	};
 
 	namespace Platform

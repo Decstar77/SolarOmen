@@ -80,6 +80,12 @@ namespace cm
 			return &data[index];
 		}
 
+		inline const T* Get(const uint32& index) const
+		{
+			Assert(index >= 0 && index < capcity, "Array, invalid index");
+			return &data[index];
+		}
+
 		inline T& operator[](const uint32& index)
 		{
 			Assert(index >= 0 && index < capcity, "Array, invalid index");

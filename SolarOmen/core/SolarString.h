@@ -14,6 +14,9 @@
 #include "Defines.h"
 #include "SolarMemory.h"
 #include "SolarArray.h"
+
+#include <string>
+
 namespace cm
 {
 	//template<typename T>
@@ -272,7 +275,7 @@ namespace cm
 		// @NOTE: This array is transietory !!!
 		ManagedArray<CString> Split(const char& delim) const
 		{
-			ManagedArray<CString> result = GameMemory::PushTransientArray<CString>(10);
+			ManagedArray<CString> result = GameMemory::PushTransientArray<CString>(32);
 
 			const int32 len = GetLength();
 

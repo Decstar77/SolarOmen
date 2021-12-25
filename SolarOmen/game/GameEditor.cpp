@@ -27,8 +27,6 @@ namespace cm
 		EditorState::Initialize(GameMemory::PushPermanentStruct<EditorState>());
 		GetEditorState();
 
-
-
 		es->camera.transform = Transform();
 		es->camera.transform.position.y = 1;
 		es->camera.yaw = 90.0f;
@@ -156,10 +154,12 @@ namespace cm
 	static void SaveRoomAsset(RoomAsset* asset)
 	{
 		LargeString<1000000>* roomData = GameMemory::PushTransientStruct<LargeString<1000000>>();
-		roomData->Add("Player1 Start Pos:").Add(ToString(asset->player1StartPos));
-		roomData->Add("Player2 Start Pos:").Add(ToString(asset->player2StartPos));
-		roomData->Add("Two Player Game: ?");
+		roomData->Add("Version: 1");
+		roomData->Add("Player1 Start Pos:").Add(ToString(asset->player1StartPos)).Add("\n");
+		roomData->Add("Player2 Start Pos:").Add(ToString(asset->player2StartPos)).Add("\n");
+		roomData->Add("Two Player Game: ?\n");
 
+		roomData->Add("Entities: \n");
 
 		roomData->Add("Map: \n");
 		for (uint32 i = 0; i < asset->map.GetCapcity(); i++)
@@ -172,13 +172,30 @@ namespace cm
 			}
 		}
 
-		Platform::WriteFile("../Assets/Raw/Rooms/Room_001.txt", roomData->GetCStr(), (uint32)roomData->GetLength());
-		LOG("Save");
+		if (asset->name == "")
+		{
+			asset->name = "UnknownRoom";
+		}
+
+		Platform::WriteFile(CString("../Assets/Raw/Rooms/").Add(asset->name).Add(".txt"), roomData->GetCStr(), (uint32)roomData->GetLength());
 	}
 
 	static void ShowBuildWindow()
 	{
 		GetEditorState();
+		GetAssetState();
+		GetGameState();
+		GetInput();
+
+		for (uint32 i = 0; i < as->rooms.count; i++)
+		{
+			if (gs->currentRoom.name == as->rooms[i].name)
+			{
+				es->currentRoomAsset = as->rooms[i];
+				break;
+			}
+		}
+
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
 		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
@@ -189,9 +206,6 @@ namespace cm
 
 		static int32 currentItem = 0;
 		ComboEnum<GridCellType>("Build type", &currentItem);
-
-		GetInput();
-		GetGameState();
 
 		Room* room = &gs->currentRoom;
 		Grid* grid = &room->grid;
@@ -204,20 +218,27 @@ namespace cm
 		RaycastInfo info = {};
 		if (RaycastPlane(ray, plane, &info))
 		{
-
-
-			if (IsKeyJustDown(input, mb1))
+			ImGuiIO& io = ImGui::GetIO();
+			if (!io.WantCaptureMouse)
 			{
-				ImGuiIO& io = ImGui::GetIO();
-				if (!io.WantCaptureMouse)
+				GridCell* cell = room->grid.GetCellFromPosition(info.closePoint);
+				if (input->mb1 && input->ctrl)
 				{
-					GridCell* cell = room->grid.GetCellFromPosition(info.closePoint);
-					if (cell)
+					if (cell && cell->type != GridCellType::Value::EMPTY)
+					{
+						cell->type = GridCellType::Value::EMPTY;
+						room->CreateEntitiesFromGripMap();
+					}
+				}
+				else if (input->mb1)
+				{
+					if (cell && cell->type == GridCellType::Value::EMPTY)
 					{
 						cell->type = GridCellType::Value::WALL;
 						room->CreateEntitiesFromGripMap();
 					}
 				}
+
 			}
 			//Debug::DrawPoint(info.closePoint);
 		}
@@ -230,6 +251,8 @@ namespace cm
 			}
 
 			SaveRoomAsset(&es->currentRoomAsset);
+
+			Debug::LogInfo(CString("Saved").Add(es->currentRoomAsset.name));
 		}
 
 

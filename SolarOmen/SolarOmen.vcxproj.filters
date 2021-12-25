@@ -141,6 +141,9 @@
     <ClCompile Include="serialization\RawFontImporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="serialization\RawRoomImporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\SolarMath.h">
@@ -308,6 +311,12 @@
     <ClInclude Include="game\EntityId.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="serialization\RawRoomImporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="serialization\RawAudioImporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\unlit.vert.hlsl" />
@@ -346,6 +355,8 @@
     <FxCompile Include="shaders\depth_reduction_down.comp.hlsl" />
     <FxCompile Include="shaders\text.vert.hlsl" />
     <FxCompile Include="shaders\text.pixl.hlsl" />
+    <FxCompile Include="shaders\ui_quad.vert.hlsl" />
+    <FxCompile Include="shaders\ui_quad.pixl.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\imgui\LICENSE" />

@@ -90,6 +90,17 @@ namespace cm
 		}
 	};
 
+	struct ShaderConstBufferUIData
+	{
+		Float4Align Vec4f colour;
+		Float4Align Vec4f sizePos;
+
+		inline void Prepare()
+		{
+
+		}
+	};
+
 
 	template<typename T>
 	inline ShaderConstBuffer<T> ShaderConstBuffer<T>::Create()

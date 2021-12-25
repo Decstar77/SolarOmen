@@ -990,9 +990,9 @@ namespace cm
 		s.RemoveCharacter(0);
 		s.RemoveCharacter(s.GetLength() - 1);
 
-		std::vector<CString>values = s.Split(';');
+		ManagedArray<CString>values = s.Split(';');
 
-		Vec3<T> result = Vec3<T>(values.at(0).ToReal32(), values.at(1).ToReal32(), values.at(2).ToReal32());
+		Vec3<T> result = Vec3<T>(values[0].ToReal32(), values[1].ToReal32(), values[2].ToReal32());
 
 		return result;
 	}

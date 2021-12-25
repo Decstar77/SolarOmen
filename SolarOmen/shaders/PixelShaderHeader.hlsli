@@ -81,6 +81,12 @@ cbuffer LightData : register(b3)
 	float4 cascades;
 }
 
+cbuffer UIData : register(b4)
+{
+	float4 colour;
+	float4 sizePos;
+};
+
 Texture2D texture0 : register(t0);
 Texture2D texture1 : register(t1);
 Texture2D texture2 : register(t2);

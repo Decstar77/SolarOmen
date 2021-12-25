@@ -358,7 +358,7 @@ namespace cm
 		return width;
 	}
 
-	static void RenderText(const CString& text, float x, float y, float scale, Vec3f color)
+	static void RenderText(const CString& text, real32 x, real32 y, real32 scale, Vec3f color)
 	{
 		GetRenderState();
 		GetAssetState();
@@ -411,6 +411,24 @@ namespace cm
 		RenderCommand::SetRasterState(rs->rasterBackFaceCullingState);
 	}
 
+	static void RenderRect(real32 x, real32 y, real32 w, real32 h)
+	{
+		GetRenderState();
+
+		RenderCommand::BindShader(rs->quadShader);
+		RenderCommand::SetRasterState(rs->rasterNoFaceCullState);
+		RenderCommand::SetDepthState(rs->depthOffState);
+
+		rs->uiConstBuffer.data.colour = Vec4f(1, 1, 1, 1);
+		rs->uiConstBuffer.data.sizePos = Vec4f(w, h, x, y);
+		RenderCommand::UpdateConstBuffer(rs->uiConstBuffer);
+
+		RenderCommand::BindAndDrawMesh(rs->quad);
+
+		RenderCommand::SetDepthState(rs->depthLessState);
+		RenderCommand::SetRasterState(rs->rasterBackFaceCullingState);
+	}
+
 	bool32 Renderer::Initialize()
 	{
 		RenderState::Initialize(GameMemory::PushPermanentStruct<RenderState>());
@@ -434,6 +452,9 @@ namespace cm
 		RenderCommand::BindShaderConstBuffer(rs->viewConstBuffer, ShaderStage::VERTEX, 1);
 		rs->lightingConstBuffer = ShaderConstBuffer<ShaderConstBufferLightingInfo>::Create();
 		RenderCommand::BindShaderConstBuffer(rs->lightingConstBuffer, ShaderStage::PIXEL, 0);
+		rs->uiConstBuffer = ShaderConstBuffer<ShaderConstBufferUIData>::Create();
+		RenderCommand::BindShaderConstBuffer(rs->uiConstBuffer, ShaderStage::PIXEL, 4);
+
 
 		ManagedArray<ShaderAsset> shaders = as->shaders.GetValueSet();
 
@@ -444,6 +465,7 @@ namespace cm
 
 		rs->unlitShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "unlit"));
 		rs->phongShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "phong"));
+		rs->quadShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "ui_quad"));
 
 		ShaderAsset textShader = GetAssetFromName(shaders, "text");
 		textShader.vertexLayout = VertexShaderLayout::TEXT;
@@ -518,18 +540,36 @@ namespace cm
 			}
 		}
 
-		for (uint32 i = 0; i < renderGroup->uiState.texts.count; i++)
+		for (uint32 i = 0; i < renderGroup->uiState.uiElements.count; i++)
 		{
-			UIText* text = &renderGroup->uiState.texts[i];
+			UIElement* el = &renderGroup->uiState.uiElements[i];
 
-			real32 w = GetWidthOfText(text->text, text->scale);
+			switch (el->type)
+			{
+			case UIElementType::TEXT:
+			{
+				UIText* text = &el->text;
 
-			real32 x = text->oX * ps->clientWidth - w / 2.0f;
-			real32 y = text->oY * ps->clientHeight;
+				real32 w = GetWidthOfText(text->text, text->scale);
+				real32 x = text->oX * ps->clientWidth - w / 2.0f;
+				real32 y = text->oY * ps->clientHeight;
 
-			RenderText(text->text, x, y, text->scale, Vec3f(1));
+				RenderText(text->text, x, y, text->scale, Vec3f(1));
+			}break;
+			case UIElementType::RECT:
+			{
+				UIRect* rect = &el->rect;
+
+				real32 x = rect->oX * ps->clientWidth;
+				real32 y = rect->oY * ps->clientHeight;
+				real32 w = rect->width * ps->clientWidth;
+				real32 h = rect->height * ps->clientHeight;
+
+				RenderRect(x, y, w, h);
+			}break;
+
+			}
 		}
-
 
 		DEBUGRenderAndFlushDebugDraws();
 	}

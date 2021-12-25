@@ -8,6 +8,8 @@
 #include "serialization/RawTextureImporter.h"
 #include "serialization/RawShaderImporter.h"
 #include "serialization/RawFontImporter.h"
+#include "serialization/RawRoomImporter.h"
+#include "serialization/RawAudioImporter.h"
 #else
 
 #endif 
@@ -215,6 +217,10 @@ namespace cm
 		ManagedArray<CString> vertexShaderFiles = Platform::LoadEntireFolder(ASSET_PATH, "vert.cso");
 		ManagedArray<CString> pixelShaderFiles = Platform::LoadEntireFolder(ASSET_PATH, "pixl.cso");
 
+		ManagedArray<CString> roomFiles = Platform::LoadEntireFolder(CString(ASSET_PATH).Add("Rooms/"), "txt");
+
+		ManagedArray<CString> audioFiles = Platform::LoadEntireFolder(CString(ASSET_PATH), "wav");
+
 		ManagedArray<ModelAsset> models = LoadOrCreateModelMetaData(metaFiles, modelFiles);
 		ManagedArray<TextureAsset> textures = LoadOrCreateTextureMetaData(metaFiles, textureFiles);
 
@@ -258,6 +264,17 @@ namespace cm
 			shaderAsset.name = Util::StripFilePathAndExtentions(vertexPath);
 
 			as->shaders.Put(shaderAsset.id, shaderAsset);
+		}
+
+		for (uint32 roomIndex = 0; roomIndex < roomFiles.GetCount(); roomIndex++)
+		{
+			RoomAsset* room = LoadRoom(roomFiles[roomIndex]);
+			as->rooms.Add(*room);
+		}
+
+		for (uint32 audioIndex = 0; audioIndex < audioFiles.GetCount(); audioIndex++)
+		{
+			CString name = LoadAudio(audioFiles[audioIndex]);
 		}
 
 		as->font = LoadFont(CString(ASSET_PATH).Add("Fonts/arial.ttf"));

@@ -125,6 +125,7 @@
     <ClCompile Include="renderer\dx11\DX11Texture.cpp" />
     <ClCompile Include="serialization\RawFontImporter.cpp" />
     <ClCompile Include="serialization\RawModelImporter.cpp" />
+    <ClCompile Include="serialization\RawRoomImporter.cpp" />
     <ClCompile Include="serialization\RawShaderImporter.cpp" />
     <ClCompile Include="serialization\RawTextureImporter.cpp" />
     <ClCompile Include="SimpleColliders.cpp" />
@@ -174,8 +175,10 @@
     <ClInclude Include="renderer\dx11\DX11Shader.h" />
     <ClInclude Include="renderer\dx11\DX11Texture.h" />
     <ClInclude Include="renderer\dx11\DX11Topology.h" />
+    <ClInclude Include="serialization\RawAudioImporter.h" />
     <ClInclude Include="serialization\RawFontImporter.h" />
     <ClInclude Include="serialization\RawModelImporter.h" />
+    <ClInclude Include="serialization\RawRoomImporter.h" />
     <ClInclude Include="serialization\RawShaderImporter.h" />
     <ClInclude Include="serialization\RawTextureImporter.h" />
     <ClInclude Include="SimpleColliders.h" />
@@ -467,6 +470,22 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Assets\Raw\Shaders\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Assets\Raw\Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="shaders\ui_quad.vert.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Assets\Raw\Shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Assets\Raw\Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="shaders\ui_quad.pixl.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Assets\Raw\Shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Assets\Raw\Shaders\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="shaders\unlit.pixl.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

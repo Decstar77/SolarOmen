@@ -142,7 +142,7 @@ namespace cm
 		ipAddress = platformSocket.ipAddress;
 	}
 
-	CString SocketAddress::GetStringIp()
+	CString SocketAddress::GetStringIp() const
 	{
 		char buf[256] = {};
 
@@ -157,6 +157,7 @@ namespace cm
 		PlatformAddress platformSocket = {};
 		platformSocket.port = port;
 		platformSocket.ipAddress = ipAddress;
+		platformSocket.stringIP = GetStringIp();
 
 		return platformSocket;
 	}

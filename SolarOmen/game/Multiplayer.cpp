@@ -422,26 +422,37 @@ namespace cm
 		outputMemoryStream.Add(GameCommandType::INVALID);
 	}
 
+	void MultiplayerState::StartHost()
+	{
+		myAddress = Platform::NetworkStart(54000);
+		startedNetworkStuff = true;
+		playerNumber = PlayerNumber::ONE;
+	}
+
+	void MultiplayerState::StartPeer()
+	{
+		myAddress = Platform::NetworkStart(54001);
+		startedNetworkStuff = true;
+		playerNumber = PlayerNumber::TWO;
+	}
+
 	GameCommands* MultiplayerState::GetNextGameCommands(Room* room, real32 dt)
 	{
-		GetInput();
-
+#if DEBUG
 		if (!startedNetworkStuff)
 		{
+			GetInput();
 			if (IsKeyJustDown(input, f9) || DebugState::host)
 			{
-				myAddress = Platform::NetworkStart(54000);
-				startedNetworkStuff = true;
-				playerNumber = PlayerNumber::ONE;
+				StartHost();
 			}
 
 			if (IsKeyJustDown(input, f10) || DebugState::peer)
 			{
-				myAddress = Platform::NetworkStart(54001);
-				startedNetworkStuff = true;
-				playerNumber = PlayerNumber::TWO;
+				StartPeer();
 			}
 		}
+#endif
 
 		if (!connectionValid && startedNetworkStuff)
 		{
@@ -547,7 +558,6 @@ namespace cm
 
 		if (connectionValid)
 		{
-
 			timeSinceLastSend += dt;
 			if ((timeSinceLastSend >= 1.0f / (real32)TICKS_PER_SECOND))
 			{

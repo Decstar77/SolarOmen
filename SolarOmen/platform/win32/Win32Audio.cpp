@@ -18,6 +18,8 @@ namespace cm
 				return false;
 			}
 
+			engine->setSoundVolume(0.1f);
+
 			return true;
 		}
 
@@ -27,8 +29,19 @@ namespace cm
 		}
 	}
 
-	void PlaySound(const CString& path, bool32 loop)
+	CString LoadAudio(const CString& path)
 	{
-		engine->play2D(path.GetCStr(), loop);
+		CString name = Util::StripFilePathAndExtentions(path);
+		PlatformFile file = Platform::LoadEntireFile(path, false);
+
+		ISoundSource* sound = engine->addSoundSourceFromMemory(file.data, (uint32)file.sizeBytes, name.GetCStr());
+
+		return CString();
+	}
+
+	void PlaySound(const CString& name, bool32 loop)
+	{
+		engine->play2D(name.GetCStr(), loop);
+		//engine->play2D(path.GetCStr(), loop);
 	}
 }

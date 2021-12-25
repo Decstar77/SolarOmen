@@ -122,7 +122,7 @@ namespace cm
 
 		GridCell* GetCellFromPosition(const Vec3f& position);
 		bool IsValidIndex(int32 xIndex, int32 yIndex);
-		void Initialize();
+		void Initialize(const FixedArray<int32, HORIZONTAL_CELL_COUNT* VERTICAL_CELL_COUNT>* map);
 		void DebugDraw();
 	};
 
@@ -141,7 +141,7 @@ namespace cm
 		real32 scale;
 	};
 
-	struct UIButton
+	struct UIRect
 	{
 		real32 oX;
 		real32 oY;
@@ -152,14 +152,19 @@ namespace cm
 	enum class UIElementType
 	{
 		INVALID = 0,
+		TEXT,
+		RECT,
 		BUTTON,
 	};
 
-
-
 	struct UIElement
 	{
-
+		UIElementType type;
+		union
+		{
+			UIText text;
+			UIRect rect;
+		};
 	};
 
 	struct UserInterfaceState
@@ -168,12 +173,12 @@ namespace cm
 		uint32 selectionPos;
 		real32 selectionScale;
 
-		FixedArray<UIText, 256> texts;
+		FixedArray<UIElement, 256> uiElements;
 
 		void Start();
 		void Window(uint32 id);
 		void Text(const CString& text, real32 oX, real32 oY, real32 scale);
-		bool Button(real32 oX, real32 oY, real32 width, real32 height);
+		bool Button(const CString& text, real32 oX, real32 oY, real32 width, real32 height, real32 txtScale = 1.0f);
 		void End();
 	};
 
@@ -183,10 +188,10 @@ namespace cm
 		static constexpr uint32 ENTITY_STORAGE_COUNT = 1000;
 		static constexpr uint32 INVALID_ENTITY_INDEX = 0;
 
-
 		AssetId id;
 		CString name;
 		RoomType type;
+		bool twoPlayerGame;
 		bool initialized;
 
 		Camera playerCamera;
@@ -197,9 +202,7 @@ namespace cm
 
 		UserInterfaceState uiState;
 		FixedArray<GameCommand, 256> commands;
-
-		bool twoPlayerGame;
-		MultiplayerState multiplayerState;
+		MultiplayerState* multiplayerState;
 
 		FixedArray<Entity, 256> friendlyTanks;
 		FixedArray<Entity, 256> enemyTanks;
@@ -224,7 +227,7 @@ namespace cm
 		Entity CreateEntity();
 		Entity CreateEntity(const CString& name);
 
-		void DestoryEntity(Entity entity);
+		void DestoryEntity(Entity* entity);
 
 		Entity SpawnBullet(Transform transform);
 		Entity SpawnEnemyTank(const Vec3f& pos);
@@ -235,10 +238,10 @@ namespace cm
 
 		void CreateEntitiesFromGripMap();
 
-		void Initialize(const RoomAsset& roomAsset);
+		void Initialize(const RoomAsset& roomAsset, MultiplayerState* mulitplayerState);
 		void Update(real32 dt);
-		void ConstructRenderGroup(EntityRenderGroup* renderGroup);
 		void Shutdown();
+		void ConstructRenderGroup(EntityRenderGroup* renderGroup);
 
 		void DEBUGEnableTickCalls();
 		void DEBUGDisableTickCalls();
@@ -252,24 +255,32 @@ namespace cm
 
 		void InitializeMenuRoom();
 		void UpdateMenuRoom(real32 dt);
+		void ShutdownMenuRoom();
+
+		void InitializeLevelSelectionRoom();
+		void UpdateLevelSelectionRoom(real32 dt);
+		void ShutdownLevelSelectionRoom();
 
 		void InitializeMultiplayerRoom();
 		void UpdateMultiplayerRoom(real32 dt);
+		void ShutdownMultiplayeRoom();
 
-		void InitializeGameRoom();
+		void InitializeGameRoom(const RoomAsset& roomAsset);
 		void UpdateGameRoom(real32 dt);
-
+		void ShutdownGameRoom();
 
 		void CreateEntityFreeList();
 		EntityId GetNextFreeEntityId();
 		void PushFreeEntityId(EntityId id);
-		void RemoveEntityChildParentRelationship(Entity entity);
+		void RemoveEntityChildParentRelationship(Entity* entity);
 
 	};
 
 #define GetGameState() GameState *gs = GameState::Get()
 	struct GameState
 	{
+		MultiplayerState multiplayerState;
+
 		RoomType nextRoom;
 		Room currentRoom;
 

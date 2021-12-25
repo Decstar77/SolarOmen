@@ -1,6 +1,7 @@
 #pragma once
 #include "Defines.h"
 #include "SolarString.h"
+#include "SolarPlatform.h"
 
 namespace cm
 {
@@ -10,6 +11,6 @@ namespace cm
 		void Shutdown();
 	}
 
-	void PlaySound(const CString& path, bool32 loop);
+	void PlaySound(const CString& name, bool32 loop);
 }
 

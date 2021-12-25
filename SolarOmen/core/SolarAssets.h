@@ -146,10 +146,30 @@ namespace cm
 	{
 		INVALID = 0,
 		MAIN_MENU,
-		SINGLE_PLAYER,
+		LEVEL_SELECTION,
 		MULTIPLAYER,
 		OPTIONS,
-		GAME_ROOM,
+		LEVEL_1,
+		LEVEL_2,
+		LEVEL_3,
+		LEVEL_4,
+		LEVEL_5,
+		LEVEL_6,
+		LEVEL_7,
+		LEVEL_8,
+		LEVEL_9,
+		LEVEL_10,
+		LEVEL_11,
+		LEVEL_12,
+		LEVEL_13,
+		LEVEL_14,
+		LEVEL_15,
+		LEVEL_16,
+		LEVEL_17,
+		LEVEL_18,
+		LEVEL_19,
+		LEVEL_20,
+		COUNT
 	};
 
 	struct RoomAsset
@@ -157,7 +177,6 @@ namespace cm
 		static constexpr uint32 ROOM_HORIZTONAL_SIZE = 255;
 		static constexpr uint32 ROOM_VERTICAL_SIZE = 255;
 
-		AssetId id;
 		CString name;
 		RoomType type;
 
@@ -176,6 +195,8 @@ namespace cm
 		HashMap<ModelAsset> models;
 		HashMap<ShaderAsset> shaders;
 		HashMap<TextureAsset> textures;
+
+		FixedArray<RoomAsset, (uint32)RoomType::COUNT> rooms;
 
 		FontAsset font;
 

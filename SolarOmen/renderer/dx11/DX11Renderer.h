@@ -55,10 +55,12 @@ namespace cm
 		ShaderConstBuffer<ShaderConstBufferModel> modelConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferView> viewConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferLightingInfo> lightingConstBuffer;
+		ShaderConstBuffer<ShaderConstBufferUIData> uiConstBuffer;
 
 		ShaderInstance unlitShader;
 		ShaderInstance phongShader;
 		ShaderInstance textShader;
+		ShaderInstance quadShader;
 
 		HashMap<StaticMesh> meshes;
 		HashMap<TextureInstance> textures;

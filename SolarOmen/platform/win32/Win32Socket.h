@@ -17,7 +17,7 @@ namespace cm
 
 		uint32 GetIp();
 		uint32 GetPort();
-		CString GetStringIp();
+		CString GetStringIp() const;
 
 		PlatformAddress ToPlatformAddress() const;
 

@@ -378,21 +378,24 @@ namespace cm
 		bool connectionValid;
 		PlatformAddress myAddress;
 		PlatformAddress peerAddress;
+		PlayerNumber playerNumber;
 
 		uint32 tickCounter;
 		bool32 gatherCommands;
 		real32 timeSinceLastSend;
 
-		PlayerNumber playerNumber;
 		GameCommands lastCommands;
 		GameCommands currentCommands;
 
-		MemoryStream outputMemoryStream;
+		void StartHost();
+		void StartPeer();
 
 		GameCommands* GetNextGameCommands(class Room* room, real32 dt);
 		inline bool IsValid() const { return startedNetworkStuff && connectionValid; }
 
 	private:
+		MemoryStream outputMemoryStream;
+
 		FixedArray<GameCommand, 256>* AddCommandsToCurrent(GameCommand* commands, uint32 count, bool peer);
 		ManagedArray<GameCommand> DeserializeCommandsFromInputStream(MemoryStream* inputMemoryStream, uint32 tickNumber);
 		void SerializeCommandsIntoOutputStream(FixedArray<GameCommand, 256>* commands, uint32 tickNumber);

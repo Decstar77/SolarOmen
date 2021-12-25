@@ -42,46 +42,54 @@ namespace cm
 		return *entity;
 	}
 
-	void Room::RemoveEntityChildParentRelationship(Entity entity)
+	void Room::RemoveEntityChildParentRelationship(Entity* entity)
 	{
-		Assert(entity.IsValid(), "RemoveEntityChildParentRelationship");
+		Assert(entity->IsValid(), "RemoveEntityChildParentRelationship");
 
-		for (Entity* child = entity.GetFirstChild(); child != nullptr; child = child->GetSiblingAhead())
+		for (Entity* child = entity->GetFirstChild(); child != nullptr;)
 		{
-			DestoryEntity(*child);
+			// @NOTE: Get the sibling before we delete/clear the current entity 
+			Entity* sibling = child->GetSiblingAhead();
+			DestoryEntity(child);
+			child = sibling;
 		}
 
-		if (Entity* parent = entity.GetParent())
+		if (Entity* parent = entity->GetParent())
 		{
-			Assert(*parent->child.Get() == entity, "RemoveEntityChildParentRelationship");
-			parent->child = entity.siblingAhead;
+			Assert(*parent->child.Get() == *entity, "RemoveEntityChildParentRelationship");
+			parent->child = entity->siblingAhead;
 		}
 
-		if (Entity* sibling = entity.GetSiblingAhead())
+		if (Entity* sibling = entity->GetSiblingAhead())
 		{
-			Assert(*sibling->GetSiblingBehind() == entity, "RemoveEntityChildParentRelationship");
-			sibling->siblingBehind = entity.siblingBehind;
+			Assert(*sibling->GetSiblingBehind() == *entity, "RemoveEntityChildParentRelationship");
+			sibling->siblingBehind = entity->siblingBehind;
 		}
 
-		if (Entity* sibling = entity.GetSiblingBehind())
+		if (Entity* sibling = entity->GetSiblingBehind())
 		{
-			Assert(*sibling->GetSiblingAhead() == entity, "RemoveEntityChildParentRelationship");
-			sibling->siblingAhead = entity.siblingAhead;
+			Assert(*sibling->GetSiblingAhead() == *entity, "RemoveEntityChildParentRelationship");
+			sibling->siblingAhead = entity->siblingAhead;
 		}
+
+		// @NOTE: Update this pointer to what ever changed
+		*entity = *entity->GetId().Get();
 	}
 
-	void Room::DestoryEntity(Entity entity)
+	void Room::DestoryEntity(Entity* entity)
 	{
+		Assert(entity, "Destroy null entity ?");
+
 		CHECK_CALLER_IS_ON_TICK();
 
-		if (entity.IsValid())
+		if (entity && entity->IsValid())
 		{
 			//LOG("Destorying entity: " << entity.id.index);
 			RemoveEntityChildParentRelationship(entity);
 
-			PushFreeEntityId(entity.id);
+			PushFreeEntityId(entity->id);
 
-			int32 index = entity.id.index;
+			int32 index = entity->id.index;
 			ZeroStruct(&entities[index]);
 			ZeroStruct(&nameComponents[index]);
 			ZeroStruct(&renderComponents[index]);
@@ -93,6 +101,8 @@ namespace cm
 			//		: instead what happens is the brain is zero'd upon being set.
 			brainComponents[index].enabled = false;
 			//ZeroStruct(&brainComponents[index]);
+
+			*entity = {};
 		}
 	}
 
@@ -176,7 +186,7 @@ namespace cm
 		networkComponents[bullet.id.index].lerpPosition = transform.position;
 		networkComponents[bullet.id.index].lerpOrientation = transform.orientation;
 
-		PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_revolver_pistol_shot_04.wav", false);
+		PlaySound("gun_revolver_pistol_shot_04", false);
 
 		return bullet;
 	}
@@ -265,7 +275,7 @@ namespace cm
 		visualTank.SetModel("TankBase");
 		visualTank.SetTexture("Tank_DefaultMaterial_BaseColor");
 		visualTank.SetLocalTransform(Transform(position, Quatf(), Vec3f(0.65f)));
-		visualTank.SetNetworkOwner(multiplayerState.playerNumber);
+		visualTank.SetNetworkOwner(multiplayerState->playerNumber);
 		visualTank.SetTag(Tag::Value::TEAM1_TANK);
 		visualTank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
 
@@ -274,11 +284,11 @@ namespace cm
 		visualTurret.SetModel("TankTurret");
 		visualTurret.SetTexture("Tank_DefaultMaterial_BaseColor");
 		visualTurret.SetLocalTransform(Transform(position + Vec3f(0, 1.0f, 0), EulerToQuat(Vec3f(-8, 0, 0)), Vec3f(0.65f)));
-		visualTurret.SetNetworkOwner(multiplayerState.playerNumber);
+		visualTurret.SetNetworkOwner(multiplayerState->playerNumber);
 
 		Entity hostTank = CreateEntity("HostTank");
 		hostTank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
-		hostTank.SetNetworkOwner(multiplayerState.playerNumber);
+		hostTank.SetNetworkOwner(multiplayerState->playerNumber);
 		PlayerBrain* playerBrain = &hostTank.SetBrain(BrainType::Value::PLAYER_BRAIN)->playerBrain;
 		playerBrain->visualTank = visualTank;
 		playerBrain->visualTurret = visualTurret;
@@ -303,7 +313,7 @@ namespace cm
 		visualPeerTank.SetModel("TankBase");
 		visualPeerTank.SetTexture("Tank_DefaultMaterial_BaseColor");
 		visualPeerTank.SetLocalTransform(Transform(position, Quatf(), Vec3f(0.65f)));
-		visualPeerTank.SetNetworkOwner(GetOppositePlayer(multiplayerState.playerNumber));
+		visualPeerTank.SetNetworkOwner(GetOppositePlayer(multiplayerState->playerNumber));
 		visualPeerTank.SetTag(Tag::Value::TEAM1_TANK);
 		visualPeerTank.SetCollider(CreateSphere(Vec3f(0, 0.5f, 0), 0.8f));
 
@@ -312,7 +322,7 @@ namespace cm
 		visualPeerTurret.SetModel("TankTurret");
 		visualPeerTurret.SetTexture("Tank_DefaultMaterial_BaseColor");
 		visualPeerTurret.SetLocalTransform(Transform(position + Vec3f(0, 1.0f, 0), EulerToQuat(Vec3f(0, 0, -4)), Vec3f(0.65f)));
-		visualPeerTurret.SetNetworkOwner(GetOppositePlayer(multiplayerState.playerNumber));
+		visualPeerTurret.SetNetworkOwner(GetOppositePlayer(multiplayerState->playerNumber));
 
 		Entity peerTank = CreateEntity("PeerTank");
 	}
@@ -335,7 +345,7 @@ namespace cm
 				Entity* entity = command->destroyEntity.id.Get();
 				if (entity)
 				{
-					DestoryEntity(*entity);
+					DestoryEntity(entity);
 				}
 			}break;
 			}
@@ -346,7 +356,7 @@ namespace cm
 	{
 		ENABLE_CALLS_ON_TICK();
 
-		DestoryEntity(gridEntity);
+		DestoryEntity(&gridEntity);
 		gridEntity = CreateEntity("Grid");
 		for (uint32 i = 0; i < grid.cells.GetCapcity(); i++)
 		{
@@ -433,6 +443,14 @@ namespace cm
 		DISABLE_CALLS_ON_TICK();
 	}
 
+	/// <summary>
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// </summary>
+
 	void Room::InitializeMenuRoom()
 	{
 		uiState.selectionPos = 0;
@@ -458,14 +476,17 @@ namespace cm
 		uiState.selectionPos %= 4;
 
 		if (oldSelection != uiState.selectionPos)
+		{
+			PlaySound("ui_menu_slide", false);
 			uiState.totalTime = 0.0f;
+		}
 
 		if (IsKeyJustDown(input, e))
 		{
 			GetGameState();
 			if (uiState.selectionPos == 0)
 			{
-				gs->nextRoom = RoomType::GAME_ROOM;
+				gs->nextRoom = RoomType::LEVEL_SELECTION;
 			}
 			else if (uiState.selectionPos == 1)
 			{
@@ -479,10 +500,70 @@ namespace cm
 			{
 				Platform::PostQuitMessage();
 			}
+			PlaySound("ui_menu_select", false);
 		}
 
 		uiState.End();
 	}
+
+	void Room::ShutdownMenuRoom()
+	{
+	}
+
+	/// <summary>
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// </summary>
+
+	void Room::InitializeLevelSelectionRoom()
+	{
+
+	}
+
+	void Room::UpdateLevelSelectionRoom(real32 dt)
+	{
+		uiState.Start();
+		uiState.Text("Choose a level", 0.5f, 0.1f, 0.9f);
+
+		if (uiState.Button("Back", 0.5f, 0.17f, 0.05f, 0.04f, 0.5f))
+		{
+			GetGameState();
+			gs->nextRoom = RoomType::MAIN_MENU;
+			PlaySound("ui_menu_select", false);
+		}
+
+		for (real32 x = 0.1f; x <= 1.0f; x += 0.2f)
+		{
+			for (real32 y = 0.3f; y <= 1.0f; y += 0.2f)
+			{
+				CString name = CString("Level").Add((int32)(10.0f * x)).Add((int32)(10.0f * y));
+				if (uiState.Button(name, x, y, 0.07f, 0.07f, 0.5f))
+				{
+					GetGameState();
+					gs->nextRoom = RoomType::LEVEL_1;
+					PlaySound("ui_menu_select", false);
+				}
+			}
+		}
+
+		uiState.End();
+	}
+
+	void Room::ShutdownLevelSelectionRoom()
+	{
+
+	}
+
+	/// <summary>
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// </summary>
 
 	void Room::InitializeMultiplayerRoom()
 	{
@@ -492,44 +573,85 @@ namespace cm
 	void Room::UpdateMultiplayerRoom(real32 dt)
 	{
 		uiState.Start();
-
-		uint32 oldSelection = uiState.selectionPos;
 		uiState.totalTime += dt;
-		uiState.selectionScale = 0.1f * Sin(uiState.totalTime) + 0.9f;
 
-		uiState.Text("Host", 0.5f, 0.4f, uiState.selectionPos == 0 ? uiState.selectionScale : 0.8f);
-		uiState.Text("Connect", 0.5f, 0.5f, uiState.selectionPos == 1 ? uiState.selectionScale : 0.8f);
-		uiState.Text("Back", 0.5f, 0.6f, uiState.selectionPos == 2 ? uiState.selectionScale : 0.8f);
-
-		GetInput();
-
-		uiState.selectionPos += (IsKeyJustDown(input, s) - IsKeyJustDown(input, w));
-		uiState.selectionPos %= 4;
-
-		if (oldSelection != uiState.selectionPos)
-			uiState.totalTime = 0.0f;
-
-		if (IsKeyJustDown(input, e))
+		if (!multiplayerState->startedNetworkStuff)
 		{
-			GetGameState();
-			if (uiState.selectionPos == 0)
+			uint32 oldSelection = uiState.selectionPos;
+			uiState.selectionScale = 0.1f * Sin(uiState.totalTime) + 0.9f;
+
+			uiState.Text("Host", 0.5f, 0.4f, uiState.selectionPos == 0 ? uiState.selectionScale : 0.8f);
+			uiState.Text("Connect", 0.5f, 0.5f, uiState.selectionPos == 1 ? uiState.selectionScale : 0.8f);
+			uiState.Text("Back", 0.5f, 0.6f, uiState.selectionPos == 2 ? uiState.selectionScale : 0.8f);
+
+			GetInput();
+
+			uiState.selectionPos += (IsKeyJustDown(input, s) - IsKeyJustDown(input, w));
+			uiState.selectionPos %= 4;
+
+			if (oldSelection != uiState.selectionPos)
 			{
+				PlaySound("ui_menu_slide", false);
+				uiState.totalTime = 0.0f;
+			}
+
+			if (IsKeyJustDown(input, e))
+			{
+				GetGameState();
+				if (uiState.selectionPos == 0)
+				{
+					multiplayerState->StartHost();
+				}
+				else if (uiState.selectionPos == 1)
+				{
+					multiplayerState->StartPeer();
+				}
+				else if (uiState.selectionPos == 2)
+				{
+					gs->nextRoom = RoomType::MAIN_MENU;
+				}
+
+				PlaySound("ui_menu_select", false);
+			}
+		}
+		else
+		{
+			multiplayerState->GetNextGameCommands(this, dt);
+			if (multiplayerState->connectionValid)
+			{
+				uiState.Text("Connection established !!", 0.5f, 0.5f, 0.8f);
+				//GetGameState();
 
 			}
-			else if (uiState.selectionPos == 1)
+			else if (multiplayerState->playerNumber == PlayerNumber::ONE)
 			{
-
+				uiState.Text("Tell your deer freind to connect", 0.5f, 0.3f, 0.8f);
+				uiState.Text(CString("Your IP: ").Add(multiplayerState->myAddress.stringIP), 0.5f, 0.4f, 0.8f);
 			}
-			else if (uiState.selectionPos == 2)
+			else if (multiplayerState->playerNumber == PlayerNumber::TWO)
 			{
-				gs->nextRoom = RoomType::MAIN_MENU;
+				uiState.Text("Attempting to connect to: 192.168.0.7", 0.5f, 0.3f, 0.8f);
+				uiState.Text("...", 0.5f, 0.4f, 0.8f);
 			}
 		}
 
 		uiState.End();
 	}
 
-	void Room::InitializeGameRoom()
+	void Room::ShutdownMultiplayeRoom()
+	{
+		multiplayerState->playerNumber = PlayerNumber::NONE;
+	}
+
+	/// <summary>
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// </summary>
+
+	void Room::InitializeGameRoom(const RoomAsset& roomAsset)
 	{
 		if (initialized)
 			return;
@@ -539,14 +661,15 @@ namespace cm
 		CreateEntityFreeList();
 		if (twoPlayerGame)
 		{
-			multiplayerState.tickCounter = 1;
+			multiplayerState->tickCounter = 1;
+
 			// @NOTE: Ensure that entity id's line up
-			if (multiplayerState.playerNumber == PlayerNumber::ONE)
+			if (multiplayerState->playerNumber == PlayerNumber::ONE)
 			{
 				CreateHostTank(Vec3f(0.0f, 0.1f, 0.0f));
 				CreatePeerTank(Vec3f(0.0f, 0.1f, 0.0f));
 			}
-			else if (multiplayerState.playerNumber == PlayerNumber::TWO)
+			else if (multiplayerState->playerNumber == PlayerNumber::TWO)
 			{
 				CreatePeerTank(Vec3f(0.0f, 0.1f, 0.0f));
 				CreateHostTank(Vec3f(0.0f, 0.1f, 0.0f));
@@ -565,13 +688,13 @@ namespace cm
 			SpawnEnemyTank(Vec3f(-7.0f, 0.1f, 7.0f)).SetNetworkOwner(PlayerNumber::ONE);
 		}
 
-
 		//Entity prop = CreateEntity("Prop01");
 		//prop.EnableRendering();
 		//prop.SetModel("Prop_01");
 		//prop.SetTexture("Prop_01_DefaultMaterial_BaseColor");
 		//prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(1)));
-		grid.Initialize();
+
+		grid.Initialize(&roomAsset.map);
 
 		CreateEntitiesFromGripMap();
 
@@ -581,12 +704,12 @@ namespace cm
 
 	void Room::UpdateGameRoom(real32 dt)
 	{
-		if (!initialized && multiplayerState.IsValid())
-			InitializeGameRoom();
+		//if (!initialized && multiplayerState->IsValid())
+		//	InitializeGameRoom();
 
 		if (twoPlayerGame)
 		{
-			GameCommands* gameCommands = multiplayerState.GetNextGameCommands(this, dt);
+			GameCommands* gameCommands = multiplayerState->GetNextGameCommands(this, dt);
 			if (gameCommands)
 			{
 				ENABLE_CALLS_ON_TICK();
@@ -607,7 +730,7 @@ namespace cm
 		{
 			TransformComponent* comp = &transformComponents[i];
 			NetworkComponent* net = &networkComponents[i];
-			if (net->playerOwner == GetOppositePlayer(multiplayerState.playerNumber)
+			if (net->playerOwner == GetOppositePlayer(multiplayerState->playerNumber)
 				&& entities[i].IsValid())
 			{
 				Transform* transform = &comp->transform;
@@ -620,7 +743,7 @@ namespace cm
 		{
 			BrainComponent* bc = &brainComponents[i];
 			NetworkComponent* net = &networkComponents[i];
-			if (bc->enabled && net->playerOwner == multiplayerState.playerNumber && !net->markedDestroyed)
+			if (bc->enabled && net->playerOwner == multiplayerState->playerNumber && !net->markedDestroyed)
 			{
 				if (entities[i].IsValid())
 				{
@@ -637,23 +760,36 @@ namespace cm
 		//DEBUGDrawAllColliders();
 	}
 
-
-
-	void Room::Initialize(const RoomAsset& roomAsset)
+	void Room::ShutdownGameRoom()
 	{
-		type = roomAsset.type;
+
+	}
+
+	/// <summary>
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// </summary>
+
+	void Room::Initialize(const RoomAsset& roomAsset, MultiplayerState* multiplayerState)
+	{
+		this->type = roomAsset.type;
+		this->multiplayerState = multiplayerState;
 
 		switch (type)
 		{
 		case RoomType::MAIN_MENU: InitializeMenuRoom(); break;
+		case RoomType::LEVEL_SELECTION: InitializeLevelSelectionRoom(); break;
 		case RoomType::MULTIPLAYER: InitializeMultiplayerRoom(); break;
-		case RoomType::GAME_ROOM:
+		case RoomType::LEVEL_1:
 		{
 			twoPlayerGame = 0;
 			if (!twoPlayerGame)
 			{
-				multiplayerState.playerNumber = PlayerNumber::ONE;
-				InitializeGameRoom();
+				multiplayerState->playerNumber = PlayerNumber::ONE;
+				InitializeGameRoom(roomAsset);
 			}
 		}break;
 		}
@@ -665,8 +801,20 @@ namespace cm
 		switch (type)
 		{
 		case RoomType::MAIN_MENU:  UpdateMenuRoom(dt); break;
+		case RoomType::LEVEL_SELECTION: UpdateLevelSelectionRoom(dt); break;
 		case RoomType::MULTIPLAYER: UpdateMultiplayerRoom(dt); break;
-		case RoomType::GAME_ROOM: UpdateGameRoom(dt); break;
+		case RoomType::LEVEL_1: UpdateGameRoom(dt); break;
+		}
+	}
+
+	void Room::Shutdown()
+	{
+		switch (type)
+		{
+		case RoomType::MAIN_MENU:  ShutdownMenuRoom(); break;
+		case RoomType::LEVEL_SELECTION: ShutdownLevelSelectionRoom(); break;
+		case RoomType::MULTIPLAYER: ShutdownMultiplayeRoom(); break;
+		case RoomType::LEVEL_1: ShutdownGameRoom(); break;
 		}
 	}
 
@@ -693,11 +841,6 @@ namespace cm
 		}
 
 		renderGroup->uiState = uiState;
-	}
-
-	void Room::Shutdown()
-	{
-
 	}
 
 	void Room::DEBUGEnableTickCalls()
@@ -802,7 +945,7 @@ namespace cm
 			(yIndex < VERTICAL_CELL_COUNT) && (yIndex >= 0);
 	}
 
-	void Grid::Initialize()
+	void Grid::Initialize(const FixedArray<int32, HORIZONTAL_CELL_COUNT* VERTICAL_CELL_COUNT>* map)
 	{
 		real32 hasCellExtent = CELL_EXTENT / 2.0f;
 		real32 xOffet = (CELL_EXTENT * HORIZONTAL_CELL_COUNT) / 2.0f;
@@ -825,7 +968,7 @@ namespace cm
 				cell.index = index;
 				cell.xIndex = x;
 				cell.yIndex = y;
-				cell.type = GridCellType::Value::EMPTY;
+				cell.type = (GridCellType::Value)(*map->Get(index));
 				cell.position = (Vec2f(CELL_EXTENT) * Vec2f((real32)x, (real32)y)) + Vec2f(hasCellExtent) + topLeft;
 
 				cells[index] = cell;
@@ -972,7 +1115,7 @@ namespace cm
 		if (canFireNow && !canFire)
 		{
 			canFire = true;
-			PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_shotgun_cock_01.wav", false);
+			PlaySound("gun_shotgun_cock_01", false);
 		}
 
 		if (IsKeyJustDown(input, mb2))
@@ -987,7 +1130,7 @@ namespace cm
 			}
 			else
 			{
-				PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/gun_rifle_dry_fire_01.wav", false);
+				PlaySound("gun_rifle_dry_fire_01", false);
 			}
 		}
 	}
@@ -1066,7 +1209,7 @@ namespace cm
 			{
 				if (CheckIntersectionSphere(ent.GetSphereColliderWorld(), collider))
 				{
-					PlaySound("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Audio/explosion_large_01.wav", false);
+					PlaySound("explosion_large_01", false);
 					room->GameCommandDestroyEntity(tank);
 					room->GameCommandDestroyEntity(bulletSpawnPoint);
 					room->GameCommandDestroyEntity(entity);
@@ -1167,16 +1310,28 @@ namespace cm
 		//}
 	}
 
+	static void TransitionToRoom(const RoomAsset& roomAsset)
+	{
+		GetGameState();
+
+		gs->currentRoom.Shutdown();
+		ZeroStruct(&gs->currentRoom);
+
+		gs->multiplayerState.tickCounter = 0;
+		gs->multiplayerState.gatherCommands = 0;
+		gs->multiplayerState.timeSinceLastSend = 0;
+		ZeroStruct(&gs->multiplayerState.lastCommands);
+		ZeroStruct(&gs->multiplayerState.currentCommands);
+
+		gs->currentRoom.Initialize(roomAsset, &gs->multiplayerState);
+		gs->nextRoom = RoomType::INVALID;
+	}
 
 	bool32 Game::Initialize()
 	{
 		GameState::Initialize(GameMemory::PushPermanentStruct<GameState>());
-
 		GetGameState();
-
-		RoomAsset* testRoom = GameMemory::PushTransientStruct<RoomAsset>();
-		testRoom->type = RoomType::MAIN_MENU;
-		gs->currentRoom.Initialize(*testRoom);
+		gs->nextRoom = RoomType::MAIN_MENU;
 
 		return true;
 	}
@@ -1186,15 +1341,16 @@ namespace cm
 		GetGameState();
 		if (gs->nextRoom != RoomType::INVALID)
 		{
-			gs->currentRoom.Shutdown();
-			ZeroStruct(&gs->currentRoom);
-
 			RoomAsset* testRoom = GameMemory::PushTransientStruct<RoomAsset>();
+
+			if (gs->nextRoom == RoomType::LEVEL_1)
+			{
+				GetAssetState();
+				testRoom = as->rooms.Get(0);
+			}
+
 			testRoom->type = gs->nextRoom;
-
-			gs->currentRoom.Initialize(*testRoom);
-
-			gs->nextRoom = RoomType::INVALID;
+			TransitionToRoom(*testRoom);
 		}
 		else
 		{
@@ -1215,7 +1371,7 @@ namespace cm
 
 	void UserInterfaceState::Start()
 	{
-		texts.Clear();
+		uiElements.Clear();
 	}
 
 	void UserInterfaceState::Text(const CString& text, real32 oX, real32 oY, real32 scale)
@@ -1226,18 +1382,61 @@ namespace cm
 		tex.oY = oY;
 		tex.scale = scale;
 
-		texts.Add(tex);
+
+		UIElement el = {};
+		el.type = UIElementType::TEXT;
+		el.text = tex;
+		uiElements.Add(el);
 	}
 
-	bool UserInterfaceState::Button(real32 oX, real32 oY, real32 width, real32 height)
+	bool UserInterfaceState::Button(const CString& text, real32 oX, real32 oY, real32 width, real32 height, real32 scale)
 	{
-		UIButton button = {};
-		button.oX = oX;
-		button.oY = oY;
-		button.width = width;
-		button.height = height;
+		Vec2f min = Vec2f(oX - width, oY - height);
+		Vec2f max = Vec2f(oX + width, oY + height);
 
-		return false;
+		bool hovered = false;
+		bool clicked = false;
+
+		GetInput();
+		if (input->mouse_norm.x > min.x &&
+			input->mouse_norm.y > min.y &&
+			input->mouse_norm.x < max.x &&
+			input->mouse_norm.y < max.y)
+		{
+			hovered = true;
+			if (IsKeyJustDown(input, mb1))
+			{
+				clicked = true;
+			}
+		}
+
+		{
+			UIRect rect = {};
+			rect.oX = oX;
+			rect.oY = oY;
+			rect.width = hovered ? width * 1.01f : width;
+			rect.height = hovered ? height * 1.01f : height;
+
+			UIElement el = {};
+			el.type = UIElementType::RECT;
+			el.rect = rect;
+			uiElements.Add(el);
+		}
+
+		{
+			UIText tex = {};
+			tex.text = text;
+			tex.oX = oX;
+			tex.oY = oY + height / 4.0f;
+			tex.scale = scale;
+
+			UIElement el = {};
+			el.type = UIElementType::TEXT;
+			el.text = tex;
+			uiElements.Add(el);
+		}
+
+		return clicked;
 	}
 
 	void UserInterfaceState::End()
