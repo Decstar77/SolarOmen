@@ -174,6 +174,36 @@ namespace cm
 			return -1;
 		}
 
+		inline CString SubStr(int32 fromIndex) const
+		{
+			int32 l = GetLength();
+			Assert(fromIndex >= 0 && fromIndex < l, "SubStr range invalid");
+
+			CString result = "";
+			for (int32 i = fromIndex; i < l; i++)
+			{
+				result.Add(data[i]);
+			}
+
+			return result;
+		}
+
+		inline CString SubStr(int32 startIndex, int32 endIndex) const
+		{
+			int32 l = GetLength();
+			Assert(startIndex >= 0 && startIndex < l, "SubStr range invalid");
+			Assert(endIndex >= 0 && endIndex < l, "SubStr range invalid");
+			Assert(startIndex < endIndex, "SubStr range invalid");
+
+			CString result = "";
+			for (int32 i = startIndex; i < endIndex; i++)
+			{
+				result.Add(data[i]);
+			}
+
+			return result;
+		}
+
 		inline void Replace(const char& c, const char& replaceWith)
 		{
 			const int32 l = GetLength();
@@ -469,30 +499,27 @@ namespace cm
 	{
 		inline CString StripFilePath(const CString& str)
 		{
-			ManagedArray<CString> pathElements = str.Split('/');
-			CString result = pathElements[pathElements.count - 1];
-
+			CString result = str.SubStr(str.FindLastOf('/') + 1);
 			return result;
 		}
 
 		inline CString StripFileExtension(const CString& str)
 		{
 			int32 l = str.GetLength();
-			int32 split = -1;
+			int32 index = -1;
 
 			for (int32 i = l - 1; i >= 0; i--)
 			{
 				if (str[i] == '\\' || str[i] == '/')
 					break;
 				if (str[i] == '.')
-					split = i;
+					index = i;
 			}
 
 			CString result = {};
-			if (split >= 0)
+			if (index >= 0)
 			{
-				ManagedArray<CString> pathElements = str.Split(split);
-				result = pathElements[0];
+				result = str.SubStr(0, index);
 			}
 
 			return result;
@@ -508,9 +535,8 @@ namespace cm
 
 		inline CString GetFileExtension(const CString& str)
 		{
-			CString stripped = StripFilePath(str);
-			int32 index = stripped.FindFirstOf('.');
-			CString result = stripped.Split(index)[1];
+			CString file = str.SubStr(str.FindLastOf('/') + 1);
+			CString result = file.SubStr(file.FindFirstOf('.') + 1);
 
 			return result;
 		}

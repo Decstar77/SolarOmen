@@ -78,11 +78,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IntDir>..\bin-int\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>..\bin-int\ContentPacker\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>..\bin-int\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>..\bin-int\ContentPacker\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -118,11 +118,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ContentTools\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ContentTools\src;$(SolutionDir)SolarOmen\;$(SolutionDir)SolarOmen\vendor\assimp\include;$(SolutionDir)SolarOmen\vendor\freetype\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)SolarOmen\vendor\assimp\lib\;$(SolutionDir)SolarOmen\vendor\irrklang\lib\;$(SolutionDir)SolarOmen\vendor\freetype\lib\;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>irrKlang.lib;assimp.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,22 +136,36 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ContentTools\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ContentTools\src;$(SolutionDir)SolarOmen\;$(SolutionDir)SolarOmen\vendor\assimp\include;$(SolutionDir)SolarOmen\vendor\freetype\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)SolarOmen\vendor\assimp\lib\;$(SolutionDir)SolarOmen\vendor\irrklang\lib\;$(SolutionDir)SolarOmen\vendor\freetype\lib\;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>irrKlang.lib;assimp.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="src\BinaryFile.cpp" />
+    <ClCompile Include="src\FileProcessor.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\MeshProcessor.cpp" />
+    <ClCompile Include="src\TextFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ContentTools\ContentTools.vcxproj">
       <Project>{3120863d-a4f3-4672-819e-abc61114a464}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\BinaryFile.h" />
+    <ClInclude Include="src\Core.h" />
+    <ClInclude Include="src\FileProcessor.h" />
+    <ClInclude Include="src\MeshProcessor.h" />
+    <ClInclude Include="src\TextFile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

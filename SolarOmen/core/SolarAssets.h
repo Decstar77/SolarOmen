@@ -76,6 +76,7 @@ namespace cm
 	};
 
 	typedef uint64 AssetId;
+#define INVALID_ASSET_ID 0
 
 	struct ModelAsset
 	{
@@ -140,6 +141,9 @@ namespace cm
 		AssetId id;
 		CString name;
 		ManagedArray<FontCharacter> chars;
+
+		real32 GetWidthOfText(const CString& text, real32 scale);
+		real32 GetHeightOfText(const CString& text, real32 scale);
 	};
 
 	enum class RoomType

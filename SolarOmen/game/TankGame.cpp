@@ -451,6 +451,28 @@ namespace cm
 	/// /// //////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// </summary>
 
+	struct AABB2D
+	{
+		Vec2f min;
+		Vec2f max;
+
+		inline static AABB2D CreateFromCenterHalfDims(const Vec2f& center, const Vec2f& dims)
+		{
+			AABB2D result = {};
+			result.min = Vec2f(center.x - dims.x, center.y - dims.y);
+			result.max = Vec2f(center.x + dims.x, center.y + dims.y);
+			return result;
+		}
+
+		inline bool IsInside(const Vec2f& pos)
+		{
+			return (pos.x > min.x) &&
+				(pos.y > min.y) &&
+				(pos.x < max.x) &&
+				(pos.y < max.y);
+		}
+	};
+
 	void Room::InitializeMenuRoom()
 	{
 		uiState.selectionPos = 0;
@@ -465,13 +487,17 @@ namespace cm
 		uiState.totalTime += dt;
 		uiState.selectionScale = 0.1f * Sin(uiState.totalTime) + 0.9f;
 
+		GetAssetState();
+		auto textures = as->textures.GetValueSet();
+		uiState.Rect(0.5f, 0.5f, 0.25f, 0.25f, GetAssetFromName(textures, "MenuBackground").id);
+		//uiState.Rect(0.5f, 0.5f, 0.25f, 0.25f, GetAssetFromName(textures, "HUD").id, Vec4f(0.6, 0.6, 0.6, 0.5f));
+
 		uiState.Text("Single Player", 0.5f, 0.4f, uiState.selectionPos == 0 ? uiState.selectionScale : 0.8f);
 		uiState.Text("Multiplayer", 0.5f, 0.5f, uiState.selectionPos == 1 ? uiState.selectionScale : 0.8f);
 		uiState.Text("Options", 0.5f, 0.6f, uiState.selectionPos == 2 ? uiState.selectionScale : 0.8f);
 		uiState.Text("Exit", 0.5f, 0.7f, uiState.selectionPos == 3 ? uiState.selectionScale : 0.8f);
 
 		GetInput();
-
 		uiState.selectionPos += (IsKeyJustDown(input, s) - IsKeyJustDown(input, w));
 		uiState.selectionPos %= 4;
 
@@ -502,6 +528,12 @@ namespace cm
 			}
 			PlaySound("ui_menu_select", false);
 		}
+
+		//GetPlatofrmState();
+		//real32 w = as->font.GetWidthOfText("Exit", uiState.selectionPos == 0 ? uiState.selectionScale : 0.8f);
+		//real32 h = as->font.GetHeightOfText("Exit", uiState.selectionPos == 0 ? uiState.selectionScale : 0.8f);
+		//AABB2D box = AABB2D::CreateFromCenterHalfDims(Vec2f(0.5f * ps->clientWidth, 0.7f * ps->clientHeight), Vec2f(w / 2.0f, h));
+		//if (box.IsInside(input->mousePositionPixelCoords)) { LOG("EX"); }
 
 		uiState.End();
 	}
@@ -587,7 +619,7 @@ namespace cm
 			GetInput();
 
 			uiState.selectionPos += (IsKeyJustDown(input, s) - IsKeyJustDown(input, w));
-			uiState.selectionPos %= 4;
+			uiState.selectionPos %= 3;
 
 			if (oldSelection != uiState.selectionPos)
 			{
@@ -620,8 +652,8 @@ namespace cm
 			if (multiplayerState->connectionValid)
 			{
 				uiState.Text("Connection established !!", 0.5f, 0.5f, 0.8f);
-				//GetGameState();
-
+				GetGameState();
+				gs->nextRoom = RoomType::LEVEL_1;
 			}
 			else if (multiplayerState->playerNumber == PlayerNumber::ONE)
 			{
@@ -640,7 +672,7 @@ namespace cm
 
 	void Room::ShutdownMultiplayeRoom()
 	{
-		multiplayerState->playerNumber = PlayerNumber::NONE;
+
 	}
 
 	/// <summary>
@@ -789,12 +821,12 @@ namespace cm
 			if (!twoPlayerGame)
 			{
 				multiplayerState->playerNumber = PlayerNumber::ONE;
-				InitializeGameRoom(roomAsset);
 			}
+
+			InitializeGameRoom(roomAsset);
 		}break;
 		}
 	}
-
 
 	void Room::Update(real32 dt)
 	{
@@ -1374,6 +1406,34 @@ namespace cm
 		uiElements.Clear();
 	}
 
+	void UserInterfaceState::Rect(real32 oX, real32 oY, real32 halfWidth, real32 halfHeight, const Vec4f& colour)
+	{
+		UIElement el = {};
+		el.type = UIElementType::RECT;
+		el.rect.oX = oX;
+		el.rect.oY = oY;
+		el.rect.width = halfWidth * 2.0f;
+		el.rect.height = halfHeight * 2.0f;
+		el.rect.texture = 0;
+		el.rect.colour = colour;
+
+		uiElements.Add(el);
+	}
+
+	void UserInterfaceState::Rect(real32 oX, real32 oY, real32 halfWidth, real32 halfHeight, AssetId textureId, const Vec4f& colour)
+	{
+		UIElement el = {};
+		el.type = UIElementType::RECT;
+		el.rect.oX = oX;
+		el.rect.oY = oY;
+		el.rect.width = halfWidth * 2.0f;
+		el.rect.height = halfHeight * 2.0f;
+		el.rect.texture = textureId;
+		el.rect.colour = colour;
+
+		uiElements.Add(el);
+	}
+
 	void UserInterfaceState::Text(const CString& text, real32 oX, real32 oY, real32 scale)
 	{
 		UIText tex = {};
@@ -1416,6 +1476,7 @@ namespace cm
 			rect.oY = oY;
 			rect.width = hovered ? width * 1.01f : width;
 			rect.height = hovered ? height * 1.01f : height;
+			rect.colour = Vec4f(0.5f, 0.5f, 0.5f, 1.0f);
 
 			UIElement el = {};
 			el.type = UIElementType::RECT;

@@ -333,31 +333,6 @@ namespace cm
 		rs->fontMesh = StaticMesh::Create(nullptr, sizeof(float) * 6 * 4);
 	}
 
-	static real32 GetWidthOfText(const CString& text, real32 scale)
-	{
-		GetRenderState();
-		GetAssetState();
-		GetPlatofrmState();
-
-		real32 width = 0;
-		for (int32 i = 0; i < text.GetLength(); i++)
-		{
-			FontCharacter ch = {};
-			for (uint32 j = 0; j < rs->fontTextures.count; j++)
-			{
-				if (text[i] == as->font.chars[j].character)
-				{
-					ch = as->font.chars[j];
-					break;
-				}
-			}
-
-			width += (ch.advance >> 6) * scale;
-		}
-
-		return width;
-	}
-
 	static void RenderText(const CString& text, real32 x, real32 y, real32 scale, Vec3f color)
 	{
 		GetRenderState();
@@ -411,7 +386,7 @@ namespace cm
 		RenderCommand::SetRasterState(rs->rasterBackFaceCullingState);
 	}
 
-	static void RenderRect(real32 x, real32 y, real32 w, real32 h)
+	static void RenderRect(real32 x, real32 y, real32 w, real32 h, AssetId textureId, const Vec4f& colour)
 	{
 		GetRenderState();
 
@@ -419,10 +394,21 @@ namespace cm
 		RenderCommand::SetRasterState(rs->rasterNoFaceCullState);
 		RenderCommand::SetDepthState(rs->depthOffState);
 
-		rs->uiConstBuffer.data.colour = Vec4f(1, 1, 1, 1);
+		rs->uiConstBuffer.data.colour = colour;
 		rs->uiConstBuffer.data.sizePos = Vec4f(w, h, x, y);
-		RenderCommand::UpdateConstBuffer(rs->uiConstBuffer);
 
+		if (textureId == INVALID_ASSET_ID)
+		{
+			rs->uiConstBuffer.data.uiUses = Vec4i(0, 0, 0, 0);
+		}
+		else
+		{
+			TextureInstance* texture = rs->textures.Get(textureId);
+			RenderCommand::BindTexture(*texture, 7);
+			rs->uiConstBuffer.data.uiUses = Vec4i(7, 0, 0, 0);
+		}
+
+		RenderCommand::UpdateConstBuffer(rs->uiConstBuffer);
 		RenderCommand::BindAndDrawMesh(rs->quad);
 
 		RenderCommand::SetDepthState(rs->depthLessState);
@@ -550,7 +536,9 @@ namespace cm
 			{
 				UIText* text = &el->text;
 
-				real32 w = GetWidthOfText(text->text, text->scale);
+				GetAssetState();
+
+				real32 w = as->font.GetWidthOfText(text->text, text->scale);
 				real32 x = text->oX * ps->clientWidth - w / 2.0f;
 				real32 y = text->oY * ps->clientHeight;
 
@@ -565,7 +553,7 @@ namespace cm
 				real32 w = rect->width * ps->clientWidth;
 				real32 h = rect->height * ps->clientHeight;
 
-				RenderRect(x, y, w, h);
+				RenderRect(x, y, w, h, rect->texture, rect->colour);
 			}break;
 
 			}

@@ -83,8 +83,9 @@ cbuffer LightData : register(b3)
 
 cbuffer UIData : register(b4)
 {
-	float4 colour;
-	float4 sizePos;
+	float4 uiColour;
+	float4 uiSizePos;
+	int4 uiUses;
 };
 
 Texture2D texture0 : register(t0);
@@ -93,9 +94,12 @@ Texture2D texture2 : register(t2);
 Texture2D texture3 : register(t3);
 Texture2D texture4 : register(t4);
 
+// @NOTE: Point shadows ?
 TextureCube cubeTexture5:  register(t5);
-
+// @NOTE: Shadow cascades
 Texture2DArray texture6 : register(t6);
+// @NOTE: UI Texture
+Texture2D texture7 : register(t7);
 
 Texture2D bloomTexture : register(t1);
 Texture2D positionBuffer: register(t2);

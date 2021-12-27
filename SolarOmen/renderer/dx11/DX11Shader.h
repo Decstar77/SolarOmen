@@ -94,6 +94,7 @@ namespace cm
 	{
 		Float4Align Vec4f colour;
 		Float4Align Vec4f sizePos;
+		Float4Align Vec4i uiUses;
 
 		inline void Prepare()
 		{

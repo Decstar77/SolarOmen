@@ -277,7 +277,7 @@ namespace cm
 			CString name = LoadAudio(audioFiles[audioIndex]);
 		}
 
-		as->font = LoadFont(CString(ASSET_PATH).Add("Fonts/arial.ttf"));
+		as->font = LoadFont(CString(ASSET_PATH).Add("Fonts/Grind-regular.otf"));
 
 		GameMemory::ReleaseAllTransientMemory();
 
@@ -287,5 +287,51 @@ namespace cm
 	void Assets::Shutdown()
 	{
 
+	}
+
+
+	real32 FontAsset::GetWidthOfText(const CString& text, real32 scale)
+	{
+		real32 width = 0;
+		for (int32 i = 0; i < text.GetLength(); i++)
+		{
+			FontCharacter ch = {};
+			for (uint32 j = 0; j < chars.count; j++)
+			{
+				if (text[i] == chars[j].character)
+				{
+					ch = chars[j];
+					break;
+				}
+			}
+
+			width += (ch.advance >> 6) * scale;
+		}
+
+		return width;
+	}
+
+	real32 FontAsset::GetHeightOfText(const CString& text, real32 scale)
+	{
+		real32 maxY = REAL_MIN;
+
+		for (int32 i = 0; i < text.GetLength(); i++)
+		{
+			FontCharacter ch = {};
+			for (uint32 j = 0; j < chars.count; j++)
+			{
+				if (text[i] == chars[j].character)
+				{
+					ch = chars[j];
+					break;
+				}
+			}
+
+			real32 y = ch.size.y * scale + (ch.size.y - ch.bearing.y) * scale;
+
+			maxY = Max(maxY, y);
+		}
+
+		return maxY;
 	}
 }

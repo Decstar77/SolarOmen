@@ -147,6 +147,8 @@ namespace cm
 		real32 oY;
 		real32 width;
 		real32 height;
+		AssetId texture;
+		Vec4f colour;
 	};
 
 	enum class UIElementType
@@ -177,8 +179,10 @@ namespace cm
 
 		void Start();
 		void Window(uint32 id);
+		void Rect(real32 oX, real32 oY, real32 halfWidth, real32 halfHeight, const Vec4f& colour);
+		void Rect(real32 oX, real32 oY, real32 halfWidth, real32 halfHeight, AssetId textureId, const Vec4f& colour = Vec4f(1, 1, 1, 1));
 		void Text(const CString& text, real32 oX, real32 oY, real32 scale);
-		bool Button(const CString& text, real32 oX, real32 oY, real32 width, real32 height, real32 txtScale = 1.0f);
+		bool Button(const CString& text, real32 oX, real32 oY, real32 halfWidth, real32 halfHeight, real32 txtScale = 1.0f);
 		void End();
 	};
 
