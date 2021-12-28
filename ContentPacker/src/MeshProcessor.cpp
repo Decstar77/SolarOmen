@@ -25,31 +25,34 @@ namespace cm
 		std::vector<CString> modelNames;
 		for (int32 i = 0; i < modelPaths.size(); i++) { modelNames.push_back(Util::StripFilePathAndExtentions(modelPaths.at(i))); }
 
-		CString modelPath = modelPaths.at(0);
-		CString metaPath = metaProcessor.Find(modelNames.at(0));
-
-		if (metaPath.GetLength() != 0)
+		BinaryFile file;
+		for (int32 i = 0; i < modelPaths.size(); i++)
 		{
-			TextFileReader reader;
-			reader.Read(metaPath);
+			CString modelPath = modelPaths.at(i);
+			CString metaPath = metaProcessor.Find(modelNames.at(i));
 
-
-			Model model = Model(modelPath);
-			const Mesh& mesh = model.meshes[0];
-
-			BinaryFile file;
-			for (int32 i = 0; i < mesh.positions.size(); i++)
+			if (metaPath.GetLength() != 0)
 			{
-				file.Write(mesh.positions.at(i));
+
+				TextFileReader reader;
+				reader.Read(metaPath);
+
+				CString line = reader.NextLine();
+				AssetId id = line.SubStr(line.FindFirstOf('=') + 1).ToUint64();
+
+				file.Write(id);
+				Model model = Model(modelPath);
+				model.SaveBinaryData(&file);
+
+
 			}
-
-			file.SaveToDisk("somedata.bin");
-
+			else
+			{
+				LOG("No meta file for " << modelPath.GetCStr() << " creating one; id =");
+			}
 		}
-		else
-		{
-			LOG("No meta file for " << modelPath.GetCStr() << " creating one; id =");
-		}
+		file.SaveToDisk("../Assets/Packed/models.bin");
+
 
 
 		return std::vector<Model>();
@@ -170,6 +173,24 @@ namespace cm
 		}
 
 		return resultingMesh;
+	}
+
+	void Model::SaveBinaryData(BinaryFile* file) const
+	{
+		const Mesh& mesh = meshes[0];
+		file->Write(name);
+		file->Write(mesh.positions);
+		file->Write(mesh.normals);
+		file->Write(mesh.uvs);
+		file->Write(mesh.vertices);
+		file->Write(mesh.indices);
+	}
+
+	void Vertex::SaveBinaryData(BinaryFile* file) const
+	{
+		file->Write(position);
+		file->Write(normal);
+		file->Write(texCoords);
 	}
 
 }

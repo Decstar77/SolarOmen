@@ -17,7 +17,6 @@ int main()
 
 	ModelProcessor modelProcessor;
 	modelProcessor.LoadModels(modelPaths, metaProcessor);
-	int a = 2;
 
 	return 0;
 }

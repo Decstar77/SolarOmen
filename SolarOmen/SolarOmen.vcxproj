@@ -96,11 +96,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="game\components\SolarCamera.cpp" />
-    <ClCompile Include="core\SolarArray.cpp" />
     <ClCompile Include="core\SolarAssets.cpp" />
     <ClCompile Include="core\SolarDebug.cpp" />
-    <ClCompile Include="core\SolarQueue.cpp" />
-    <ClCompile Include="core\SolarPlatform.cpp" />
     <ClCompile Include="game\Entity.cpp" />
     <ClCompile Include="game\GameEditor.cpp" />
     <ClCompile Include="game\Multiplayer.cpp" />
@@ -115,13 +112,12 @@
     <ClCompile Include="platform\win32\Win32Audio.cpp" />
     <ClCompile Include="platform\win32\Win32Network.cpp" />
     <ClCompile Include="platform\win32\Win32Window.cpp" />
-    <ClCompile Include="core\SolarMemory.cpp" />
-    <ClCompile Include="core\SolarString.cpp" />
     <ClCompile Include="core\SolarRenderer.cpp" />
     <ClCompile Include="renderer\dx11\DX11Commands.cpp" />
     <ClCompile Include="renderer\dx11\DX11Renderer.cpp" />
     <ClCompile Include="renderer\dx11\DX11StaticMesh.cpp" />
     <ClCompile Include="renderer\dx11\DX11Shader.cpp" />
+    <ClCompile Include="renderer\dx11\DX11Techniques.cpp" />
     <ClCompile Include="renderer\dx11\DX11Texture.cpp" />
     <ClCompile Include="serialization\RawFontImporter.cpp" />
     <ClCompile Include="serialization\RawModelImporter.cpp" />
@@ -173,6 +169,7 @@
     <ClInclude Include="renderer\dx11\DX11Renderer.h" />
     <ClInclude Include="renderer\dx11\DX11StaticMesh.h" />
     <ClInclude Include="renderer\dx11\DX11Shader.h" />
+    <ClInclude Include="renderer\dx11\DX11Techniques.h" />
     <ClInclude Include="renderer\dx11\DX11Texture.h" />
     <ClInclude Include="renderer\dx11\DX11Topology.h" />
     <ClInclude Include="serialization\RawAudioImporter.h" />

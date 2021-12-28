@@ -201,4 +201,50 @@ namespace cm
 
 		return result;
 	}
+
+	CubeMapInstance CubeMapInstance::Create(uint32 resolution)
+	{
+		GetRenderState();
+
+		D3D11_TEXTURE2D_DESC desc = {};
+		desc.Width = resolution;
+		desc.Height = resolution;
+		desc.MipLevels = 1;
+		desc.ArraySize = 6;
+		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		desc.CPUAccessFlags = 0;
+		desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+		CubeMapInstance result = {};
+		DXCHECK(rs->device->CreateTexture2D(&desc, NULL, &result.texture));
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {};
+		view_desc.Format = desc.Format;
+		view_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+		view_desc.Texture2D.MostDetailedMip = 0;
+		view_desc.Texture2D.MipLevels = 1;
+
+		DXCHECK(rs->device->CreateShaderResourceView(result.texture, &view_desc, &result.shaderView));
+
+		D3D11_RENDER_TARGET_VIEW_DESC render_target_desc = {};
+		render_target_desc.Format = desc.Format;
+		render_target_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+		render_target_desc.Texture2DArray.MipSlice = 0;
+		render_target_desc.Texture2DArray.ArraySize = 1;
+
+		for (int32 i = 0; i < 6; i++)
+		{
+			render_target_desc.Texture2DArray.FirstArraySlice = i;
+			DXCHECK(rs->device->CreateRenderTargetView(result.texture,
+				&render_target_desc, &result.renderFaces[i]));
+		}
+
+		result.renderFaces.count = 6;
+
+		return result;
+	}
 }

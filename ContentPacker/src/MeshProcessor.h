@@ -40,23 +40,20 @@ namespace cm
 		DISABLE_COPY_AND_MOVE(MetaFileProcessor);
 	};
 
-	class Serializable
+	class Vertex : public Serializable
 	{
 	public:
-		virtual void SaveMetaData() = 0;
-	};
+		inline static constexpr uint32 MAX_BONE_INFLUENCE = 4;
 
-#define MAX_BONE_INFLUENCE 4
-	struct Vertex
-	{
 		Vec3f position;
 		Vec3f normal;
 		Vec2f texCoords;
 		Vec3f tangent;
 		Vec3f bitangent;
+		int32 boneIds[MAX_BONE_INFLUENCE];
+		real32 boneWeights[MAX_BONE_INFLUENCE];
 
-		//int32 boneIds[MAX_BONE_INFLUENCE];
-		//real32 boneWeights[MAX_BONE_INFLUENCE];
+		virtual void SaveBinaryData(BinaryFile* file) const override;
 	};
 
 	class Mesh
@@ -87,7 +84,7 @@ namespace cm
 		std::vector<Vec3f> bitangets;
 	};
 
-	class Model
+	class Model : public Serializable
 	{
 	public:
 		Model(const CString& path)
@@ -95,14 +92,18 @@ namespace cm
 			LoadModel(path);
 		}
 
+		virtual void SaveBinaryData(BinaryFile* file) const override;
+
+	private:
 		AssetId id;
 		CString name;
 		std::vector<Mesh> meshes;
-	private:
 
 		void LoadModel(const CString& path);
 		void ProcessNode(aiNode* node, const aiScene* scene);
 		Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
+
+
 	};
 
 	class ModelProcessor

@@ -36,12 +36,6 @@
     <ClCompile Include="vendor\imgui\ImGuizmo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="core\SolarString.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="core\SolarMemory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="platform\win32\Clock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,22 +51,13 @@
     <ClCompile Include="platform\win32\Network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="core\SolarArray.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="vendor\imgui_node\imnodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="platform\win32\Win32Network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="core\SolarPlatform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="platform\win32\Win32Socket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="core\SolarQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="platform\win32\Win32Window.cpp">
@@ -142,6 +127,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="serialization\RawRoomImporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\dx11\DX11Techniques.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -315,6 +303,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="serialization\RawAudioImporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer\dx11\DX11Techniques.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

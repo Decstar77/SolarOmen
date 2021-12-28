@@ -32,6 +32,7 @@ namespace cm
 	static std::uniform_int_distribution<uint64> randomDistribution;
 
 	static CString ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
+	static CString PACKED_ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Packed/";
 
 	inline uint64 GenerateGUID()
 	{
@@ -205,10 +206,59 @@ namespace cm
 		return textures;
 	}
 
+	struct BinaryAssetFile
+	{
+		uint64 cursor;
+		PlatformFile file;
+
+		template<typename T>
+		inline T Read()
+		{
+			Assert(cursor < file.sizeBytes, "BinaryAssetFile");
+			uint64 index = cursor;
+			cursor += sizeof(T);
+			return *(T*)(&((char*)(file.data))[index]);
+		}
+
+		template<>
+		inline CString Read<CString>()
+		{
+			Assert(cursor < file.sizeBytes, "BinaryAssetFile");
+			int32 length = Read<int32>();
+
+			CString result = "";
+			for (int32 i = 0; i < length; i++)
+			{
+				char c = Read<char>();
+				result.Add(c);
+			}
+
+			return result;
+		}
+	};
+
 	bool32 Assets::Initialize()
 	{
 		as = GameMemory::PushPermanentStruct<AssetState>();
 		AssetState::Initialize(as);
+
+		//{
+		//	BinaryAssetFile binModels = {};
+		//	binModels.file = Platform::LoadEntireFile(CString(PACKED_ASSET_PATH).Add("models.bin"), false);
+		//	AssetId id = binModels.Read<uint64>();
+		//	CString name = binModels.Read<CString>();
+
+		//	uint32 posCap = binModels.Read<uint32>();
+		//	ManagedArray<Vec3f> positions = GameMemory::PushTransientArray<Vec3f>(posCap);
+		//	for (uint32 i = 0; i < posCap; i++)
+		//	{
+		//		Vec3f pos = binModels.Read<Vec3f>();
+		//		positions.Add(pos);
+		//	}
+
+		//	uint32 normCap = binModels.Read<uint32>();
+		//	int a = 2;
+		//}
 
 		ManagedArray<CString> metaFiles = Platform::LoadEntireFolder(ASSET_PATH, "slo");
 		ManagedArray<CString> modelFiles = Platform::LoadEntireFolder(ASSET_PATH, "obj");

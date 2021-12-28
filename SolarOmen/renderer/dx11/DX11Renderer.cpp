@@ -441,21 +441,26 @@ namespace cm
 		rs->uiConstBuffer = ShaderConstBuffer<ShaderConstBufferUIData>::Create();
 		RenderCommand::BindShaderConstBuffer(rs->uiConstBuffer, ShaderStage::PIXEL, 4);
 
-
 		ManagedArray<ShaderAsset> shaders = as->shaders.GetValueSet();
+		rs->unlitShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "unlit"));
+		rs->phongShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "phong"));
+		rs->quadShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "ui_quad"));
+		rs->eqiToCubeShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "equirectangular_to_cubemap"));
+
+		ShaderAsset textShader = GetAssetFromName(shaders, "text");
+		textShader.vertexLayout = VertexShaderLayout::TEXT;
+		rs->textShader = ShaderInstance::CreateGraphics(textShader);
 
 		rs->quad = StaticMesh::CreateScreenSpaceQuad();
 		rs->meshes.Put(rs->quad.id, rs->quad);
 		CreateAllStaticMeshes();
 		CreateAllTextures();
 
-		rs->unlitShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "unlit"));
-		rs->phongShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "phong"));
-		rs->quadShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "ui_quad"));
+		ManagedArray<TextureAsset> textures = as->textures.GetValueSet();
+		TextureInstance* eqi = rs->textures.Get(GetAssetFromName(textures, "FS002_Day_Sunless").id);
+		ConvertEqiTextureToCubeMap(512, *eqi);
 
-		ShaderAsset textShader = GetAssetFromName(shaders, "text");
-		textShader.vertexLayout = VertexShaderLayout::TEXT;
-		rs->textShader = ShaderInstance::CreateGraphics(textShader);
+
 		//rs->testBuffer = CreateShaderBuffer(rs, sizeof(Mat4f) * 3);
 		//rs->testBuffer.BindShaderBuffer(ShaderStage::VERTEX, 0);
 

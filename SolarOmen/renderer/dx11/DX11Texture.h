@@ -25,6 +25,22 @@ namespace cm
 		static TextureInstance Create(const TextureAsset& textureAsset);
 	};
 
+	struct CubeMapInstance
+	{
+		AssetId id;
+
+		ID3D11Texture2D* texture = nullptr;
+		ID3D11ShaderResourceView* shaderView = nullptr;
+
+		FixedArray<ID3D11RenderTargetView*, 6> renderFaces;
+
+		static CubeMapInstance Create(uint32 resolution);
+
+		//void Bind(RenderState* rs, ShaderStage shaderStage, int32 register_);
+		//void Unbind(RenderState* rs);
+	};
+
+
 	struct SamplerInstance
 	{
 		TextureFilterMode filter;

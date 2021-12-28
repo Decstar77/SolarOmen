@@ -4,6 +4,7 @@
 #include "DX11Shader.h"
 #include "DX11StaticMesh.h"
 #include "DX11Texture.h"
+#include "DX11Techniques.h"
 
 namespace cm
 {
@@ -61,6 +62,7 @@ namespace cm
 		ShaderInstance phongShader;
 		ShaderInstance textShader;
 		ShaderInstance quadShader;
+		ShaderInstance eqiToCubeShader;
 
 		HashMap<StaticMesh> meshes;
 		HashMap<TextureInstance> textures;
