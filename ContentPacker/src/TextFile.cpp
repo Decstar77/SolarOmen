@@ -7,7 +7,7 @@ namespace cm
 	CString TextFileReader::NextLine()
 	{
 		if (cursor == (uint32)lines.size())
-			return "";
+			return END_OF_FILE_STRING;
 
 		return lines.at(cursor++);
 	}

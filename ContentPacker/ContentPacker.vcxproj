@@ -152,6 +152,7 @@
     <ClCompile Include="src\BinaryFile.cpp" />
     <ClCompile Include="src\FileProcessor.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\MaterialProcessor.cpp" />
     <ClCompile Include="src\MeshProcessor.cpp" />
     <ClCompile Include="src\TextFile.cpp" />
   </ItemGroup>
@@ -164,6 +165,7 @@
     <ClInclude Include="src\BinaryFile.h" />
     <ClInclude Include="src\Core.h" />
     <ClInclude Include="src\FileProcessor.h" />
+    <ClInclude Include="src\MaterialProcessor.h" />
     <ClInclude Include="src\MeshProcessor.h" />
     <ClInclude Include="src\TextFile.h" />
   </ItemGroup>

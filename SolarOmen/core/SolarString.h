@@ -448,16 +448,16 @@ namespace cm
 
 		inline bool operator==(const CString& other) const
 		{
-			int32 index = 0;
-			const int32 l = GetLength();
-			const int32 o = other.GetLength();
-			while (index < l)
+			int32 l1 = GetLength();
+			int32 l2 = other.GetLength();
+
+			if (l1 != l2)
+				return false;
+
+			for (int32 i = 0; i < l1; i++)
 			{
-				if (index >= o || data[index] != other.data[index])
-				{
+				if (data[i] != other.data[i])
 					return false;
-				}
-				index++;
 			}
 
 			return true;

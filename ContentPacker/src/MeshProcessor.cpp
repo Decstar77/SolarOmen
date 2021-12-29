@@ -22,11 +22,11 @@ namespace cm
 
 	std::vector<Model> ModelProcessor::LoadModels(const std::vector<CString>& modelPaths, const MetaFileProcessor& metaProcessor)
 	{
+		std::vector<Model> models;
 		std::vector<CString> modelNames;
 		for (int32 i = 0; i < modelPaths.size(); i++) { modelNames.push_back(Util::StripFilePathAndExtentions(modelPaths.at(i))); }
 
-		BinaryFile file;
-		file.Write((uint32)modelPaths.size());
+
 		for (int32 i = 0; i < modelPaths.size(); i++)
 		{
 			CString modelPath = modelPaths.at(i);
@@ -39,21 +39,28 @@ namespace cm
 
 				CString line = reader.NextLine();
 				AssetId id = line.SubStr(line.FindFirstOf('=') + 1).ToUint64();
-
-				file.Write(id);
-				Model model = Model(modelPath);
-				model.SaveBinaryData(&file);
+				Model model = Model(modelPath, id, Util::StripFilePathAndExtentions(modelPath));
+				models.push_back(model);
 			}
 			else
 			{
 				LOG("No meta file for " << modelPath.GetCStr() << " creating one; id =");
 			}
 		}
+
+
+		return models;
+	}
+
+	void ModelProcessor::SaveModels(const std::vector<Model>& models)
+	{
+		BinaryFile file;
+		file.Write((uint32)models.size());
+		for (const Model& model : models)
+		{
+			model.SaveBinaryData(&file);
+		}
 		file.SaveToDisk("../Assets/Packed/models.bin");
-
-
-
-		return std::vector<Model>();
 	}
 
 	void Model::LoadModel(const CString& path)
@@ -70,8 +77,6 @@ namespace cm
 
 		// process ASSIMP's root node recursively
 		ProcessNode(scene->mRootNode, scene);
-
-		name = Util::StripFilePathAndExtentions(path);
 	}
 
 	void Model::ProcessNode(aiNode* node, const aiScene* scene)
@@ -95,11 +100,14 @@ namespace cm
 	Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	{
 		Mesh resultingMesh;
+		resultingMesh.hasColours = mesh->GetNumColorChannels() > 0;
+
+		Assert(!resultingMesh.hasColours, "LOAD COLOURS");
 
 		// walk through each of the mesh's vertices
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
-			Vertex vertex = {};
+			FatVertex vertex = {};
 			// we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
 			Vec3f vector;
 			// positions
@@ -170,12 +178,22 @@ namespace cm
 			}
 		}
 
+		if (mesh->mMaterialIndex >= 0)
+		{
+			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+			resultingMesh.materialName = material->GetName().C_Str();
+		}
+
 		return resultingMesh;
 	}
 
 	void Model::SaveBinaryData(BinaryFile* file) const
 	{
+		if (meshes.size() > 1)
+			LOG("WARNING MESH SIZE MORE THAN ZERO: " << meshes.size() << " " << name.GetCStr());
+
 		const Mesh& mesh = meshes[0];
+		file->Write(id);
 		file->Write(name);
 		file->Write(mesh.positions);
 		file->Write(mesh.normals);
@@ -184,7 +202,7 @@ namespace cm
 		file->Write(mesh.indices);
 	}
 
-	void Vertex::SaveBinaryData(BinaryFile* file) const
+	void FatVertex::SaveBinaryData(BinaryFile* file) const
 	{
 		file->Write(position);
 		file->Write(normal);

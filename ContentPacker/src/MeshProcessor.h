@@ -40,7 +40,7 @@ namespace cm
 		DISABLE_COPY_AND_MOVE(MetaFileProcessor);
 	};
 
-	class Vertex : public Serializable
+	class FatVertex : public Serializable
 	{
 	public:
 		inline static constexpr uint32 MAX_BONE_INFLUENCE = 4;
@@ -50,6 +50,7 @@ namespace cm
 		Vec2f texCoords;
 		Vec3f tangent;
 		Vec3f bitangent;
+		Vec4f colours;
 		int32 boneIds[MAX_BONE_INFLUENCE];
 		real32 boneWeights[MAX_BONE_INFLUENCE];
 
@@ -63,6 +64,7 @@ namespace cm
 		{
 			hasIndices = true;
 			hasNormals = true;
+			hasColours = false;
 			hasUVs = true;
 			hasTangets = true;
 			hastBitangets = true;
@@ -71,10 +73,13 @@ namespace cm
 		bool hasIndices;
 		bool hasNormals;
 		bool hasUVs;
+		bool hasColours;
 		bool hasTangets;
 		bool hastBitangets;
 
-		std::vector<Vertex> vertices;
+		CString materialName;
+
+		std::vector<FatVertex> vertices;
 		std::vector<uint32> indices;
 
 		std::vector<Vec3f> positions;
@@ -82,12 +87,14 @@ namespace cm
 		std::vector<Vec2f> uvs;
 		std::vector<Vec3f> tangets;
 		std::vector<Vec3f> bitangets;
+		std::vector<Vec4f> colours;
 	};
 
 	class Model : public Serializable
 	{
 	public:
-		Model(const CString& path)
+		Model(const CString& path, AssetId id, const CString& name)
+			: id(id), name(name)
 		{
 			LoadModel(path);
 		}
@@ -102,8 +109,6 @@ namespace cm
 		void LoadModel(const CString& path);
 		void ProcessNode(aiNode* node, const aiScene* scene);
 		Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
-
-
 	};
 
 	class ModelProcessor
@@ -112,6 +117,7 @@ namespace cm
 		ModelProcessor();
 
 		std::vector<Model> LoadModels(const std::vector<CString>& modelPaths, const MetaFileProcessor& metaProcessor);
+		void SaveModels(const std::vector<Model>& models);
 
 		DISABLE_COPY_AND_MOVE(ModelProcessor);
 	};

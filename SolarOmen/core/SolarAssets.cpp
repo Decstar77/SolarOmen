@@ -242,7 +242,6 @@ namespace cm
 		as = GameMemory::PushPermanentStruct<AssetState>();
 		AssetState::Initialize(as);
 
-
 		ManagedArray<CString> metaFiles = Platform::LoadEntireFolder(ASSET_PATH, "slo");
 		ManagedArray<CString> modelFiles = Platform::LoadEntireFolder(ASSET_PATH, "obj");
 		ManagedArray<CString> textureFiles = Platform::LoadEntireFolder(ASSET_PATH, "png");
@@ -284,31 +283,31 @@ namespace cm
 				model.packedStride = 3 + 3 + 2;
 
 				model.positions = GameMemory::PushPermanentArray<Vec3f>(binModels.Read<uint32>());
-				for (int32 i = 0; i < model.positions.GetCapcity(); i++)
+				for (uint32 i = 0; i < model.positions.GetCapcity(); i++)
 				{
 					model.positions.Add(binModels.Read<Vec3f>());
 				}
 
 				model.normals = GameMemory::PushPermanentArray<Vec3f>(binModels.Read<uint32>());
-				for (int32 i = 0; i < model.normals.GetCapcity(); i++)
+				for (uint32 i = 0; i < model.normals.GetCapcity(); i++)
 				{
 					model.normals.Add(binModels.Read<Vec3f>());
 				}
 
 				model.uvs = GameMemory::PushPermanentArray<Vec2f>(binModels.Read<uint32>());
-				for (int32 i = 0; i < model.uvs.GetCapcity(); i++)
+				for (uint32 i = 0; i < model.uvs.GetCapcity(); i++)
 				{
 					model.uvs.Add(binModels.Read<Vec2f>());
 				}
 
 				model.packedVertices = GameMemory::PushPermanentArray<real32>(binModels.Read<uint32>() * model.packedStride);
-				for (int32 i = 0; i < model.packedVertices.GetCapcity(); i++)
+				for (uint32 i = 0; i < model.packedVertices.GetCapcity(); i++)
 				{
 					model.packedVertices.Add(binModels.Read<real32>());
 				}
 
 				model.indices = GameMemory::PushPermanentArray<uint32>(binModels.Read<uint32>());
-				for (int32 i = 0; i < model.indices.GetCapcity(); i++)
+				for (uint32 i = 0; i < model.indices.GetCapcity(); i++)
 				{
 					model.indices.Add(binModels.Read<uint32>());
 				}

@@ -1,6 +1,5 @@
 #pragma once
-#include "core/SolarCore.h"
-
+#include "core/Defines.h"
 #if _WIN32
 
 #include "../platform/win32/Clock.h"

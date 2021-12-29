@@ -75,6 +75,8 @@ namespace cm
 		TEXT,	// @NOTE: Layout for text rendering
 	};
 
+
+
 	typedef uint64 AssetId;
 #define INVALID_ASSET_ID 0
 
@@ -185,6 +187,14 @@ namespace cm
 		FixedArray<int32, ROOM_HORIZTONAL_SIZE* ROOM_VERTICAL_SIZE> map;
 	};
 
+	struct MaterialAsset
+	{
+		AssetId id;
+		CString name;
+
+		Vec3f colourKd;
+	};
+
 #define GetAssetState() AssetState* as = AssetState::Get()
 
 	class AssetState
@@ -193,9 +203,10 @@ namespace cm
 		HashMap<ModelAsset> models;
 		HashMap<ShaderAsset> shaders;
 		HashMap<TextureAsset> textures;
+		HashMap<MaterialAsset> materials;
+
 
 		FixedArray<RoomAsset, (uint32)RoomType::COUNT> rooms;
-
 		FontAsset font;
 
 		inline static void Initialize(AssetState* as) { assetState = as; };

@@ -6,6 +6,8 @@ namespace cm
 	class TextFileReader
 	{
 	public:
+		inline static CString END_OF_FILE_STRING = "__END_OF_FILE__";
+
 		TextFileReader()
 		{
 			cursor = 0;
