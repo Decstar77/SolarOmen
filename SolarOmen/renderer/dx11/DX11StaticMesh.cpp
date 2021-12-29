@@ -35,10 +35,10 @@ namespace cm
 	{
 		GetRenderState();
 
-		int32 vertexCount = modelAsset.packedCount;
-		int32 indexCount = modelAsset.indicesCount;
-		uint32* indices = modelAsset.indices;
-		real32* vertices = modelAsset.packedVertices;
+		int32 vertexCount = modelAsset.packedVertices.count;
+		int32 indexCount = modelAsset.indices.count;
+		uint32* indices = modelAsset.indices.data;
+		real32* vertices = modelAsset.packedVertices.data;
 
 		uint32 vertex_stride_bytes = sizeof(real32) * 3 + sizeof(real32) * 3 + sizeof(real32) * 2;
 		uint32 indices_stride_bytes = sizeof(uint32);
@@ -91,10 +91,10 @@ namespace cm
 
 		ModelAsset asset = {};
 		asset.id = 1;
-		asset.packedVertices = vertexData;
-		asset.packedCount = ArrayCount(vertexData);
-		asset.indices = indexData;
-		asset.indicesCount = ArrayCount(indexData);
+		asset.packedVertices.data = vertexData;
+		asset.packedVertices.count = ArrayCount(vertexData);
+		asset.indices.data = indexData;
+		asset.indices.count = ArrayCount(indexData);
 
 		return StaticMesh::Create(asset);
 	}

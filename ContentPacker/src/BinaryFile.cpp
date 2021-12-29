@@ -7,6 +7,12 @@ namespace cm
 	{
 		WritePrimitive(v);
 	}
+
+	void BinaryFile::Write(const uint32& v)
+	{
+		WritePrimitive(v);
+	}
+
 	void BinaryFile::Write(const Vec2f& v)
 	{
 		WritePrimitive(v.x);

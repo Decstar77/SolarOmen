@@ -242,23 +242,6 @@ namespace cm
 		as = GameMemory::PushPermanentStruct<AssetState>();
 		AssetState::Initialize(as);
 
-		//{
-		//	BinaryAssetFile binModels = {};
-		//	binModels.file = Platform::LoadEntireFile(CString(PACKED_ASSET_PATH).Add("models.bin"), false);
-		//	AssetId id = binModels.Read<uint64>();
-		//	CString name = binModels.Read<CString>();
-
-		//	uint32 posCap = binModels.Read<uint32>();
-		//	ManagedArray<Vec3f> positions = GameMemory::PushTransientArray<Vec3f>(posCap);
-		//	for (uint32 i = 0; i < posCap; i++)
-		//	{
-		//		Vec3f pos = binModels.Read<Vec3f>();
-		//		positions.Add(pos);
-		//	}
-
-		//	uint32 normCap = binModels.Read<uint32>();
-		//	int a = 2;
-		//}
 
 		ManagedArray<CString> metaFiles = Platform::LoadEntireFolder(ASSET_PATH, "slo");
 		ManagedArray<CString> modelFiles = Platform::LoadEntireFolder(ASSET_PATH, "obj");
@@ -274,6 +257,7 @@ namespace cm
 		ManagedArray<ModelAsset> models = LoadOrCreateModelMetaData(metaFiles, modelFiles);
 		ManagedArray<TextureAsset> textures = LoadOrCreateTextureMetaData(metaFiles, textureFiles);
 
+#if 0
 		for (uint32 modelIndex = 0; modelIndex < modelFiles.GetCount(); modelIndex++)
 		{
 			ModelAsset modelAsset = LoadModel(modelFiles[modelIndex]);
@@ -286,6 +270,55 @@ namespace cm
 			models[modelIndex] = modelAsset;
 			as->models.Put(modelAsset.id, modelAsset);
 		}
+#else
+		{
+			BinaryAssetFile binModels = {};
+			binModels.file = Platform::LoadEntireFile(CString(PACKED_ASSET_PATH).Add("models.bin"), false);
+
+			uint32 modelCount = binModels.Read<uint32>();
+			for (uint32 modelIndex = 0; modelIndex < modelCount; modelIndex++)
+			{
+				ModelAsset model = {};
+				model.id = binModels.Read<uint64>();
+				model.name = binModels.Read<CString>();
+				model.packedStride = 3 + 3 + 2;
+
+				model.positions = GameMemory::PushPermanentArray<Vec3f>(binModels.Read<uint32>());
+				for (int32 i = 0; i < model.positions.GetCapcity(); i++)
+				{
+					model.positions.Add(binModels.Read<Vec3f>());
+				}
+
+				model.normals = GameMemory::PushPermanentArray<Vec3f>(binModels.Read<uint32>());
+				for (int32 i = 0; i < model.normals.GetCapcity(); i++)
+				{
+					model.normals.Add(binModels.Read<Vec3f>());
+				}
+
+				model.uvs = GameMemory::PushPermanentArray<Vec2f>(binModels.Read<uint32>());
+				for (int32 i = 0; i < model.uvs.GetCapcity(); i++)
+				{
+					model.uvs.Add(binModels.Read<Vec2f>());
+				}
+
+				model.packedVertices = GameMemory::PushPermanentArray<real32>(binModels.Read<uint32>() * model.packedStride);
+				for (int32 i = 0; i < model.packedVertices.GetCapcity(); i++)
+				{
+					model.packedVertices.Add(binModels.Read<real32>());
+				}
+
+				model.indices = GameMemory::PushPermanentArray<uint32>(binModels.Read<uint32>());
+				for (int32 i = 0; i < model.indices.GetCapcity(); i++)
+				{
+					model.indices.Add(binModels.Read<uint32>());
+				}
+
+				as->models.Put(model.id, model);
+			}
+
+			int a = 2;
+		}
+#endif
 
 		for (uint32 textureIndex = 0; textureIndex < textureFiles.GetCount(); textureIndex++)
 		{

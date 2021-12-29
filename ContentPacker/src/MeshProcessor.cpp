@@ -26,6 +26,7 @@ namespace cm
 		for (int32 i = 0; i < modelPaths.size(); i++) { modelNames.push_back(Util::StripFilePathAndExtentions(modelPaths.at(i))); }
 
 		BinaryFile file;
+		file.Write((uint32)modelPaths.size());
 		for (int32 i = 0; i < modelPaths.size(); i++)
 		{
 			CString modelPath = modelPaths.at(i);
@@ -33,7 +34,6 @@ namespace cm
 
 			if (metaPath.GetLength() != 0)
 			{
-
 				TextFileReader reader;
 				reader.Read(metaPath);
 
@@ -43,8 +43,6 @@ namespace cm
 				file.Write(id);
 				Model model = Model(modelPath);
 				model.SaveBinaryData(&file);
-
-
 			}
 			else
 			{

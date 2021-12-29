@@ -9,19 +9,13 @@ namespace cm
 	{
 		ModelAsset meshData = {};
 
-		meshData.positionCount = mesh->mNumVertices;
-		meshData.positions = GameMemory::PushPermanentCount<Vec3f>(mesh->mNumVertices);
-		meshData.normalCount = mesh->mNumVertices;
-		meshData.normals = GameMemory::PushPermanentCount<Vec3f>(mesh->mNumVertices);
-		meshData.uvCount = mesh->mNumVertices;
-		meshData.uvs = GameMemory::PushPermanentCount<Vec2f>(mesh->mNumVertices);
-
-		meshData.indicesCount = mesh->mNumFaces * 3;
-		meshData.indices = GameMemory::PushPermanentCount<uint32>(meshData.indicesCount);
-
 		meshData.packedStride = 3 + 3 + 2;
-		meshData.packedCount = 3 * meshData.positionCount + 3 * meshData.normalCount + 2 * meshData.uvCount;
-		meshData.packedVertices = GameMemory::PushPermanentCount<real32>(meshData.packedCount);
+		meshData.positions = GameMemory::PushPermanentArray<Vec3f>(mesh->mNumVertices);
+		meshData.normals = GameMemory::PushPermanentArray<Vec3f>(mesh->mNumVertices);
+		meshData.uvs = GameMemory::PushPermanentArray<Vec2f>(mesh->mNumVertices);
+		meshData.indices = GameMemory::PushPermanentArray<uint32>(mesh->mNumFaces * 3);
+		uint32 packedCount = 3 * meshData.positions.GetCapcity() + 3 * meshData.normals.GetCapcity() + 2 * meshData.uvs.GetCapcity();
+		meshData.packedVertices = GameMemory::PushPermanentArray<real32>(packedCount);
 
 		for (uint32 i = 0, counter = 0; i < mesh->mNumVertices; i++)
 		{
@@ -41,7 +35,6 @@ namespace cm
 				uv.x = mesh->mTextureCoords[0][i].x;
 				uv.y = mesh->mTextureCoords[0][i].y;
 			}
-
 
 			meshData.positions[i] = vertex;
 			meshData.normals[i] = normal;
@@ -64,7 +57,7 @@ namespace cm
 			meshData.packedVertices[counter] = uv.y;
 			counter++;
 
-			Assert(counter <= (uint32)meshData.packedCount, "To many vertices");
+			Assert(counter <= (uint32)packedCount, "To many vertices");
 		}
 
 		for (uint32 i = 0, counter = 0; i < mesh->mNumFaces; i++)
@@ -74,11 +67,17 @@ namespace cm
 
 			for (uint32 j = 0; j < face.mNumIndices; j++)
 			{
-				Assert(counter < (uint32)meshData.indicesCount, "To many indicies");
+				Assert(counter < (uint32)meshData.indices.GetCapcity(), "To many indicies");
 				meshData.indices[counter] = face.mIndices[j];
 				counter++;
 			}
 		}
+
+		meshData.positions.count = meshData.positions.GetCapcity();
+		meshData.normals.count = meshData.normals.GetCapcity();
+		meshData.uvs.count = meshData.uvs.GetCapcity();
+		meshData.indices.count = meshData.indices.GetCapcity();
+		meshData.packedVertices.count = meshData.packedVertices.GetCapcity();
 
 		return meshData;
 	}

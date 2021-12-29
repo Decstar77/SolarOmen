@@ -83,20 +83,14 @@ namespace cm
 		AssetId id;
 		CString name;
 
-		int32 positionCount;
-		Vec3f* positions;
-		int32 normalCount;
-		Vec3f* normals;
-		int32 uvCount;
-		Vec2f* uvs;
+		ManagedArray<Vec3f> positions;
+		ManagedArray<Vec3f> normals;
+		ManagedArray<Vec2f> uvs;
 
 		// @NOTE: This is not in bytes but in real count
 		int32 packedStride;
-
-		int32 packedCount;
-		real32* packedVertices;
-		int32 indicesCount;
-		uint32* indices;
+		ManagedArray<real32> packedVertices;
+		ManagedArray<uint32> indices;
 
 		//AABB boundingBox;
 	};
