@@ -93,13 +93,19 @@ Texture2D texture1 : register(t1);
 Texture2D texture2 : register(t2);
 Texture2D texture3 : register(t3);
 Texture2D texture4 : register(t4);
-
-// @NOTE: Point shadows ?
-TextureCube cubeTexture5:  register(t5);
+Texture2D texture5 : register(t5);
 // @NOTE: Shadow cascades
 Texture2DArray texture6 : register(t6);
 // @NOTE: UI Texture
 Texture2D texture7 : register(t7);
+
+
+TextureCube texture10Cube:  register(t10);
+TextureCube texture11Cube:  register(t11);
+TextureCube texture12Cube:  register(t12);
+TextureCube texture13Cube:  register(t13);
+TextureCube texture14Cube:  register(t14);
+TextureCube texture15Cube:  register(t15);
 
 Texture2D bloomTexture : register(t1);
 Texture2D positionBuffer: register(t2);

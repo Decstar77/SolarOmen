@@ -9,4 +9,5 @@
 namespace cm
 {
 	CubeMapInstance ConvertEqiTextureToCubeMap(uint32 resolution, const TextureInstance& eqi);
+	CubeMapInstance ConvoluteCubeMap(uint32 resolution, const CubeMapInstance& cube);
 }

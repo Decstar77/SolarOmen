@@ -64,8 +64,10 @@ namespace cm
 		ShaderInstance quadShader;
 		ShaderInstance skyboxShader;
 		ShaderInstance eqiToCubeShader;
+		ShaderInstance irradianceConvolutionShader;
 
 		CubeMapInstance skyboxMap;
+		CubeMapInstance environmentMap;
 
 		HashMap<StaticMesh> meshes;
 		HashMap<TextureInstance> textures;

@@ -38,7 +38,7 @@ float4 main(VSInput vsInput) : SV_TARGET
 			//float3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;
 			float3 sampleVec = mul(tangentSample, M);
 
-			irradiance += cubeTexture5.Sample(linearSampler, sampleVec).rgb * cos(theta) * sin(theta);
+			irradiance += texture10Cube.Sample(linearSampler, sampleVec).rgb * cos(theta) * sin(theta);
 			nrSamples++;
 		}
 	}

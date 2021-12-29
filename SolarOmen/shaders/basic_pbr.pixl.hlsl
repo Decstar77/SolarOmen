@@ -399,7 +399,7 @@ float4 main(VSInput vsInput) : SV_TARGET
 
 	float3 kS = fresnelSchlickRoughness(max(dot(pinfo.normal, pinfo.toView), 0.0), material.F0, material.roughness);
 	float3 kD = (1.0 - kS) * (1.0 - material.metallic);
-	float3 diffuse = cubeTexture5.Sample(linearSampler, pinfo.normal).rgb * material.albedo;
+	float3 diffuse = texture10Cube.Sample(linearSampler, pinfo.normal).rgb * material.albedo;
 	float3 ambient = kD * diffuse * ao;
 
 	float3 color = Lo + ambient;

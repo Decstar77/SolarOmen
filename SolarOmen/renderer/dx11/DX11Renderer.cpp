@@ -455,6 +455,7 @@ namespace cm
 		rs->quadShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "ui_quad"));
 		rs->skyboxShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "skybox"));
 		rs->eqiToCubeShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "equirectangular_to_cubemap"));
+		rs->irradianceConvolutionShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "irradiance_convolution"));
 
 		ShaderAsset textShader = GetAssetFromName(shaders, "text");
 		textShader.vertexLayout = VertexShaderLayout::TEXT;
@@ -467,6 +468,7 @@ namespace cm
 		ManagedArray<TextureAsset> textures = as->textures.GetValueSet();
 		TextureInstance* eqi = rs->textures.Get(GetAssetFromName(textures, "FS002_Day_Sunless").id);
 		rs->skyboxMap = ConvertEqiTextureToCubeMap(512, *eqi);
+		rs->environmentMap = ConvoluteCubeMap(512, rs->skyboxMap);
 
 		//rs->testBuffer = CreateShaderBuffer(rs, sizeof(Mat4f) * 3);
 		//rs->testBuffer.BindShaderBuffer(ShaderStage::VERTEX, 0);
@@ -497,11 +499,13 @@ namespace cm
 		RenderCommand::SetRasterState(rs->rasterNoFaceCullState);
 
 		RenderCommand::BindShader(rs->skyboxShader);
-		RenderCommand::BindCubeMap(rs->skyboxMap, 5);
+		RenderCommand::BindCubeMap(rs->skyboxMap, 10);
 		RenderCommand::BindAndDrawMesh(rs->cube);
 
 		RenderCommand::SetDepthState(rs->depthLessState);
 		RenderCommand::SetRasterState(rs->rasterBackFaceCullingState);
+
+		RenderCommand::BindCubeMap(rs->environmentMap, 11);
 
 		RenderCommand::BindShader(rs->phongShader);
 

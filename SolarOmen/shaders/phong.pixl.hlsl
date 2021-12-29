@@ -63,7 +63,6 @@ float4 main(VSInput vsInput) : SV_TARGET
 	float4 fragColour = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	float3 colour = pow(texture0.Sample(linearSampler, vsInput.uvs).rgb, float3(2.2, 2.2, 2.2));
-	float3 ambient = 0.25 * colour;
 
 	//if (lightCounts.z > 0)
 	//for (int pointLightIndex = 0; pointLightIndex < lightCounts.pointLightCount; pointLightIndex++)
@@ -98,6 +97,7 @@ float4 main(VSInput vsInput) : SV_TARGET
 		fragColour += float4(diffuse + specular, 1.0);
 	}
 
+	float3 ambient = texture11Cube.Sample(linearSampler, vsInput.normal).rgb * colour;
 	fragColour += float4(ambient, 1.0);
 
 	return fragColour;
