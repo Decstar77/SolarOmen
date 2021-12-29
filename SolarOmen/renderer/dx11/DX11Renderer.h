@@ -62,7 +62,10 @@ namespace cm
 		ShaderInstance phongShader;
 		ShaderInstance textShader;
 		ShaderInstance quadShader;
+		ShaderInstance skyboxShader;
 		ShaderInstance eqiToCubeShader;
+
+		CubeMapInstance skyboxMap;
 
 		HashMap<StaticMesh> meshes;
 		HashMap<TextureInstance> textures;

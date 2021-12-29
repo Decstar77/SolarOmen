@@ -298,6 +298,14 @@ namespace cm
 			StaticMesh mesh = StaticMesh::Create(models[assetIndex]);
 			rs->meshes.Put(mesh.id, mesh);
 		}
+
+		rs->quad = StaticMesh::CreateScreenSpaceQuad();
+		rs->meshes.Put(rs->quad.id, rs->quad);
+
+		ModelAsset cube = GetAssetFromName(models, "cube");
+		cube.id = 2;
+		rs->cube = StaticMesh::Create(cube);
+		rs->meshes.Put(rs->cube.id, rs->cube);
 	}
 
 	static void CreateAllTextures()
@@ -445,21 +453,20 @@ namespace cm
 		rs->unlitShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "unlit"));
 		rs->phongShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "phong"));
 		rs->quadShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "ui_quad"));
+		rs->skyboxShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "skybox"));
 		rs->eqiToCubeShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "equirectangular_to_cubemap"));
 
 		ShaderAsset textShader = GetAssetFromName(shaders, "text");
 		textShader.vertexLayout = VertexShaderLayout::TEXT;
 		rs->textShader = ShaderInstance::CreateGraphics(textShader);
 
-		rs->quad = StaticMesh::CreateScreenSpaceQuad();
-		rs->meshes.Put(rs->quad.id, rs->quad);
+
 		CreateAllStaticMeshes();
 		CreateAllTextures();
 
 		ManagedArray<TextureAsset> textures = as->textures.GetValueSet();
 		TextureInstance* eqi = rs->textures.Get(GetAssetFromName(textures, "FS002_Day_Sunless").id);
-		ConvertEqiTextureToCubeMap(512, *eqi);
-
+		rs->skyboxMap = ConvertEqiTextureToCubeMap(512, *eqi);
 
 		//rs->testBuffer = CreateShaderBuffer(rs, sizeof(Mat4f) * 3);
 		//rs->testBuffer.BindShaderBuffer(ShaderStage::VERTEX, 0);
@@ -472,16 +479,6 @@ namespace cm
 		GetRenderState();
 		GetPlatofrmState();
 
-		RenderCommand::ClearRenderTarget(rs->swapChain.renderView, Vec4f(0.2f, 0.2f, 0.2f, 1.0f));
-		RenderCommand::ClearDepthBuffer(rs->swapChain.depthView);
-		RenderCommand::SetTopology(Topology::Value::TRIANGLE_LIST);
-		RenderCommand::SetViewportState((real32)ps->clientWidth, (real32)ps->clientHeight);
-		RenderCommand::SetDepthState(rs->depthLessState);
-		RenderCommand::SetRasterState(rs->rasterBackFaceCullingState);
-
-		RenderCommand::BindRenderTargets(rs->swapChain.renderView, rs->swapChain.depthView);
-		RenderCommand::BindShader(rs->phongShader);
-
 		Mat4f p = renderGroup->playerCamera.GetProjectionMatrix();
 		Mat4f v = renderGroup->playerCamera.GetViewMatrix();
 
@@ -489,6 +486,24 @@ namespace cm
 		rs->viewConstBuffer.data.view = v;
 		rs->viewConstBuffer.data.screeenProjection = OrthographicLH(0.0f, (real32)ps->clientWidth, 0.0f, (real32)ps->clientHeight, 0.0f, 1.0f);
 		RenderCommand::UpdateConstBuffer(rs->viewConstBuffer);
+
+		RenderCommand::ClearRenderTarget(rs->swapChain.renderView, Vec4f(0.2f, 0.2f, 0.2f, 1.0f));
+		RenderCommand::ClearDepthBuffer(rs->swapChain.depthView);
+		RenderCommand::BindRenderTargets(rs->swapChain.renderView, rs->swapChain.depthView);
+		RenderCommand::SetTopology(Topology::Value::TRIANGLE_LIST);
+		RenderCommand::SetViewportState((real32)ps->clientWidth, (real32)ps->clientHeight);
+
+		RenderCommand::SetDepthState(rs->depthOffState);
+		RenderCommand::SetRasterState(rs->rasterNoFaceCullState);
+
+		RenderCommand::BindShader(rs->skyboxShader);
+		RenderCommand::BindCubeMap(rs->skyboxMap, 5);
+		RenderCommand::BindAndDrawMesh(rs->cube);
+
+		RenderCommand::SetDepthState(rs->depthLessState);
+		RenderCommand::SetRasterState(rs->rasterBackFaceCullingState);
+
+		RenderCommand::BindShader(rs->phongShader);
 
 		rs->lightingConstBuffer.data.viewPos = Vec4f(renderGroup->playerCamera.transform.position, 0.0f);
 		RenderCommand::UpdateConstBuffer(rs->lightingConstBuffer);

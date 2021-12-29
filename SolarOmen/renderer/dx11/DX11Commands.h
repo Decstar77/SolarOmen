@@ -18,6 +18,7 @@ namespace cm
 
 		void BindSampler(const SamplerInstance& sampler, int32 slot);
 		void BindTexture(const TextureInstance& texture, int32 slot);
+		void BindCubeMap(const CubeMapInstance& cubeMap, int32 slot);
 
 		void BindRenderTargets(ID3D11RenderTargetView* colour0, ID3D11DepthStencilView* depth);
 		void BindRenderTargets(ID3D11RenderTargetView* colour0, ID3D11RenderTargetView* colour1, ID3D11RenderTargetView* colour2, ID3D11RenderTargetView* colour3, ID3D11DepthStencilView* depth);

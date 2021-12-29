@@ -46,6 +46,7 @@ namespace cm
 
 		void BindSampler(const SamplerInstance& sampler, int32 slot)
 		{
+			Assert(slot >= 0, "Shader register invalid");
 			GetRenderState();
 
 			Assert(slot >= 0, "Invalid sampler register");
@@ -55,11 +56,21 @@ namespace cm
 
 		void BindTexture(const TextureInstance& texture, int32 slot)
 		{
+			Assert(slot >= 0, "Shader register invalid");
 			GetRenderState();
 
 			Assert(slot >= 0, "Shader register invalid");
 			DXINFO(rs->context->PSSetShaderResources(slot, 1, &texture.shaderView));
 			DXINFO(rs->context->CSSetShaderResources(slot, 1, &texture.shaderView));
+		}
+
+		void BindCubeMap(const CubeMapInstance& cubeMap, int32 slot)
+		{
+			Assert(slot >= 0, "Shader register invalid");
+			GetRenderState();
+
+			DXINFO(rs->context->PSSetShaderResources(slot, 1, &cubeMap.shaderView));
+			DXINFO(rs->context->CSSetShaderResources(slot, 1, &cubeMap.shaderView));
 		}
 
 		void BindRenderTargets(ID3D11RenderTargetView* colour0, ID3D11DepthStencilView* depth)

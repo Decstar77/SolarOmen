@@ -15,6 +15,7 @@ namespace cm
 		RenderCommand::BindTexture(eqi, 0);
 		RenderCommand::SetRasterState(rs->rasterNoFaceCullState);
 		RenderCommand::SetDepthState(rs->depthOffState);
+		RenderCommand::SetTopology(Topology::Value::TRIANGLE_LIST);
 
 		Mat4f views[6] =
 		{
