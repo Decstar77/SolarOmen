@@ -67,6 +67,7 @@ namespace cm
 				if (ImGui::MenuItem("Performance")) { es->showPerformanceWindow = true; }
 				if (ImGui::MenuItem("Console")) { es->showConsoleWindow = true; }
 				if (ImGui::MenuItem("Build")) { es->showBuildWindow = true; }
+				if (ImGui::MenuItem("Asset")) { es->showAssetWindow = true; }
 				//if (ImGui::MenuItem("Main window")) { es->windowOpen = true; }
 				//if (ImGui::MenuItem("Physics")) { es->physicsWindowOpen = true; }
 				ImGui::EndMenu();
@@ -178,6 +179,25 @@ namespace cm
 		}
 
 		Platform::WriteFile(CString("../Assets/Raw/Rooms/").Add(asset->name).Add(".txt"), roomData->GetCStr(), (uint32)roomData->GetLength());
+	}
+
+	static void ShowAssetWindow()
+	{
+		GetEditorState();
+		GetAssetState();
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Assets", &es->showBuildWindow);
+
+		ManagedArray<ModelAsset> models = as->models.GetValueSet();
+
+		for (uint32 i = 0; i < models.count; i++)
+		{
+			ImGui::Text(models[i].name.GetCStr());
+		}
+
+		ImGui::End();
+		ImGui::PopStyleVar();
 	}
 
 	static void ShowBuildWindow()
@@ -427,6 +447,7 @@ namespace cm
 
 			if (es->showRoomWindow) ShowRoomWindow();
 			if (es->showBuildWindow) ShowBuildWindow();
+			if (es->showAssetWindow) ShowAssetWindow();
 		}
 
 		if (es->showPerformanceWindow) ShowPerformanceWindow(dt);

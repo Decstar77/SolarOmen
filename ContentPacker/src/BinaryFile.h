@@ -29,6 +29,7 @@ namespace cm
 		void Write(const uint32& v);
 		void Write(const Vec2f& v);
 		void Write(const Vec3f& v);
+		void Write(const Vec4f& v);
 		void Write(const CString& str);
 		void Write(const Serializable* serializable);
 

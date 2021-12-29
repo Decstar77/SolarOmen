@@ -66,16 +66,100 @@ namespace cm
 		//DEPTH_STENCIL = D3D11_BIND_DEPTH_STENCIL
 	};
 
-	enum class VertexShaderLayout
+	class VertexShaderLayoutType
 	{
-		P,		// @NOTE: Postion
-		P_PAD,	// @NOTE: Postion and a padd
-		PNT,	// @NOTE: Postions, normal, texture coords(uv)
-		PNTM,	// @NOTE: Postions, normal, texture coords(uv), and an instanced model transform matrix
-		TEXT,	// @NOTE: Layout for text rendering
+	public:
+		enum class Value : uint32
+		{
+			INAVLID = 0,
+			P,		// @NOTE: Postion
+			P_PAD,	// @NOTE: Postion and a padd
+			PNT,	// @NOTE: Postions, normal, texture coords(uv)
+			PNTC,   // @NOTE: Postions, normal, texture coords(uv), vertex colour
+			PNTM,	// @NOTE: Postions, normal, texture coords(uv), and an instanced model transform matrix
+			TEXT,	// @NOTE: Layout for text rendering
+			COUNT,
+		};
+
+		VertexShaderLayoutType()
+		{
+			value = Value::INAVLID;
+		}
+
+		VertexShaderLayoutType(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline uint32 GetStride() const
+		{
+			switch (value)
+			{
+			case Value::P: return 1;
+			case Value::P_PAD: return 2;
+			case Value::PNT: return 3 + 3 + 2;
+			case Value::PNTC: return 3 + 3 + 2 + 4;
+			case Value::PNTM: return 3 + 3 + 2 + 16;
+			case Value::TEXT: return 4;
+			}
+
+			Assert(0, "INVALID STRIDE");
+			return 0;
+		}
+
+		inline Value Get() const { return value; }
+
+		inline static VertexShaderLayoutType ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (VertexShaderLayoutType::Value)v;
+		}
+
+		inline static VertexShaderLayoutType ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::INAVLID;
+		}
+
+		inline bool operator==(const VertexShaderLayoutType& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const VertexShaderLayoutType& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+	private:
+		Value value;
+
+		inline static const CString __STRINGS__[] = {
+			"INAVLID",
+			"P",
+			"P_PAD",
+			"PNT",
+			"PNTC",
+			"PNTM",
+			"TEXT",
+			"COUNT",
+		};
 	};
-
-
 
 	typedef uint64 AssetId;
 #define INVALID_ASSET_ID 0
@@ -85,16 +169,10 @@ namespace cm
 		AssetId id;
 		CString name;
 
-		ManagedArray<Vec3f> positions;
-		ManagedArray<Vec3f> normals;
-		ManagedArray<Vec2f> uvs;
+		VertexShaderLayoutType layout;
 
-		// @NOTE: This is not in bytes but in real count
-		int32 packedStride;
 		ManagedArray<real32> packedVertices;
 		ManagedArray<uint32> indices;
-
-		//AABB boundingBox;
 	};
 
 	struct ShaderAsset
@@ -102,7 +180,7 @@ namespace cm
 		AssetId id;
 		CString name;
 
-		VertexShaderLayout vertexLayout;
+		VertexShaderLayoutType vertexLayout;
 		ManagedArray<char> vertexData;
 		ManagedArray<char> computeData;
 		ManagedArray<char> pixelData;

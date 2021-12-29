@@ -280,27 +280,9 @@ namespace cm
 				ModelAsset model = {};
 				model.id = binModels.Read<uint64>();
 				model.name = binModels.Read<CString>();
-				model.packedStride = 3 + 3 + 2;
+				model.layout = binModels.Read<VertexShaderLayoutType::Value>();
 
-				model.positions = GameMemory::PushPermanentArray<Vec3f>(binModels.Read<uint32>());
-				for (uint32 i = 0; i < model.positions.GetCapcity(); i++)
-				{
-					model.positions.Add(binModels.Read<Vec3f>());
-				}
-
-				model.normals = GameMemory::PushPermanentArray<Vec3f>(binModels.Read<uint32>());
-				for (uint32 i = 0; i < model.normals.GetCapcity(); i++)
-				{
-					model.normals.Add(binModels.Read<Vec3f>());
-				}
-
-				model.uvs = GameMemory::PushPermanentArray<Vec2f>(binModels.Read<uint32>());
-				for (uint32 i = 0; i < model.uvs.GetCapcity(); i++)
-				{
-					model.uvs.Add(binModels.Read<Vec2f>());
-				}
-
-				model.packedVertices = GameMemory::PushPermanentArray<real32>(binModels.Read<uint32>() * model.packedStride);
+				model.packedVertices = GameMemory::PushPermanentArray<real32>(binModels.Read<uint32>() * model.layout.GetStride());
 				for (uint32 i = 0; i < model.packedVertices.GetCapcity(); i++)
 				{
 					model.packedVertices.Add(binModels.Read<real32>());

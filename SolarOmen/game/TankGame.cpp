@@ -720,11 +720,9 @@ namespace cm
 			SpawnEnemyTank(Vec3f(-7.0f, 0.1f, 7.0f)).SetNetworkOwner(PlayerNumber::ONE);
 		}
 
-		//Entity prop = CreateEntity("Prop01");
-		//prop.EnableRendering();
-		//prop.SetModel("Prop_01");
-		//prop.SetTexture("Prop_01_DefaultMaterial_BaseColor");
-		//prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(1)));
+		Entity prop = CreateEntity("Prop01");
+		prop.SetRendering("alien", "Prop_01_DefaultMaterial_BaseColor");
+		prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(1)));
 
 		grid.Initialize(&roomAsset.map);
 

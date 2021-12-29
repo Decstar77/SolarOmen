@@ -9,13 +9,10 @@ namespace cm
 	{
 		ModelAsset meshData = {};
 
-		meshData.packedStride = 3 + 3 + 2;
-		meshData.positions = GameMemory::PushPermanentArray<Vec3f>(mesh->mNumVertices);
-		meshData.normals = GameMemory::PushPermanentArray<Vec3f>(mesh->mNumVertices);
-		meshData.uvs = GameMemory::PushPermanentArray<Vec2f>(mesh->mNumVertices);
 		meshData.indices = GameMemory::PushPermanentArray<uint32>(mesh->mNumFaces * 3);
-		uint32 packedCount = 3 * meshData.positions.GetCapcity() + 3 * meshData.normals.GetCapcity() + 2 * meshData.uvs.GetCapcity();
+		uint32 packedCount = 3 * mesh->mNumVertices + 3 * mesh->mNumVertices + 2 * mesh->mNumVertices;
 		meshData.packedVertices = GameMemory::PushPermanentArray<real32>(packedCount);
+		meshData.layout = VertexShaderLayoutType::Value::PNT;
 
 		for (uint32 i = 0, counter = 0; i < mesh->mNumVertices; i++)
 		{
@@ -35,10 +32,6 @@ namespace cm
 				uv.x = mesh->mTextureCoords[0][i].x;
 				uv.y = mesh->mTextureCoords[0][i].y;
 			}
-
-			meshData.positions[i] = vertex;
-			meshData.normals[i] = normal;
-			meshData.uvs[i] = uv;
 
 			meshData.packedVertices[counter] = vertex.x;
 			counter++;
@@ -73,9 +66,6 @@ namespace cm
 			}
 		}
 
-		meshData.positions.count = meshData.positions.GetCapcity();
-		meshData.normals.count = meshData.normals.GetCapcity();
-		meshData.uvs.count = meshData.uvs.GetCapcity();
 		meshData.indices.count = meshData.indices.GetCapcity();
 		meshData.packedVertices.count = meshData.packedVertices.GetCapcity();
 

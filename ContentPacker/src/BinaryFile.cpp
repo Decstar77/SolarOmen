@@ -26,6 +26,14 @@ namespace cm
 		WritePrimitive(v.z);
 	}
 
+	void BinaryFile::Write(const Vec4f& v)
+	{
+		WritePrimitive(v.x);
+		WritePrimitive(v.y);
+		WritePrimitive(v.z);
+		WritePrimitive(v.w);
+	}
+
 	void BinaryFile::Write(const CString& str)
 	{
 		WritePrimitive(str.GetLength());

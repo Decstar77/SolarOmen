@@ -348,6 +348,8 @@
     <FxCompile Include="shaders\text.pixl.hlsl" />
     <FxCompile Include="shaders\ui_quad.vert.hlsl" />
     <FxCompile Include="shaders\ui_quad.pixl.hlsl" />
+    <FxCompile Include="shaders\phongKenney.vert.hlsl" />
+    <FxCompile Include="shaders\phongKenney.pixl.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\imgui\LICENSE" />

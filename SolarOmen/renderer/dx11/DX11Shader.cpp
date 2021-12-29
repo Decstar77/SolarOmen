@@ -7,9 +7,9 @@ namespace cm
 	{
 		GetRenderState();
 
-		switch (shaderAsset.vertexLayout)
+		switch (shaderAsset.vertexLayout.Get())
 		{
-		case VertexShaderLayout::P:
+		case VertexShaderLayoutType::Value::P:
 		{
 			D3D11_INPUT_ELEMENT_DESC pos_desc = {};
 			pos_desc.SemanticName = "Position";
@@ -24,7 +24,7 @@ namespace cm
 
 			ShaderInstance shader = {};
 			shader.id = shaderAsset.id;
-			DXCHECK(rs->device->CreateInputLayout(layouts, 1, shaderAsset.vertexData.data,
+			DXCHECK(rs->device->CreateInputLayout(layouts, ArrayCount(layouts), shaderAsset.vertexData.data,
 				shaderAsset.vertexData.GetCount(), &shader.layout));
 
 			DXCHECK(rs->device->CreateVertexShader(shaderAsset.vertexData.data,
@@ -36,7 +36,7 @@ namespace cm
 			return shader;
 		}break;
 
-		case VertexShaderLayout::PNT:
+		case VertexShaderLayoutType::Value::PNT:
 		{
 			D3D11_INPUT_ELEMENT_DESC pos_desc = {};
 			pos_desc.SemanticName = "Position";
@@ -70,7 +70,7 @@ namespace cm
 			ShaderInstance shader = {};
 			shader.id = shaderAsset.id;
 
-			DXCHECK(rs->device->CreateInputLayout(layouts, 3, shaderAsset.vertexData.data,
+			DXCHECK(rs->device->CreateInputLayout(layouts, ArrayCount(layouts), shaderAsset.vertexData.data,
 				shaderAsset.vertexData.GetCount(), &shader.layout));
 
 			DXCHECK(rs->device->CreateVertexShader(shaderAsset.vertexData.data,
@@ -81,7 +81,61 @@ namespace cm
 
 			return shader;
 		}break;
-		case VertexShaderLayout::TEXT:
+		case VertexShaderLayoutType::Value::PNTC:
+		{
+			D3D11_INPUT_ELEMENT_DESC pos_desc = {};
+			pos_desc.SemanticName = "Position";
+			pos_desc.SemanticIndex = 0;
+			pos_desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pos_desc.InputSlot = 0;
+			pos_desc.AlignedByteOffset = 0;
+			pos_desc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pos_desc.InstanceDataStepRate = 0;
+
+			D3D11_INPUT_ELEMENT_DESC nrm_desc = {};
+			nrm_desc.SemanticName = "Normal";
+			nrm_desc.SemanticIndex = 0;
+			nrm_desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			nrm_desc.InputSlot = 0;
+			nrm_desc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			nrm_desc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			nrm_desc.InstanceDataStepRate = 0;
+
+			D3D11_INPUT_ELEMENT_DESC txc_desc = {};
+			txc_desc.SemanticName = "TexCord";
+			txc_desc.SemanticIndex = 0;
+			txc_desc.Format = DXGI_FORMAT_R32G32_FLOAT;
+			txc_desc.InputSlot = 0;
+			txc_desc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			txc_desc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			txc_desc.InstanceDataStepRate = 0;
+
+			D3D11_INPUT_ELEMENT_DESC col_desc = {};
+			col_desc.SemanticName = "Colour";
+			col_desc.SemanticIndex = 0;
+			col_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			col_desc.InputSlot = 0;
+			col_desc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			col_desc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			col_desc.InstanceDataStepRate = 0;
+
+			D3D11_INPUT_ELEMENT_DESC layouts[] = { pos_desc, nrm_desc, txc_desc, col_desc };
+
+			ShaderInstance shader = {};
+			shader.id = shaderAsset.id;
+
+			DXCHECK(rs->device->CreateInputLayout(layouts, ArrayCount(layouts), shaderAsset.vertexData.data,
+				shaderAsset.vertexData.GetCount(), &shader.layout));
+
+			DXCHECK(rs->device->CreateVertexShader(shaderAsset.vertexData.data,
+				shaderAsset.vertexData.GetCount(), nullptr, &shader.vs));
+
+			DXCHECK(rs->device->CreatePixelShader(shaderAsset.pixelData.data,
+				shaderAsset.pixelData.GetCount(), nullptr, &shader.ps));
+
+			return shader;
+		}break;
+		case VertexShaderLayoutType::Value::TEXT:
 		{
 			D3D11_INPUT_ELEMENT_DESC desc = {};
 			desc.SemanticName = "POSITION";
@@ -109,6 +163,8 @@ namespace cm
 
 		}break;
 		}
+
+		Assert(0, "ShaderInstance::CreateGraphics unkown format");
 
 		return {};
 	}

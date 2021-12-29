@@ -3,6 +3,7 @@
 #include "TextFile.h"
 #include "BinaryFile.h"
 #include "core/SolarAssets.h"
+#include "AssetIdGenerator.h"
 
 namespace cm
 {

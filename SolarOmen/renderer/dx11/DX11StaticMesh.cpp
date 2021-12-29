@@ -12,19 +12,19 @@ namespace cm
 		DXINFO(rs->context->Unmap(vertexBuffer, 0));
 	}
 
-	StaticMesh StaticMesh::Create(real32* vertices, uint32 sizeBytes)
+	StaticMesh StaticMesh::Create(real32* vertices, uint32 sizeBytes, VertexShaderLayoutType layout)
 	{
-		uint32 stride = 4 * sizeof(real32);
 		D3D11_BUFFER_DESC vertexDesc = {};
 		vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vertexDesc.Usage = D3D11_USAGE_DYNAMIC;
 		vertexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		vertexDesc.MiscFlags = 0;
 		vertexDesc.ByteWidth = sizeBytes;
-		vertexDesc.StructureByteStride = stride;
+		vertexDesc.StructureByteStride = sizeof(real32) * layout.GetStride();
 
 		StaticMesh result = {};
-		result.strideBytes = stride;
+		result.strideBytes = sizeof(real32) * layout.GetStride();
+		result.vertexLayout = layout;
 		GetRenderState();
 		DXCHECK(rs->device->CreateBuffer(&vertexDesc, nullptr, &result.vertexBuffer));
 
@@ -33,6 +33,8 @@ namespace cm
 
 	StaticMesh cm::StaticMesh::Create(const ModelAsset& modelAsset)
 	{
+		Assert(modelAsset.layout != VertexShaderLayoutType::Value::INAVLID, "Invalid mesh vertex layout");
+
 		GetRenderState();
 
 		int32 vertexCount = modelAsset.packedVertices.count;
@@ -40,7 +42,7 @@ namespace cm
 		uint32* indices = modelAsset.indices.data;
 		real32* vertices = modelAsset.packedVertices.data;
 
-		uint32 vertex_stride_bytes = sizeof(real32) * 3 + sizeof(real32) * 3 + sizeof(real32) * 2;
+		uint32 vertex_stride_bytes = sizeof(real32) * modelAsset.layout.GetStride();
 		uint32 indices_stride_bytes = sizeof(uint32);
 
 		// @TODO: Look at the IMMUTABLE FLAG ?
@@ -72,6 +74,7 @@ namespace cm
 		result.strideBytes = vertex_stride_bytes;
 		result.indexCount = indexCount;
 		result.id = modelAsset.id;
+		result.vertexLayout = modelAsset.layout;
 
 		return result;
 	}
@@ -91,6 +94,7 @@ namespace cm
 
 		ModelAsset asset = {};
 		asset.id = 1;
+		asset.layout = VertexShaderLayoutType::Value::PNT;
 		asset.packedVertices.data = vertexData;
 		asset.packedVertices.count = ArrayCount(vertexData);
 		asset.indices.data = indexData;

@@ -338,7 +338,7 @@ namespace cm
 			}
 		}
 
-		rs->fontMesh = StaticMesh::Create(nullptr, sizeof(float) * 6 * 4);
+		rs->fontMesh = StaticMesh::Create(nullptr, sizeof(real32) * 6 * 4, VertexShaderLayoutType::Value::TEXT);
 	}
 
 	static void RenderText(const CString& text, real32 x, real32 y, real32 scale, Vec3f color)
@@ -458,9 +458,12 @@ namespace cm
 		rs->irradianceConvolutionShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "irradiance_convolution"));
 
 		ShaderAsset textShader = GetAssetFromName(shaders, "text");
-		textShader.vertexLayout = VertexShaderLayout::TEXT;
+		textShader.vertexLayout = VertexShaderLayoutType::Value::TEXT;
 		rs->textShader = ShaderInstance::CreateGraphics(textShader);
 
+		ShaderAsset kennyShader = GetAssetFromName(shaders, "phongKenney");
+		kennyShader.vertexLayout = VertexShaderLayoutType::Value::PNTC;
+		rs->phongKenneyShader = ShaderInstance::CreateGraphics(kennyShader);
 
 		CreateAllStaticMeshes();
 		CreateAllTextures();
@@ -507,8 +510,6 @@ namespace cm
 
 		RenderCommand::BindCubeMap(rs->environmentMap, 11);
 
-		RenderCommand::BindShader(rs->phongShader);
-
 		rs->lightingConstBuffer.data.viewPos = Vec4f(renderGroup->playerCamera.transform.position, 0.0f);
 		RenderCommand::UpdateConstBuffer(rs->lightingConstBuffer);
 
@@ -540,6 +541,15 @@ namespace cm
 			StaticMesh* mesh = rs->meshes.Get(entry->modelId);
 			if (mesh)
 			{
+				if (mesh->vertexLayout == VertexShaderLayoutType::Value::PNTC)
+				{
+					RenderCommand::BindShader(rs->phongKenneyShader);
+				}
+				else
+				{
+					RenderCommand::BindShader(rs->phongShader);
+				}
+
 				lastModelId = entry->modelId;
 				RenderCommand::UpdateConstBuffer(rs->modelConstBuffer);
 				RenderCommand::BindAndDrawMesh(*mesh);

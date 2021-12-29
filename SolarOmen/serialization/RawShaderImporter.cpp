@@ -12,7 +12,7 @@ namespace cm
 		uint32 vertexSize = SafeTruncateUInt64(vertexFile.sizeBytes);
 		uint32 pixelSize = SafeTruncateUInt64(pixelFile.sizeBytes);
 
-		shaderAsset.vertexLayout = VertexShaderLayout::PNT;
+		shaderAsset.vertexLayout = VertexShaderLayoutType::Value::PNT;
 
 		shaderAsset.vertexData = ManagedArray<char>(GameMemory::PushPermanentCount<char>(vertexSize), vertexSize);
 		shaderAsset.vertexData.count = vertexSize;

@@ -114,16 +114,14 @@ namespace cm
 			vector.x = mesh->mVertices[i].x;
 			vector.y = mesh->mVertices[i].y;
 			vector.z = mesh->mVertices[i].z;
-			resultingMesh.positions.push_back(vector);
 			vertex.position = vector;
+
 			// normals
 			if (mesh->HasNormals())
 			{
 				vector.x = mesh->mNormals[i].x;
 				vector.y = mesh->mNormals[i].y;
 				vector.z = mesh->mNormals[i].z;
-
-				resultingMesh.normals.push_back(vector);
 				vertex.normal = vector;
 			}
 			else
@@ -140,21 +138,19 @@ namespace cm
 				// use models where a vertex can have multiple texture coordinates so we always take the first set (0).
 				vec.x = mesh->mTextureCoords[0][i].x;
 				vec.y = mesh->mTextureCoords[0][i].y;
-				resultingMesh.uvs.push_back(vec);
+
 				vertex.texCoords = vec;
 
 				// tangent
 				vector.x = mesh->mTangents[i].x;
 				vector.y = mesh->mTangents[i].y;
 				vector.z = mesh->mTangents[i].z;
-				resultingMesh.tangets.push_back(vector);
 				vertex.tangent = vector;
 
 				// bitangent
 				vector.x = mesh->mBitangents[i].x;
 				vector.y = mesh->mBitangents[i].y;
 				vector.z = mesh->mBitangents[i].z;
-				resultingMesh.bitangets.push_back(vector);
 				vertex.bitangent = vector;
 			}
 			else
@@ -195,18 +191,32 @@ namespace cm
 		const Mesh& mesh = meshes[0];
 		file->Write(id);
 		file->Write(name);
-		file->Write(mesh.positions);
-		file->Write(mesh.normals);
-		file->Write(mesh.uvs);
-		file->Write(mesh.vertices);
+
+		if (mesh.hasColours)
+		{
+			file->Write((uint32)VertexShaderLayoutType::Value::PNTC);
+			file->Write((uint32)mesh.vertices.size());
+			for (const FatVertex& v : mesh.vertices)
+			{
+				file->Write(v.position);
+				file->Write(v.normal);
+				file->Write(v.texCoords);
+				file->Write(v.colours);
+			}
+		}
+		else
+		{
+			file->Write((uint32)VertexShaderLayoutType::Value::PNT);
+			file->Write((uint32)mesh.vertices.size());
+			for (const FatVertex& v : mesh.vertices)
+			{
+				file->Write(v.position);
+				file->Write(v.normal);
+				file->Write(v.texCoords);
+			}
+		}
+
+
 		file->Write(mesh.indices);
 	}
-
-	void FatVertex::SaveBinaryData(BinaryFile* file) const
-	{
-		file->Write(position);
-		file->Write(normal);
-		file->Write(texCoords);
-	}
-
 }

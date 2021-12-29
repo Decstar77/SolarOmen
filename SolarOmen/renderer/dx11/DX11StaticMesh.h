@@ -8,13 +8,15 @@ namespace cm
 	{
 		AssetId id;
 		uint32 strideBytes; // @NOTE: Used for rendering
-		uint32 indexCount; // @NOTE: Used for rendering
+		uint32 indexCount;  // @NOTE: Used for rendering
 		ID3D11Buffer* vertexBuffer;
 		ID3D11Buffer* indexBuffer;
 
+		VertexShaderLayoutType vertexLayout;
+
 		void UpdateVertexBuffer(real32* vertices, uint32 sizeBytes);
 
-		static StaticMesh Create(real32* vertices, uint32 sizeBytes);
+		static StaticMesh Create(real32* vertices, uint32 sizeBytes, VertexShaderLayoutType layout);
 		static StaticMesh Create(const ModelAsset& modelAsset);
 		static StaticMesh CreateScreenSpaceQuad();
 	};

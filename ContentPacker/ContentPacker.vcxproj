@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AssetIdGenerator.cpp" />
     <ClCompile Include="src\BinaryFile.cpp" />
     <ClCompile Include="src\FileProcessor.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -162,6 +163,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AssetIdGenerator.h" />
     <ClInclude Include="src\BinaryFile.h" />
     <ClInclude Include="src\Core.h" />
     <ClInclude Include="src\FileProcessor.h" />

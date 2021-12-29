@@ -60,6 +60,7 @@ namespace cm
 
 		ShaderInstance unlitShader;
 		ShaderInstance phongShader;
+		ShaderInstance phongKenneyShader;
 		ShaderInstance textShader;
 		ShaderInstance quadShader;
 		ShaderInstance skyboxShader;
