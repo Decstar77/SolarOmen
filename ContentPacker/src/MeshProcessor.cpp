@@ -3,24 +3,11 @@
 
 namespace cm
 {
-	CString MetaFileProcessor::Find(const CString& name) const
-	{
-		for (int32 i = 0; i < metaNames.size(); i++)
-		{
-			if (metaNames.at(i) == name)
-			{
-				return metaPaths.at(i);
-			}
-		}
-
-		return name;
-	}
-
 	ModelProcessor::ModelProcessor()
 	{
 	}
 
-	std::vector<Model> ModelProcessor::LoadModels(const std::vector<CString>& modelPaths, const MetaFileProcessor& metaProcessor)
+	std::vector<Model> ModelProcessor::LoadModels(const std::vector<CString>& modelPaths, const MetaProcessor& metaProcessor)
 	{
 		std::vector<Model> models;
 		std::vector<CString> modelNames;
@@ -34,17 +21,15 @@ namespace cm
 
 			if (metaPath.GetLength() != 0)
 			{
-				TextFileReader reader;
-				reader.Read(metaPath);
+				ModelMetaFile metaFile = metaProcessor.ParseModelMetaFile(metaPath);
+				Assert(metaFile.id != 0, "");
 
-				CString line = reader.NextLine();
-				AssetId id = line.SubStr(line.FindFirstOf('=') + 1).ToUint64();
-				Model model = Model(modelPath, id, Util::StripFilePathAndExtentions(modelPath));
+				Model model = Model(modelPath, metaFile.id, Util::StripFilePathAndExtentions(modelPath));
 				models.push_back(model);
 			}
 			else
 			{
-				LOG("No meta file for " << modelPath.GetCStr() << " creating one; id =");
+				LOG("No meta file for " << modelPath.GetCStr() << " something went very wrong !!");
 			}
 		}
 

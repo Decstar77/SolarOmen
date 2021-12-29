@@ -22,4 +22,23 @@ namespace cm
 
 		file.close();
 	}
+
+	void TextFileWriter::SaveToDisk(const CString& path)
+	{
+		std::ofstream file(path.GetCStr());
+
+		if (file)
+		{
+			for (const CString& line : lines)
+			{
+				file << line.GetCStr();
+			}
+		}
+		else
+		{
+			LOG("Could not create text file: " << path.GetCStr());
+		}
+
+		file.close();
+	}
 }

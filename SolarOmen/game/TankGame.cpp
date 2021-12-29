@@ -721,8 +721,9 @@ namespace cm
 		}
 
 		Entity prop = CreateEntity("Prop01");
+		prop.SetNetworkOwner(PlayerNumber::ONE);
 		prop.SetRendering("alien", "Prop_01_DefaultMaterial_BaseColor");
-		prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(1)));
+		prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(2)));
 
 		grid.Initialize(&roomAsset.map);
 

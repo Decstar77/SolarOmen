@@ -1,4 +1,5 @@
 #include "Core.h"
+#include "MetaProcessor.h"
 #include "FileProcessor.h"
 #include "MeshProcessor.h"
 #include "MaterialProcessor.h"
@@ -10,8 +11,24 @@ int main()
 {
 	FileProcessor fileProcessor;
 
+	MetaProcessor metaProcessor;
+	metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
+
 	std::vector<CString> modelPaths = fileProcessor.GetFilePaths(ASSET_PATH, "obj");
-	MetaFileProcessor metaProcessor = MetaFileProcessor(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
+	std::vector<CString> missingMetaModels = metaProcessor.FindMissing(modelPaths);
+
+	for (const CString& path : missingMetaModels)
+	{
+		ModelMetaFile metaData = {};
+		metaData.scale = 2.0f;
+		metaData.layout = VertexShaderLayoutType::Value::PNT;
+
+		CString newPath = Util::StripFileExtension(path).Add(".slo");
+		metaProcessor.SaveMetaData(newPath, metaData);
+		LOG("Creating meta file for: " << path.GetCStr());
+	}
+
+	metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
 
 	LOG("PROCESSING MODELS");
 	ModelProcessor modelProcessor;

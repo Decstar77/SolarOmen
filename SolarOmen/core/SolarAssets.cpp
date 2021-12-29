@@ -64,7 +64,7 @@ namespace cm
 					break;
 				}
 
-				if (data[*current] == '\n')
+				if (data[*current] == '\n' || data[*current] == '\r')
 				{
 					(*current)++;
 					break;
@@ -74,70 +74,6 @@ namespace cm
 		}
 
 		return result;
-	}
-
-	ManagedArray<ModelAsset> LoadOrCreateModelMetaData(ManagedArray<CString> metaFiles, ManagedArray<CString> modelFiles)
-	{
-		ManagedArray<ModelAsset> models = {};
-		models.data = GameMemory::PushTransientCount<ModelAsset>(modelFiles.GetCount());
-		models.capcity = modelFiles.GetCount();
-
-		for (uint32 i = 0; i < modelFiles.GetCount(); i++)
-		{
-			int32 index = FindMetaFile(metaFiles, modelFiles[i]);
-			uint64 guid = 0;
-
-			if (index >= 0)
-			{
-				PlatformFile metaFile = Platform::LoadEntireFile(metaFiles[index], false);
-
-				int32 current = 0;
-				CString line = ParseLine((const char*)metaFile.data, &current);
-				bool32 correctFile = false;
-				while (line.GetLength() > 0)
-				{
-					if (line.StartsWith("GUID="))
-					{
-						guid = line.Split('=')[1].ToUint64();
-					}
-
-					if (line == "Type=Model")
-					{
-						correctFile = true;
-					}
-					line = ParseLine((const char*)metaFile.data, &current);
-				}
-
-				if (!correctFile)
-				{
-					Debug::LogInfo("Incorrect meta file !!");
-					continue;
-				}
-			}
-			else
-			{
-				CString data = "";
-				guid = randomDistribution(randomEngine);
-				data.Add("GUID=").Add(guid).Add("\n");
-				data.Add("Type=Model\n");
-
-				CString path = Util::StripFileExtension(modelFiles[i]);
-				path.Add(".slo");
-
-				Debug::LogInfo(CString("No meta file for ").Add(modelFiles[i]).Add(" creating one ").Add(guid));
-				if (!Platform::WriteFile(path, (void*)data.GetCStr(), data.GetLength()))
-				{
-					Debug::LogInfo("Could not save meta file !!");
-				}
-			}
-
-			ModelAsset asset = {};
-			asset.id = guid;
-			asset.name = Util::StripFilePathAndExtentions(modelFiles[i]);
-			models.Add(asset);
-		}
-
-		return models;
 	}
 
 	ManagedArray<TextureAsset> LoadOrCreateTextureMetaData(ManagedArray<CString> metaFiles, ManagedArray<CString> textureFiles)
@@ -253,7 +189,6 @@ namespace cm
 
 		ManagedArray<CString> audioFiles = Platform::LoadEntireFolder(CString(ASSET_PATH), "wav");
 
-		ManagedArray<ModelAsset> models = LoadOrCreateModelMetaData(metaFiles, modelFiles);
 		ManagedArray<TextureAsset> textures = LoadOrCreateTextureMetaData(metaFiles, textureFiles);
 
 #if 0

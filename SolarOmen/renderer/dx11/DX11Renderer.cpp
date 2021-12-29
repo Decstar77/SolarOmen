@@ -524,7 +524,7 @@ namespace cm
 
 			rs->modelConstBuffer.data.mvp = mvp;
 			rs->modelConstBuffer.data.model = m;
-			rs->modelConstBuffer.data.invM = m;
+			rs->modelConstBuffer.data.invM = Inverse(m);
 
 			// @TODO: Check for null asset id first!!
 

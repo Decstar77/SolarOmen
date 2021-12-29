@@ -155,6 +155,7 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\MaterialProcessor.cpp" />
     <ClCompile Include="src\MeshProcessor.cpp" />
+    <ClCompile Include="src\MetaProcessor.cpp" />
     <ClCompile Include="src\TextFile.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +170,7 @@
     <ClInclude Include="src\FileProcessor.h" />
     <ClInclude Include="src\MaterialProcessor.h" />
     <ClInclude Include="src\MeshProcessor.h" />
+    <ClInclude Include="src\MetaProcessor.h" />
     <ClInclude Include="src\TextFile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

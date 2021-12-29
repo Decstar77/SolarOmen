@@ -21,4 +21,14 @@ namespace cm
 		std::vector<CString> lines;
 	};
 
+	class TextFileWriter
+	{
+	public:
+		TextFileWriter() {};
+		inline void WriteLine(CString line) { lines.push_back(line.Add('\n')); }
+		void SaveToDisk(const CString& path);
+	private:
+		std::vector<CString> lines;
+	};
+
 }

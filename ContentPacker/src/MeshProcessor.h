@@ -2,6 +2,7 @@
 #include "Core.h"
 #include "core/SolarAssets.h"
 #include "TextFile.h"
+#include "MetaProcessor.h"
 #include "BinaryFile.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -19,26 +20,6 @@ namespace cm
 
 #pragma pack(pop)
 
-	class MetaFileProcessor
-	{
-	public:
-		std::vector<CString> metaPaths;
-		std::vector<CString> metaNames;
-
-		MetaFileProcessor(const std::vector<CString>& paths)
-		{
-			for (int32 i = 0; i < paths.size(); i++)
-			{
-				metaNames.push_back(Util::StripFilePathAndExtentions(paths.at(i)));
-			}
-
-			metaPaths = paths;
-		}
-
-		CString Find(const CString& name) const;
-
-		DISABLE_COPY_AND_MOVE(MetaFileProcessor);
-	};
 
 	class FatVertex
 	{
@@ -107,7 +88,7 @@ namespace cm
 	public:
 		ModelProcessor();
 
-		std::vector<Model> LoadModels(const std::vector<CString>& modelPaths, const MetaFileProcessor& metaProcessor);
+		std::vector<Model> LoadModels(const std::vector<CString>& modelPaths, const MetaProcessor& metaProcessor);
 		void SaveModels(const std::vector<Model>& models);
 
 		DISABLE_COPY_AND_MOVE(ModelProcessor);
