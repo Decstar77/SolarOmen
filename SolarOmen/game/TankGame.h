@@ -195,8 +195,12 @@ namespace cm
 		AssetId id;
 		CString name;
 		RoomType type;
+
 		bool twoPlayerGame;
 		bool initialized;
+		bool isPaused;
+
+		real32 totalTime;
 
 		Camera playerCamera;
 		Vec3f playerCameraOffset;
@@ -287,6 +291,8 @@ namespace cm
 
 		RoomType nextRoom;
 		Room currentRoom;
+
+		void TransitionToRoom(const RoomAsset& roomAsset);
 
 		static inline void Initialize(GameState* gs) { gameState = gs; }
 		static inline GameState* Get() { return gameState; }

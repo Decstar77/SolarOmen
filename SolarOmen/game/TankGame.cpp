@@ -808,6 +808,7 @@ namespace cm
 	{
 		this->type = roomAsset.type;
 		this->multiplayerState = multiplayerState;
+		this->name = roomAsset.name;
 
 		switch (type)
 		{
@@ -829,6 +830,7 @@ namespace cm
 
 	void Room::Update(real32 dt)
 	{
+		totalTime += dt;
 		switch (type)
 		{
 		case RoomType::MAIN_MENU:  UpdateMenuRoom(dt); break;
@@ -1341,21 +1343,19 @@ namespace cm
 		//}
 	}
 
-	static void TransitionToRoom(const RoomAsset& roomAsset)
+	void GameState::TransitionToRoom(const RoomAsset& roomAsset)
 	{
-		GetGameState();
+		currentRoom.Shutdown();
+		ZeroStruct(&currentRoom);
 
-		gs->currentRoom.Shutdown();
-		ZeroStruct(&gs->currentRoom);
+		multiplayerState.tickCounter = 0;
+		multiplayerState.gatherCommands = 0;
+		multiplayerState.timeSinceLastSend = 0;
+		ZeroStruct(&multiplayerState.lastCommands);
+		ZeroStruct(&multiplayerState.currentCommands);
 
-		gs->multiplayerState.tickCounter = 0;
-		gs->multiplayerState.gatherCommands = 0;
-		gs->multiplayerState.timeSinceLastSend = 0;
-		ZeroStruct(&gs->multiplayerState.lastCommands);
-		ZeroStruct(&gs->multiplayerState.currentCommands);
-
-		gs->currentRoom.Initialize(roomAsset, &gs->multiplayerState);
-		gs->nextRoom = RoomType::INVALID;
+		currentRoom.Initialize(roomAsset, &multiplayerState);
+		nextRoom = RoomType::INVALID;
 	}
 
 	bool32 Game::Initialize()
@@ -1381,7 +1381,7 @@ namespace cm
 			}
 
 			testRoom->type = gs->nextRoom;
-			TransitionToRoom(*testRoom);
+			gs->TransitionToRoom(*testRoom);
 		}
 		else
 		{

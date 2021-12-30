@@ -152,24 +152,64 @@ namespace cm
 		return ImGui::Combo("Type", currentItem, items, count);
 	}
 
+	class TextFileWriter
+	{
+	public:
+		TextFileWriter()
+		{
+			data = GameMemory::PushTransientStruct<LargeString<1000000>>();
+		};
+
+		template<typename T>
+		inline void WriteLine(const T& t)
+		{
+			data->Add(t).Add('\n');
+		}
+
+		template<typename T>
+		inline void Write(const T& t)
+		{
+			data->Add(t);
+		}
+
+		inline void SaveToDisk(const CString& path)
+		{
+			Platform::WriteFile(path, data->GetCStr(), (uint32)data->GetLength());
+		}
+
+	private:
+		LargeString<1000000>* data;
+	};
+
 	static void SaveRoomAsset(RoomAsset* asset)
 	{
-		LargeString<1000000>* roomData = GameMemory::PushTransientStruct<LargeString<1000000>>();
-		roomData->Add("Version: 1");
-		roomData->Add("Player1 Start Pos:").Add(ToString(asset->player1StartPos)).Add("\n");
-		roomData->Add("Player2 Start Pos:").Add(ToString(asset->player2StartPos)).Add("\n");
-		roomData->Add("Two Player Game: ?\n");
+		TextFileWriter file;
 
-		roomData->Add("Entities: \n");
+		file.WriteLine("Version: 1");
+		file.WriteLine(CString("Player1 Start Pos:").Add(ToString(asset->player1StartPos)));
+		file.WriteLine(CString("Player2 Start Pos:").Add(ToString(asset->player2StartPos)));
+		file.WriteLine("Two Player Game: ?");
+		file.WriteLine(CString("Entities:").Add(asset->entities.count));
 
-		roomData->Add("Map: \n");
+		for (uint32 i = 0; i < asset->entities.count; i++)
+		{
+			EntityAsset* entity = &asset->entities[i];
+			file.WriteLine("{");
+			file.WriteLine(entity->name);
+			file.WriteLine("}");
+		}
+
+
+		file.WriteLine("Map:");
 		for (uint32 i = 0; i < asset->map.GetCapcity(); i++)
 		{
 			int32 data = asset->map[i];
-			roomData->Add(data).Add(" ");
+			file.Write(data);
+			file.Write(" ");
+
 			if (i % 25 == 0 && i != 0)
 			{
-				roomData->Add("\n");
+				file.Write("\n");
 			}
 		}
 
@@ -178,7 +218,7 @@ namespace cm
 			asset->name = "UnknownRoom";
 		}
 
-		Platform::WriteFile(CString("../Assets/Raw/Rooms/").Add(asset->name).Add(".txt"), roomData->GetCStr(), (uint32)roomData->GetLength());
+		file.SaveToDisk(CString("../Assets/Raw/Rooms/").Add(asset->name).Add(".txt"));
 	}
 
 	static void ShowAssetWindow()
@@ -187,7 +227,7 @@ namespace cm
 		GetAssetState();
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
 		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
-		ImGui::Begin("Assets", &es->showBuildWindow);
+		ImGui::Begin("Assets", &es->showAssetWindow);
 
 		ManagedArray<ModelAsset> models = as->models.GetValueSet();
 
@@ -216,6 +256,11 @@ namespace cm
 			}
 		}
 
+		if (gs->currentRoom.totalTime > 0)
+		{
+			gs->TransitionToRoom(es->currentRoomAsset);
+			gs->currentRoom.isPaused = true;
+		}
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
 		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
@@ -224,10 +269,21 @@ namespace cm
 		ImGui::DragFloat3("Player1 Start Position", es->currentRoomAsset.player1StartPos.ptr);
 		ImGui::DragFloat3("Player2 Start Position", es->currentRoomAsset.player2StartPos.ptr);
 
+		Room* room = &gs->currentRoom;
+
+		es->currentRoomAsset.entities.Clear();
+		room->BeginEntityLoop();
+		while (Entity entity = room->GetNextEntity())
+		{
+			EntityAsset entityAsset = {};
+			entityAsset.name = entity.GetName();
+			es->currentRoomAsset.entities.Add(entityAsset);
+		}
+
+
 		static int32 currentItem = 0;
 		ComboEnum<GridCellType>("Build type", &currentItem);
 
-		Room* room = &gs->currentRoom;
 		Grid* grid = &room->grid;
 
 		room->grid.DebugDraw();
@@ -419,21 +475,19 @@ namespace cm
 
 		GetEditorState();
 		GetInput();
+		GetGameState();
 
-		static bool inGame = 1;
 		es->showConsoleWindow = 0;
 		if (IsKeyJustDown(input, f5))
 		{
-			inGame = !inGame;
+			gs->currentRoom.isPaused = !gs->currentRoom.isPaused;
 		}
 		if (IsKeyJustDown(input, f6))
 		{
-			GetGameState();
-			ZeroStruct(&gs->currentRoom);
 			//gs->currentRoom.Initialize(false);
 		}
 
-		if (inGame)
+		if (!gs->currentRoom.isPaused)
 		{
 			Game::UpdateGame(dt);
 		}

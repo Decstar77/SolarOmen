@@ -250,6 +250,11 @@ namespace cm
 		COUNT
 	};
 
+	struct EntityAsset
+	{
+		CString name;
+	};
+
 	struct RoomAsset
 	{
 		static constexpr uint32 ROOM_HORIZTONAL_SIZE = 255;
@@ -262,6 +267,7 @@ namespace cm
 		Vec3f player1StartPos;
 		Vec3f player2StartPos;
 
+		FixedArray<EntityAsset, 1024> entities;
 		FixedArray<int32, ROOM_HORIZTONAL_SIZE* ROOM_VERTICAL_SIZE> map;
 	};
 
