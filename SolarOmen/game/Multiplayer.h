@@ -1,6 +1,6 @@
 #pragma once
 #include "core/SolarCore.h"
-#include "EntityId.h"
+#include "core/SolarEntity.h"
 #include <bitset>
 
 namespace cm

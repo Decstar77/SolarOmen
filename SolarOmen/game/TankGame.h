@@ -1,22 +1,11 @@
 #pragma once
 #include "components/SolarCamera.h"
-#include "Entity.h"
+#include "core/SolarEntity.h"
 #include "Multiplayer.h"
 #include "ManifoldTests.h"
 namespace cm
 {
-	struct NameComponent
-	{
-		CString name;
-	};
 
-	struct RenderComponent
-	{
-		bool32 enabled;
-		AssetId modelId;
-		AssetId textureId;
-		AssetId shaderId;
-	};
 
 	class GridCellType
 	{

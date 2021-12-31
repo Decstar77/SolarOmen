@@ -3198,6 +3198,14 @@ namespace cm
 			return result;
 		}
 
+		inline CString ToString()
+		{
+			CString result = "";
+			result.Add(cm::ToString(position)).Add(":").Add(cm::ToString(orientation)).Add(":").Add(cm::ToString(scale));
+
+			return result;
+		}
+
 	public:
 		Transform()
 		{

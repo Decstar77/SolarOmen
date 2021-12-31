@@ -1,5 +1,5 @@
 #include "SolarDebug.h"
-#include "game/Entity.h"
+#include "core/SolarEntity.h"
 #include "game/TankGame.h"
 #include "SolarPlatform.h"
 #include <iostream>

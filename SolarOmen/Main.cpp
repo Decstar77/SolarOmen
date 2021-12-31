@@ -4,10 +4,74 @@
 #include "core/SolarRenderer.h"
 #include "core/SolarGame.h"
 #include "core/SolarEditor.h"
+#include "core/SolarCore.h"
 
 #include "game/TankGame.h"
 
 using namespace cm;
+
+//enum class MemberVariableType
+//{
+//	INVALID = 0,
+//	STRING,
+//	UINT8,
+//	UINT16,
+//	UINT32,
+//	UINT64,
+//	INT8,
+//	INT16,
+//	INT32,
+//	INT64,
+//	BOOL32,
+//	REAL32,
+//	REAL64,
+//	VEC2F,
+//	VEC3F,
+//	VEC4F,
+//	MAT2F,
+//	MAT3F,
+//	MAT4F,
+//};
+//
+//class MemberVariable
+//{
+//public:
+//	CString name;
+//	MemberVariableType type;
+//	uint32 offset;
+//	MemberVariable(const CString& name, MemberVariableType type, uint32 offset) : name(name), type(type), offset(offset) {}
+//};
+//
+//#define INTROSPECTION_HEADER() static MemberVariable INTROSPECTED_VARIABLES[];
+//#define INTROSPECT_MEMBER(name, type, clss) MemberVariable(name, type, offsetof(clss, v)) 
+//#define INTROSPECT_VARIABLES(clss, ...) inline MemberVariable clss::INTROSPECTED_VARIABLES[] = {__VA_ARGS__}
+//
+//class SomeComponent
+//{
+//public:
+//	Vec3f a;
+//	CString b;
+//	AssetId c;
+//
+//
+//	//INTROSPECT_VARIABLES(
+//	//	MemberVariable("A", MemberVariableType::VEC3F, offsetof(SomeComponent, a))
+//	//);
+//	INTROSPECTION_HEADER();
+//};
+//
+//INTROSPECT_VARIABLES(SomeComponent,
+//	MemberVariable("A", MemberVariableType::VEC3F, offsetof(SomeComponent, a)),
+//	MemberVariable("A", MemberVariableType::VEC3F, offsetof(SomeComponent, a)),
+//	MemberVariable("A", MemberVariableType::VEC3F, offsetof(SomeComponent, a))
+//);
+//
+//template<typename T>
+//void PrintIntrospectedVairableNames()
+//{
+//	for (int32 i = 0; i < ArrayCount(T::INTROSPECTED_VARIABLES); i++)
+//		LOG(T::INTROSPECTED_VARIABLES[i].name.GetCStr());
+//}
 
 int main(int argc, const char* argv[])
 {

@@ -55,6 +55,8 @@ typedef double real64;
 #define ZeroArray(ptr_data) memset(ptr_data, 0, sizeof(ptr_data));
 #define ZeroArrayCount(ptr_data, count) memset(ptr_data, 0, count);
 
+typedef uint64 AssetId;
+#define INVALID_ASSET_ID 0
 
 namespace cm
 {

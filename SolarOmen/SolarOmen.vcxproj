@@ -98,7 +98,7 @@
     <ClCompile Include="game\components\SolarCamera.cpp" />
     <ClCompile Include="core\SolarAssets.cpp" />
     <ClCompile Include="core\SolarDebug.cpp" />
-    <ClCompile Include="game\Entity.cpp" />
+    <ClCompile Include="game\SolarEntity.cpp" />
     <ClCompile Include="game\GameEditor.cpp" />
     <ClCompile Include="game\Multiplayer.cpp" />
     <ClCompile Include="game\TankGame.cpp" />
@@ -149,8 +149,7 @@
     <ClInclude Include="core\Defines.h" />
     <ClInclude Include="core\SolarCore.h" />
     <ClInclude Include="core\SolarQueue.h" />
-    <ClInclude Include="game\Entity.h" />
-    <ClInclude Include="game\EntityId.h" />
+    <ClInclude Include="core\SolarEntity.h" />
     <ClInclude Include="game\GameEditor.h" />
     <ClInclude Include="game\Multiplayer.h" />
     <ClInclude Include="game\TankGame.h" />

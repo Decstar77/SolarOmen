@@ -1,4 +1,4 @@
-#include "Entity.h"
+#include "core/SolarEntity.h"
 #include "TankGame.h"
 
 namespace cm
@@ -295,6 +295,12 @@ namespace cm
 		room->renderComponents[id.index].enabled = true;
 	}
 
+	RenderComponent* Entity::GetRenderComponent()
+	{
+		Assert(IsValid(), "Entity invalid");
+		return &room->renderComponents[id.index];
+	}
+
 	void Entity::SetRendering(const CString& modelName, const CString& textureName)
 	{
 		EnableRendering();
@@ -311,6 +317,13 @@ namespace cm
 		render->modelId = GetAssetFromName<ModelAsset>(models, name).id;
 	}
 
+	AssetId Entity::GetModelId() const
+	{
+		Assert(IsValid(), "Entity invalid");
+		RenderComponent* render = &room->renderComponents[id.index];
+		return render->modelId;
+	}
+
 	void Entity::SetTexture(const CString& name)
 	{
 		Assert(IsValid(), "Entity invalid");
@@ -319,5 +332,19 @@ namespace cm
 		ManagedArray<TextureAsset> textures = as->textures.GetValueSet();
 		RenderComponent* render = &room->renderComponents[id.index];
 		render->textureId = GetAssetFromName<TextureAsset>(textures, name).id;
+	}
+
+	AssetId Entity::GetTextureId() const
+	{
+		Assert(IsValid(), "Entity invalid");
+		RenderComponent* render = &room->renderComponents[id.index];
+		return render->textureId;
+	}
+
+	AssetId Entity::GetShaderId() const
+	{
+		Assert(IsValid(), "Entity invalid");
+		RenderComponent* render = &room->renderComponents[id.index];
+		return render->shaderId;
 	}
 }

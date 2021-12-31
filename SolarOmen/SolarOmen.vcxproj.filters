@@ -108,7 +108,7 @@
     <ClCompile Include="renderer\dx11\DX11Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game\Entity.cpp">
+    <ClCompile Include="game\SolarEntity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ManifoldTests.cpp">
@@ -272,7 +272,7 @@
     <ClInclude Include="renderer\dx11\DX11Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="game\Entity.h">
+    <ClInclude Include="core\SolarEntity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ManifoldTests.h">
@@ -294,9 +294,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="serialization\RawFontImporter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="game\EntityId.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="serialization\RawRoomImporter.h">

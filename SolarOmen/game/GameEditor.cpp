@@ -195,10 +195,32 @@ namespace cm
 		{
 			EntityAsset* entity = &asset->entities[i];
 			file.WriteLine("{");
-			file.WriteLine(entity->name);
+			file.Write("Name: "); file.WriteLine(entity->name);
+			file.Write("Tag: "); file.WriteLine(entity->tag);
+			file.Write("Transform: "); file.WriteLine(entity->localTransform.ToString());
+
+			if (entity->renderComponent.enabled)
+			{
+				file.Write("Render: ");
+				file.Write(entity->renderComponent.modelId); file.Write(':');
+				file.Write(entity->renderComponent.textureId); file.Write(':');
+				file.WriteLine(entity->renderComponent.shaderId);
+			}
+
+			if (entity->colliderComponent.enabled)
+			{
+				file.WriteLine("Collider: ");
+				file.Write((uint32)entity->colliderComponent.type); file.Write(':');
+				switch (entity->colliderComponent.type)
+				{
+				case ColliderType::SPHERE: file.WriteLine(entity->colliderComponent.sphere.ToString()); break;
+				case ColliderType::ALIGNED_BOUNDING_BOX: file.WriteLine(entity->colliderComponent.alignedBox.ToString()); break;
+				default: Assert(0, "COLLIDER TYPE!!!");
+				}
+			}
+
 			file.WriteLine("}");
 		}
-
 
 		file.WriteLine("Map:");
 		for (uint32 i = 0; i < asset->map.GetCapcity(); i++)
@@ -277,9 +299,13 @@ namespace cm
 		{
 			EntityAsset entityAsset = {};
 			entityAsset.name = entity.GetName();
+			entityAsset.tag = entity.GetTag().ToString();
+			entityAsset.localTransform = entity.GetLocalTransform();
+			entityAsset.renderComponent = *entity.GetRenderComponent();
+			entityAsset.colliderComponent = entity.GetColliderLocal();
+
 			es->currentRoomAsset.entities.Add(entityAsset);
 		}
-
 
 		static int32 currentItem = 0;
 		ComboEnum<GridCellType>("Build type", &currentItem);

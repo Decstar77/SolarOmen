@@ -45,9 +45,41 @@ namespace cm
 			}
 			else if (line.StartsWith("Entities"))
 			{
+				while (!line.StartsWith("Map"))
+				{
+					if (line.StartsWith("{"))
+					{
+						EntityAsset entityAsset = {};
+						while (!line.StartsWith("}"))
+						{
+							if (line.StartsWith("Render"))
+							{
+								line.RemoveWhiteSpace();
+								ManagedArray<CString> values = line.Split(':');
+								entityAsset.renderComponent.enabled = true;
+								entityAsset.renderComponent.modelId = values[1].ToUint64();
+								entityAsset.renderComponent.textureId = values[2].ToUint64();
+								entityAsset.renderComponent.shaderId = values[3].ToUint64();
+							}
+							else if (line.StartsWith("Collider"))
+							{
 
+							}
+
+							line = GetNextLine((const char*)file.data, (uint32)file.sizeBytes, &cursor);
+						}
+
+						asset->entities.Add(entityAsset);
+
+						continue;
+					}
+
+					line = GetNextLine((const char*)file.data, (uint32)file.sizeBytes, &cursor);
+				}
 			}
-			else if (line.StartsWith("Map"))
+
+
+			if (line.StartsWith("Map"))
 			{
 				line = GetNextLine((const char*)file.data, (uint32)file.sizeBytes, &cursor);
 				while (line != "")

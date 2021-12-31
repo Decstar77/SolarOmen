@@ -1,10 +1,46 @@
 #pragma once
-#include "core/SolarCore.h"
-#include "EntityId.h"
+#include "../SimpleColliders.h"
+#include "SolarMemory.h"
+#include "core/SolarEntity.h"
 
 namespace cm
 {
 	class Room;
+
+	struct EntityId
+	{
+		int32 index;
+		int32 generation;
+
+		class Entity* Get() const;
+		CString ToString();
+
+		inline bool operator==(const EntityId& rhs) const
+		{
+			return this->index == rhs.index && this->generation == rhs.generation;
+		}
+
+		inline bool operator!=(const EntityId& rhs) const
+		{
+			return this->index != rhs.index || this->generation != rhs.generation;
+		}
+	};
+
+	enum class PlayerNumber
+	{
+		NONE = 0,
+		ONE,
+		TWO,
+	};
+
+	inline PlayerNumber  GetOppositePlayer(const PlayerNumber& playerNumber)
+	{
+		if (playerNumber == PlayerNumber::ONE)
+			return PlayerNumber::TWO;
+		if (playerNumber == PlayerNumber::TWO)
+			return PlayerNumber::ONE;
+		return PlayerNumber::NONE;
+	}
 
 	class BrainType
 	{
@@ -108,6 +144,19 @@ namespace cm
 			Sphere sphere;
 			AABB alignedBox;
 		};
+
+		inline CString ToString()
+		{
+			CString result = "";
+			result.Add("Enabled=").Add(enabled);
+			result.Add((uint32)type);
+
+			switch (type)
+			{
+			case ColliderType::SPHERE: break;
+			case ColliderType::ALIGNED_BOUNDING_BOX: break;
+			}
+		}
 	};
 
 	struct TransformComponent
@@ -206,6 +255,19 @@ namespace cm
 		Quatf lerpOrientation;
 	};
 
+	struct NameComponent
+	{
+		CString name;
+	};
+
+	struct RenderComponent
+	{
+		bool32 enabled;
+		AssetId modelId;
+		AssetId textureId;
+		AssetId shaderId;
+	};
+
 	class Entity
 	{
 	public:
@@ -234,19 +296,20 @@ namespace cm
 		Transform GetWorldTransform() const;
 
 		void EnableRendering();
+		RenderComponent* GetRenderComponent();
 		void SetRendering(const CString& modelName, const CString& textureName);
 
 		void SetModel(const AssetId& id);
 		void SetModel(const CString& name);
-		AssetId GetModel() const;
+		AssetId GetModelId() const;
 
 		void SetTexture(const AssetId& id);
 		void SetTexture(const CString& name);
-		AssetId GetTexture() const;
+		AssetId GetTextureId() const;
 
 		void SetShader(const AssetId& id);
 		void SetShader(const CString& name);
-		AssetId GetShader() const;
+		AssetId GetShaderId() const;
 
 		// @NOTE: These are all in local space
 		void EnableCollider();

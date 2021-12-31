@@ -5,6 +5,8 @@
 #include "SolarHashMap.h"
 #include "SimpleColliders.h"
 
+#include "SolarEntity.h"
+
 namespace cm
 {
 	enum class ShaderStage
@@ -161,9 +163,6 @@ namespace cm
 		};
 	};
 
-	typedef uint64 AssetId;
-#define INVALID_ASSET_ID 0
-
 	struct ModelAsset
 	{
 		AssetId id;
@@ -252,7 +251,12 @@ namespace cm
 
 	struct EntityAsset
 	{
+		EntityId id;
 		CString name;
+		CString tag;
+		Transform localTransform;
+		RenderComponent renderComponent;
+		ColliderComponent colliderComponent;
 	};
 
 	struct RoomAsset
