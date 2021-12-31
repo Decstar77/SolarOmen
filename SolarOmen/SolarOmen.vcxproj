@@ -137,19 +137,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\SolarAudio.h" />
+    <ClInclude Include="core\SolarDataStructures.h" />
     <ClInclude Include="core\SolarIntrospection.h" />
     <ClInclude Include="core\Stract.h" />
     <ClInclude Include="game\components\SolarCamera.h" />
-    <ClInclude Include="core\SolarArray.h" />
     <ClInclude Include="core\SolarAssets.h" />
     <ClInclude Include="core\SolarDebug.h" />
     <ClInclude Include="core\SolarEditor.h" />
     <ClInclude Include="core\SolarGame.h" />
-    <ClInclude Include="core\SolarHashMap.h" />
     <ClInclude Include="core\SolarMath.h" />
     <ClInclude Include="core\Defines.h" />
     <ClInclude Include="core\SolarCore.h" />
-    <ClInclude Include="core\SolarQueue.h" />
     <ClInclude Include="core\SolarEntity.h" />
     <ClInclude Include="game\GameEditor.h" />
     <ClInclude Include="game\Multiplayer.h" />

@@ -13,7 +13,7 @@
 #pragma once
 #include "Defines.h"
 #include "SolarMemory.h"
-#include "SolarArray.h"
+#include "SolarDataStructures.h"
 
 #include <string>
 

@@ -435,23 +435,26 @@ namespace cm
 		if (es->selectedEntities.count > 0)
 		{
 			Entity entity = es->selectedEntities[0];
-			CString name = entity.GetName();
-			if (ImGui::InputText("Name", name.GetCStr(), CString::CAPCITY)) { entity.SetName(name); }
-
-			if (ImGui::CollapsingHeader("Local Transform"))
+			if (entity.IsValid())
 			{
-				Transform transform = entity.GetLocalTransform();
-				DisplayTransform(&transform);
-				entity.SetLocalTransform(transform);
-			}
+				CString name = entity.GetName();
+				if (ImGui::InputText("Name", name.GetCStr(), CString::CAPCITY)) { entity.SetName(name); }
 
-			if (ImGui::CollapsingHeader("Rendering"))
-			{
-				GetAssetState();
+				if (ImGui::CollapsingHeader("Local Transform"))
+				{
+					Transform transform = entity.GetLocalTransform();
+					DisplayTransform(&transform);
+					entity.SetLocalTransform(transform);
+				}
 
-				entity.SetModel(ComboBoxOfAsset("Model", as->models.GetValueSet(), entity.GetModelId()));
-				entity.SetTexture(ComboBoxOfAsset("Texture", as->textures.GetValueSet(), entity.GetTextureId()));
-				entity.SetShader(ComboBoxOfAsset("Shader", as->shaders.GetValueSet(), entity.GetShaderId()));
+				if (ImGui::CollapsingHeader("Rendering"))
+				{
+					GetAssetState();
+
+					entity.SetModel(ComboBoxOfAsset("Model", as->models.GetValueSet(), entity.GetModelId()));
+					entity.SetTexture(ComboBoxOfAsset("Texture", as->textures.GetValueSet(), entity.GetTextureId()));
+					entity.SetShader(ComboBoxOfAsset("Shader", as->shaders.GetValueSet(), entity.GetShaderId()));
+				}
 			}
 		}
 
@@ -639,6 +642,7 @@ namespace cm
 			es->selectedEntities.Clear();
 			if (closestEntity.IsValid())
 			{
+				es->showInspectorWindow = true;
 				es->selectedEntities.Add(closestEntity);
 			}
 		}

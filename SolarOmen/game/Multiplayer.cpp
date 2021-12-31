@@ -363,7 +363,7 @@ namespace cm
 		return nullptr;
 	}
 
-	ManagedArray<GameCommand> MultiplayerState::DeserializeCommandsFromInputStream(MemoryStream* inputMemoryStream, uint32 tickNumber)
+	ManagedArray<GameCommand> MultiplayerState::DeserializeCommandsFromInputStream(NetworkMemoryStream* inputMemoryStream, uint32 tickNumber)
 	{
 		ManagedArray<GameCommand> commands = GameMemory::PushTransientArray<GameCommand>(256);
 		while (inputMemoryStream->GetNextType<GameCommandType>() != GameCommandType::INVALID)
@@ -463,7 +463,7 @@ namespace cm
 		}
 
 		PlatformAddress address = {};
-		MemoryStream inputMemoryStream = {};
+		NetworkMemoryStream inputMemoryStream = {};
 		inputMemoryStream.buffer.count = Platform::NetworkReceive(inputMemoryStream.buffer.data, inputMemoryStream.buffer.GetCapcity(), &address);
 
 		while (inputMemoryStream.buffer.count != UINT32_MAX)

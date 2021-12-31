@@ -177,53 +177,8 @@ namespace cm
 		return result;
 	}
 
-	struct MemoryStream
-	{
-		uint32 bufferCursor;
-		FixedArray<uint8, Platform::MAX_NETWORK_PACKET_SIZE> buffer;
 
-		void BeginBufferLoop() { bufferCursor = 0; }
-		bool BufferLoopIncomplete() {
-			return bufferCursor < buffer.count;
-		}
-
-		template<typename T>
-		inline T GetNextType()
-		{
-			static_assert(std::is_enum<T>::value, "Not enum!!");
-			return (T)buffer.data[bufferCursor];
-		}
-
-		template<typename T>
-		inline T* GetNext()
-		{
-			uint32 index = bufferCursor;
-			if (index < buffer.count)
-			{
-				bufferCursor += sizeof(T);
-				return (T*)&buffer.data[index];
-			}
-
-			return nullptr;
-		}
-
-		template<typename T>
-		bool Add(const T& t)
-		{
-			int32 bytes = sizeof(T);
-			if (bytes + buffer.count < buffer.GetCapcity())
-			{
-				int32 index = buffer.count;
-				buffer.count += bytes;
-				memcpy(&buffer.data[index], (void*)(&t), bytes);
-
-				return true;
-			}
-
-			return false;
-		}
-	};
-
+	typedef FixedMemoryStream<Platform::MAX_NETWORK_PACKET_SIZE> NetworkMemoryStream;
 
 	enum class SnapShotType : uint8
 	{
@@ -257,14 +212,14 @@ namespace cm
 		Vec3f position;
 		Quatf orientation;
 
-		void Deserialize(MemoryStream* stream)
+		void Deserialize(NetworkMemoryStream* stream)
 		{
 			entityId = *stream->GetNext<EntityId>();
 			position = DecompressVec3f(*stream->GetNext<CompressedVec3f>());
 			orientation = DecompressQuatf(*stream->GetNext<CompressedQuatf>());
 		}
 
-		bool Serialize(MemoryStream* stream)
+		bool Serialize(NetworkMemoryStream* stream)
 		{
 			if (stream->buffer.count + 21 < stream->buffer.GetCapcity())
 			{
@@ -318,13 +273,13 @@ namespace cm
 		Vec3f pos;
 		Quatf ori;
 
-		void Deserialize(MemoryStream* stream)
+		void Deserialize(NetworkMemoryStream* stream)
 		{
 			pos = DecompressVec3f(*stream->GetNext<CompressedVec3f>());
 			ori = DecompressQuatf(*stream->GetNext<CompressedQuatf>());
 		}
 
-		void Serialize(MemoryStream* stream)
+		void Serialize(NetworkMemoryStream* stream)
 		{
 			stream->Add(GameCommandType::SPAWN_BULLET);
 			stream->Add(CompressVec3f(pos));
@@ -336,12 +291,12 @@ namespace cm
 	{
 		EntityId id;
 
-		void Deserialize(MemoryStream* stream)
+		void Deserialize(NetworkMemoryStream* stream)
 		{
 			id = *stream->GetNext<EntityId>();
 		}
 
-		void Serialize(MemoryStream* stream)
+		void Serialize(NetworkMemoryStream* stream)
 		{
 			stream->Add(GameCommandType::DESTROY_ENTITY);
 			stream->Add(id);
@@ -394,10 +349,10 @@ namespace cm
 		inline bool IsValid() const { return startedNetworkStuff && connectionValid; }
 
 	private:
-		MemoryStream outputMemoryStream;
+		NetworkMemoryStream outputMemoryStream;
 
 		FixedArray<GameCommand, 256>* AddCommandsToCurrent(GameCommand* commands, uint32 count, bool peer);
-		ManagedArray<GameCommand> DeserializeCommandsFromInputStream(MemoryStream* inputMemoryStream, uint32 tickNumber);
+		ManagedArray<GameCommand> DeserializeCommandsFromInputStream(NetworkMemoryStream* inputMemoryStream, uint32 tickNumber);
 		void SerializeCommandsIntoOutputStream(FixedArray<GameCommand, 256>* commands, uint32 tickNumber);
 
 	};

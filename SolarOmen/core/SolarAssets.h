@@ -2,7 +2,7 @@
 #include "Defines.h"
 #include "SolarPlatform.h"
 #include "SolarMemory.h"
-#include "SolarHashMap.h"
+#include "SolarDataStructures.h"
 #include "SimpleColliders.h"
 
 #include "SolarEntity.h"
