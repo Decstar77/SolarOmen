@@ -229,6 +229,8 @@ namespace cm
 					model.indices.Add(binModels.Read<uint32>());
 				}
 
+
+
 				as->models.Put(model.id, model);
 			}
 
@@ -332,5 +334,60 @@ namespace cm
 		}
 
 		return maxY;
+	}
+
+	UnpackedModelAsset ModelAsset::Unpack()
+	{
+		UnpackedModelAsset result = {};
+		result.indices = GameMemory::PushTransientArray<uint32>(indices.count);
+		for (uint32 i = 0; i < indices.count; i++)
+		{
+			uint32 vertexIndex = indices[i];
+			result.indices.Add(vertexIndex);
+		}
+
+		result.vertexCount = packedVertices.count / layout.GetStride();
+		result.triangleCount = result.vertexCount / 3;
+		result.name = name;
+
+		switch (layout.Get())
+		{
+		case VertexShaderLayoutType::Value::P:Assert(0, "Can't unpack model layout"); break;
+		case VertexShaderLayoutType::Value::P_PAD: Assert(0, "Can't unpack model layout"); break;
+		case VertexShaderLayoutType::Value::PNT:
+		{
+			result.positions = GameMemory::PushTransientArray<Vec3f>(result.vertexCount);
+			result.normals = GameMemory::PushTransientArray<Vec3f>(result.vertexCount);
+			result.uvs = GameMemory::PushTransientArray<Vec2f>(result.vertexCount);
+
+			for (uint32 index = 0, i = 0; i < packedVertices.count; i += layout.GetStride(), index++)
+			{
+				result.positions[index] = Vec3f(packedVertices[i], packedVertices[i + 1], packedVertices[i + 2]);
+				result.normals[index] = Vec3f(packedVertices[i + 3], packedVertices[i + 4], packedVertices[i + 5]);
+				result.uvs[index] = Vec2f(packedVertices[i + 6], packedVertices[i + 7]);
+			}
+		} break;
+		case VertexShaderLayoutType::Value::PNTC:
+		{
+			result.positions = GameMemory::PushTransientArray<Vec3f>(result.vertexCount);
+			result.normals = GameMemory::PushTransientArray<Vec3f>(result.vertexCount);
+			result.uvs = GameMemory::PushTransientArray<Vec2f>(result.vertexCount);
+			result.colours = GameMemory::PushTransientArray<Vec4f>(result.vertexCount);
+
+			for (uint32 index = 0, i = 0; i < packedVertices.count; i += layout.GetStride(), index++)
+			{
+				result.positions[index] = Vec3f(packedVertices[i], packedVertices[i + 1], packedVertices[i + 2]);
+				result.normals[index] = Vec3f(packedVertices[i + 3], packedVertices[i + 4], packedVertices[i + 5]);
+				result.uvs[index] = Vec2f(packedVertices[i + 6], packedVertices[i + 7]);
+				result.colours[index] = Vec4f(packedVertices[i + 8], packedVertices[i + 9], packedVertices[i + 10], packedVertices[i + 11]);
+			}
+		} break;
+		case VertexShaderLayoutType::Value::PNTM:Assert(0, "Can't unpack model layout"); break;
+		case VertexShaderLayoutType::Value::TEXT:Assert(0, "Can't unpack model layout"); break;
+		case VertexShaderLayoutType::Value::INAVLID:Assert(0, "Can't unpack model layout"); break;
+		case VertexShaderLayoutType::Value::COUNT:Assert(0, "Can't unpack model layout"); break;
+		}
+
+		return result;
 	}
 }

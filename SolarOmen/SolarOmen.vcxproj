@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\SolarAudio.h" />
+    <ClInclude Include="core\SolarIntrospection.h" />
     <ClInclude Include="core\Stract.h" />
     <ClInclude Include="game\components\SolarCamera.h" />
     <ClInclude Include="core\SolarArray.h" />

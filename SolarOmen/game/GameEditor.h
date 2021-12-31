@@ -1,5 +1,6 @@
 #pragma once
 #include "core/SolarCore.h"
+#include "TankGame.h"
 #include "game/components/SolarCamera.h"
 
 namespace cm
@@ -20,6 +21,8 @@ namespace cm
 		real32 maxTime = REAL_MIN;
 
 		RoomAsset currentRoomAsset;
+
+		FixedArray<Entity, Room::ENTITY_STORAGE_COUNT> selectedEntities;
 
 		Camera camera;
 

@@ -38,6 +38,8 @@ namespace cm
 		void DrawRay(const Ray& ray);
 		void DrawSphere(const Sphere& sphere);
 		void DrawAABB(const AABB& aabb);
+		void DrawTriangle(const Triangle& tri);
+		void DrawTriangleWithNormal(const Triangle& tri);
 
 		void ClearLogs();
 		void LogInfo(const CString& msg);

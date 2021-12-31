@@ -308,6 +308,13 @@ namespace cm
 		SetTexture(textureName);
 	}
 
+	void Entity::SetModel(const AssetId& modelId)
+	{
+		Assert(IsValid(), "Entity invalid");
+		RenderComponent* render = &room->renderComponents[id.index];
+		render->modelId = modelId;
+	}
+
 	void Entity::SetModel(const CString& name)
 	{
 		Assert(IsValid(), "Entity invalid");
@@ -322,6 +329,13 @@ namespace cm
 		Assert(IsValid(), "Entity invalid");
 		RenderComponent* render = &room->renderComponents[id.index];
 		return render->modelId;
+	}
+
+	void Entity::SetTexture(const AssetId& textureId)
+	{
+		Assert(IsValid(), "Entity invalid");
+		RenderComponent* render = &room->renderComponents[id.index];
+		render->textureId = textureId;
 	}
 
 	void Entity::SetTexture(const CString& name)
@@ -339,6 +353,13 @@ namespace cm
 		Assert(IsValid(), "Entity invalid");
 		RenderComponent* render = &room->renderComponents[id.index];
 		return render->textureId;
+	}
+
+	void Entity::SetShader(const AssetId& shaderId)
+	{
+		Assert(IsValid(), "Entity invalid");
+		RenderComponent* render = &room->renderComponents[id.index];
+		render->shaderId = shaderId;
 	}
 
 	AssetId Entity::GetShaderId() const

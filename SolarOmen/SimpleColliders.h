@@ -104,6 +104,14 @@ namespace cm
 		Vec4f data; // @NOTE: We pack the radius into the W component
 
 		inline CString ToString() { return cm::ToString(data); }
+
+		inline static Sphere Create(const CString& str)
+		{
+			Sphere result = {};
+			result.data = Vec4f(str);
+
+			return result;
+		}
 	};
 
 	inline Sphere CreateSphere(const Vec3f& center, const real32& radius)
@@ -184,6 +192,15 @@ namespace cm
 		Vec3f max;
 
 		inline CString ToString() { return cm::ToString(min).Add(':').Add(cm::ToString(max)); }
+
+		inline static AABB Create(const CString& min, const CString& max)
+		{
+			AABB result = {};
+			result.min = StringToVec3<real32>(min);
+			result.min = StringToVec3<real32>(max);
+
+			return result;
+		}
 	};
 
 	inline AABB CreateAABBEmpty()

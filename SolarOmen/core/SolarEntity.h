@@ -1,7 +1,7 @@
 #pragma once
 #include "../SimpleColliders.h"
 #include "SolarMemory.h"
-#include "core/SolarEntity.h"
+#include "SolarIntrospection.h"
 
 namespace cm
 {
@@ -148,8 +148,9 @@ namespace cm
 		inline CString ToString()
 		{
 			CString result = "";
-			result.Add("Enabled=").Add(enabled);
+			result.Add(enabled);
 			result.Add((uint32)type);
+
 
 			switch (type)
 			{
@@ -266,7 +267,16 @@ namespace cm
 		AssetId modelId;
 		AssetId textureId;
 		AssetId shaderId;
+
+		INTROSPECTION_HEADER();
 	};
+
+	INTROSPECT_VARIABLES(RenderComponent,
+		INTROSPECT_MEMBER(RenderComponent, enabled),
+		INTROSPECT_MEMBER(RenderComponent, modelId),
+		INTROSPECT_MEMBER(RenderComponent, textureId),
+		INTROSPECT_MEMBER(RenderComponent, shaderId)
+	);
 
 	class Entity
 	{

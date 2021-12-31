@@ -44,7 +44,7 @@ namespace cm
 
 	class CString
 	{
-	private:
+	public:
 		// @TODO @BUG @CHECK: If the buffer is full there will be no terminating character at the end of the string!!
 		// @NOTE: The length of the string does not include the null char
 		// @NOTE: Last char is treated as an unsigned int to store the length
@@ -61,6 +61,11 @@ namespace cm
 		}
 
 		inline const char* GetCStr() const
+		{
+			return data;
+		}
+
+		inline char* GetCStr()
 		{
 			return data;
 		}

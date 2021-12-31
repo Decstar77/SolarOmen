@@ -726,7 +726,6 @@ namespace cm
 		prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(2)));
 
 		grid.Initialize(&roomAsset.map);
-
 		CreateEntitiesFromGripMap();
 
 		initialized = true;

@@ -166,6 +166,24 @@ namespace cm
 			DrawLine(v8, v4);
 		}
 
+		void DrawTriangle(const Triangle& tri)
+		{
+			DrawLine(tri.v0, tri.v1);
+			DrawLine(tri.v1, tri.v2);
+			DrawLine(tri.v2, tri.v0);
+		}
+
+		void DrawTriangleWithNormal(const Triangle& tri)
+		{
+			DrawLine(tri.v0, tri.v1);
+			DrawLine(tri.v1, tri.v2);
+			DrawLine(tri.v2, tri.v0);
+
+			Vec3f n = Normalize(Cross(tri.v1 - tri.v0, tri.v2 - tri.v0));
+			Vec3f p = (tri.v0 + tri.v1 + tri.v2) * 1.0f / 3.0f;
+			DrawLine(p, p + n);
+		}
+
 		void ClearLogs()
 		{
 			GetDebugState();

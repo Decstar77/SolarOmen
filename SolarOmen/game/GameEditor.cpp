@@ -67,6 +67,7 @@ namespace cm
 				if (ImGui::MenuItem("Performance")) { es->showPerformanceWindow = true; }
 				if (ImGui::MenuItem("Console")) { es->showConsoleWindow = true; }
 				if (ImGui::MenuItem("Build")) { es->showBuildWindow = true; }
+				if (ImGui::MenuItem("Inspector")) { es->showInspectorWindow = true; }
 				if (ImGui::MenuItem("Asset")) { es->showAssetWindow = true; }
 				//if (ImGui::MenuItem("Main window")) { es->windowOpen = true; }
 				//if (ImGui::MenuItem("Physics")) { es->physicsWindowOpen = true; }
@@ -196,20 +197,33 @@ namespace cm
 			EntityAsset* entity = &asset->entities[i];
 			file.WriteLine("{");
 			file.Write("Name: "); file.WriteLine(entity->name);
-			file.Write("Tag: "); file.WriteLine(entity->tag);
+			file.Write("Tag: "); file.WriteLine(entity->tag.ToString());
 			file.Write("Transform: "); file.WriteLine(entity->localTransform.ToString());
 
 			if (entity->renderComponent.enabled)
 			{
+				GetAssetState();
+
 				file.Write("Render: ");
-				file.Write(entity->renderComponent.modelId); file.Write(':');
-				file.Write(entity->renderComponent.textureId); file.Write(':');
-				file.WriteLine(entity->renderComponent.shaderId);
+				CString modelName = "NONE";
+				CString textureName = "NONE";
+				CString shaderName = "NONE";
+				if (entity->renderComponent.modelId != INVALID_ASSET_ID)
+					modelName = as->models.Get(entity->renderComponent.modelId)->name;
+				if (entity->renderComponent.textureId != INVALID_ASSET_ID)
+					textureName = as->textures.Get(entity->renderComponent.textureId)->name;
+				if (entity->renderComponent.shaderId != INVALID_ASSET_ID)
+					shaderName = as->shaders.Get(entity->renderComponent.shaderId)->name;
+
+				file.Write(modelName); file.Write(':');
+				file.Write(textureName); file.Write(':');
+				file.Write(shaderName);
+				file.WriteLine("");
 			}
 
 			if (entity->colliderComponent.enabled)
 			{
-				file.WriteLine("Collider: ");
+				file.Write("Collider: ");
 				file.Write((uint32)entity->colliderComponent.type); file.Write(':');
 				switch (entity->colliderComponent.type)
 				{
@@ -299,7 +313,7 @@ namespace cm
 		{
 			EntityAsset entityAsset = {};
 			entityAsset.name = entity.GetName();
-			entityAsset.tag = entity.GetTag().ToString();
+			entityAsset.tag = entity.GetTag();
 			entityAsset.localTransform = entity.GetLocalTransform();
 			entityAsset.renderComponent = *entity.GetRenderComponent();
 			entityAsset.colliderComponent = entity.GetColliderLocal();
@@ -362,6 +376,89 @@ namespace cm
 		ImGui::PopStyleVar();
 	}
 
+
+	template<typename T>
+	AssetId ComboBoxOfAsset(const char* label, const ManagedArray<T>& assets, AssetId currentId)
+	{
+		int32 currentItem = 0;
+		const char** items = GameMemory::PushTransientCount<const char*>(assets.count);
+		CString* itemData = GameMemory::PushTransientCount<CString>(assets.count);
+
+		for (uint32 i = 0; i < assets.count; i++)
+		{
+			if (assets[i].id == currentId) { currentItem = i; }
+			itemData[i].Add(assets[i].name);
+			items[i] = itemData[i].GetCStr();
+		}
+
+		if (ImGui::Combo(label, &currentItem, items, assets.count))
+		{
+			currentId = assets[currentItem].id;
+		}
+
+		return currentId;
+	}
+
+	static void DisplayTransform(Transform* transform, const real32 delta = 0.25f)
+	{
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(0.0, 0.94f, 0.7f));
+		ImGui::DragFloat3("Position", transform->position.ptr, delta);
+		ImGui::PopStyleColor(1);
+
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(140.0f / 360.0f, 0.94f, 0.7f));
+		Vec3f ori = QuatToEuler(transform->orientation);
+		// @NOTE: if is for floating point accuracy
+		if (ImGui::DragFloat3("Orientation", ori.ptr, delta))
+		{
+			transform->orientation = EulerToQuat(ori);
+		}
+		ImGui::PopStyleColor(1);
+
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(207.0f / 360.0f, 0.94f, 0.7f));
+		ImGui::DragFloat3("Scale", transform->scale.ptr, delta, 0.1f, 1000.0f);
+		ImGui::PopStyleColor(1);
+
+		if (ImGui::Button("Reset transform"))
+		{
+			*transform = Transform();
+		}
+	}
+
+	static void ShowInpsectorWindow()
+	{
+		GetEditorState();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Inspector", &es->showInspectorWindow);
+
+		if (es->selectedEntities.count > 0)
+		{
+			Entity entity = es->selectedEntities[0];
+			CString name = entity.GetName();
+			if (ImGui::InputText("Name", name.GetCStr(), CString::CAPCITY)) { entity.SetName(name); }
+
+			if (ImGui::CollapsingHeader("Local Transform"))
+			{
+				Transform transform = entity.GetLocalTransform();
+				DisplayTransform(&transform);
+				entity.SetLocalTransform(transform);
+			}
+
+			if (ImGui::CollapsingHeader("Rendering"))
+			{
+				GetAssetState();
+
+				entity.SetModel(ComboBoxOfAsset("Model", as->models.GetValueSet(), entity.GetModelId()));
+				entity.SetTexture(ComboBoxOfAsset("Texture", as->textures.GetValueSet(), entity.GetTextureId()));
+				entity.SetShader(ComboBoxOfAsset("Shader", as->shaders.GetValueSet(), entity.GetShaderId()));
+			}
+		}
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
 	static void DoEntityTreeDisplay(Entity entity)
 	{
 		ImGui::PushID(entity.GetId().index);
@@ -369,19 +466,24 @@ namespace cm
 		{
 			//ImGui::Text(entity.GetId().ToString().GetCStr());
 			//ImGui::SameLine();
-			//if (ImGui::SmallButton("Select"))
-			//{
-			//	if (entity != es->selectedEntity)
-			//	{
-			//		UndoEntry entry = {};
-			//		entry.action = UndoAction::Value::SELECTION_CHANGE;
-			//		entry.selectionChange.current = entity->GetId();
-			//		entry.selectionChange.previous = es->selectedEntity ? es->selectedEntity->GetId() : EntityId();
+			if (ImGui::SmallButton("Select"))
+			{
+				GetEditorState();
+				es->selectedEntities.Clear();
+				es->selectedEntities.Add(entity);
+				es->showInspectorWindow = true;
 
-			//		es->selectedEntity = entity;
-			//		es->undoSystem.Do(entry);
-			//	}
-			//}
+				//	if (entity != es->selectedEntity)
+				//	{
+				//		UndoEntry entry = {};
+				//		entry.action = UndoAction::Value::SELECTION_CHANGE;
+				//		entry.selectionChange.current = entity->GetId();
+				//		entry.selectionChange.previous = es->selectedEntity ? es->selectedEntity->GetId() : EntityId();
+
+				//		es->selectedEntity = entity;
+				//		es->undoSystem.Do(entry);
+				//	}
+			}
 
 			//DisplayTransform(&entity->transform);
 
@@ -491,6 +593,56 @@ namespace cm
 		}
 	}
 
+	static void OperateMouseSelection()
+	{
+		GetInput();
+
+		if (IsKeyJustDown(input, mb1))
+		{
+			GetEditorState();
+			GetGameState();
+			GetAssetState();
+
+			Ray ray = es->camera.ShootRayFromScreen();
+			Entity closestEntity = {};
+			real32 closestDist = REAL_MAX;
+
+			gs->currentRoom.BeginEntityLoop();
+			while (Entity entity = gs->currentRoom.GetNextEntity())
+			{
+				if (entity.GetModelId() != INVALID_ASSET_ID)
+				{
+					Mat4f transform = entity.GetWorldTransform().CalculateTransformMatrix();
+
+					UnpackedModelAsset model = as->models.Get(entity.GetModelId())->Unpack();
+					for (uint32 i = 0; i < model.triangleCount; i += 1)
+					{
+						real32 dist = 0;
+						// @SPEED: Transform ray instead 
+						Triangle triangle = model.GetTriangle(i);
+						triangle.v0 = Vec3f(Vec4f(triangle.v0, 1.0f) * transform);
+						triangle.v1 = Vec3f(Vec4f(triangle.v1, 1.0f) * transform);
+						triangle.v2 = Vec3f(Vec4f(triangle.v2, 1.0f) * transform);
+
+						if (RaycastTriangle(ray, triangle, &dist))
+						{
+							if (dist < closestDist)
+							{
+								closestEntity = entity;
+								closestDist = dist;
+							}
+						}
+					}
+				}
+			}
+
+			es->selectedEntities.Clear();
+			if (closestEntity.IsValid())
+			{
+				es->selectedEntities.Add(closestEntity);
+			}
+		}
+	}
 
 	void Editor::UpdateEditor(EntityRenderGroup* renderGroup, real32 dt)
 	{
@@ -520,14 +672,22 @@ namespace cm
 		else
 		{
 			GetGameState();
-			gs->currentRoom.DEBUGDrawAllColliders();
-			ShowMainMenuBar();
-			OperateCamera(&es->camera, dt);
-			renderGroup->playerCamera = es->camera;
+			//gs->currentRoom.DEBUGDrawAllColliders();
 
+			ShowMainMenuBar();
 			if (es->showRoomWindow) ShowRoomWindow();
 			if (es->showBuildWindow) ShowBuildWindow();
 			if (es->showAssetWindow) ShowAssetWindow();
+			if (es->showInspectorWindow) ShowInpsectorWindow();
+
+			ImGuiIO& io = ImGui::GetIO();
+			if (!io.WantCaptureMouse)
+			{
+				OperateCamera(&es->camera, dt);
+				OperateMouseSelection();
+			}
+
+			renderGroup->playerCamera = es->camera;
 		}
 
 		if (es->showPerformanceWindow) ShowPerformanceWindow(dt);

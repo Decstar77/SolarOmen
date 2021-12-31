@@ -21,21 +21,6 @@ namespace cm
 #pragma pack(pop)
 
 
-	class FatVertex
-	{
-	public:
-		inline static constexpr uint32 MAX_BONE_INFLUENCE = 4;
-
-		Vec3f position;
-		Vec3f normal;
-		Vec2f texCoords;
-		Vec3f tangent;
-		Vec3f bitangent;
-		Vec4f colours;
-		int32 boneIds[MAX_BONE_INFLUENCE] = {};
-		real32 boneWeights[MAX_BONE_INFLUENCE] = {};
-	};
-
 	class Mesh
 	{
 	public:

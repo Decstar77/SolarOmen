@@ -163,15 +163,63 @@ namespace cm
 		};
 	};
 
+	struct FatVertex
+	{
+		inline static constexpr uint32 MAX_BONE_INFLUENCE = 4;
+
+		Vec3f position;
+		Vec3f normal;
+		Vec2f texCoords;
+		Vec3f tangent;
+		Vec3f bitangent;
+		Vec4f colours;
+		int32 boneIds[MAX_BONE_INFLUENCE] = {};
+		real32 boneWeights[MAX_BONE_INFLUENCE] = {};
+	};
+
+	struct UnpackedModelAsset
+	{
+		CString name;
+		uint32 vertexCount;
+		uint32 triangleCount;
+		ManagedArray<uint32> indices;
+		ManagedArray<Vec3f> positions;
+		ManagedArray<Vec3f> normals;
+		ManagedArray<Vec2f> uvs;
+		ManagedArray<Vec3f> tangents;
+		ManagedArray<Vec3f> bitangents;
+		ManagedArray<Vec4f> colours;
+
+		inline Triangle GetTriangle(uint32 triangleIndex)
+		{
+			uint32 vertexIndex = triangleIndex * 3;
+
+			uint32 i0 = indices[vertexIndex];
+			uint32 i1 = indices[vertexIndex + 1];
+			uint32 i2 = indices[vertexIndex + 2];
+
+			Triangle tri = {};
+			tri.v0 = positions[i0];
+			tri.v1 = positions[i1];
+			tri.v2 = positions[i2];
+
+			return tri;
+		}
+	};
+
 	struct ModelAsset
 	{
 		AssetId id;
 		CString name;
 
 		VertexShaderLayoutType layout;
-
 		ManagedArray<real32> packedVertices;
 		ManagedArray<uint32> indices;
+
+		AABB boundingBox;
+
+		// @NOTE: Assumes the model is trianglulated !!
+		UnpackedModelAsset Unpack();
 	};
 
 	struct ShaderAsset
@@ -253,7 +301,7 @@ namespace cm
 	{
 		EntityId id;
 		CString name;
-		CString tag;
+		Tag tag;
 		Transform localTransform;
 		RenderComponent renderComponent;
 		ColliderComponent colliderComponent;

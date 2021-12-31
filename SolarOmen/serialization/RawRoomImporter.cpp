@@ -18,7 +18,6 @@ namespace cm
 		return result;
 	}
 
-
 	RoomAsset* LoadRoom(const CString& path)
 	{
 		RoomAsset* asset = GameMemory::PushTransientStruct<RoomAsset>();
@@ -56,14 +55,33 @@ namespace cm
 							{
 								line.RemoveWhiteSpace();
 								ManagedArray<CString> values = line.Split(':');
+								GetAssetState();
+
 								entityAsset.renderComponent.enabled = true;
-								entityAsset.renderComponent.modelId = values[1].ToUint64();
-								entityAsset.renderComponent.textureId = values[2].ToUint64();
-								entityAsset.renderComponent.shaderId = values[3].ToUint64();
+								if (values[1] != "NONE")
+									entityAsset.renderComponent.modelId = GetAssetFromName(as->models.GetValueSet(), values[1]).id;
+								if (values[2] != "NONE")
+									entityAsset.renderComponent.textureId = GetAssetFromName(as->textures.GetValueSet(), values[2]).id;
+								if (values[3] != "NONE")
+									entityAsset.renderComponent.shaderId = GetAssetFromName(as->shaders.GetValueSet(), values[3]).id;
 							}
 							else if (line.StartsWith("Collider"))
 							{
+								line.RemoveWhiteSpace();
+								ManagedArray<CString> values = line.Split(':');
+								entityAsset.colliderComponent.enabled = true;
+								entityAsset.colliderComponent.type = (ColliderType)values[1].ToInt32();
 
+								switch (entityAsset.colliderComponent.type)
+								{
+								case ColliderType::SPHERE:
+									entityAsset.colliderComponent.sphere = Sphere::Create(values[2]); break;
+
+								case ColliderType::ALIGNED_BOUNDING_BOX:
+									entityAsset.colliderComponent.alignedBox = AABB::Create(values[2], values[3]); break;
+
+								default: Assert(0, "COLLIDER TYPE!!!");
+								}
 							}
 
 							line = GetNextLine((const char*)file.data, (uint32)file.sizeBytes, &cursor);
@@ -77,7 +95,6 @@ namespace cm
 					line = GetNextLine((const char*)file.data, (uint32)file.sizeBytes, &cursor);
 				}
 			}
-
 
 			if (line.StartsWith("Map"))
 			{

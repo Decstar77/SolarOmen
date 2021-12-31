@@ -1147,6 +1147,18 @@ namespace cm
 			this->w = w;
 		}
 
+		Vec4(CString str)
+		{
+			str.RemoveCharacter(0);
+			str.RemoveCharacter(str.GetLength() - 1);
+
+			ManagedArray<CString>values = str.Split(';');
+			this->x = static_cast<T>(values[0].ToReal32());
+			this->y = static_cast<T>(values[1].ToReal32());
+			this->z = static_cast<T>(values[2].ToReal32());
+			this->w = static_cast<T>(values[3].ToReal32());
+		}
+
 		T& operator[](const int32& index)
 		{
 			Assert(index >= 0 && index < 4, "Vec4 [] operator, invalid index");
