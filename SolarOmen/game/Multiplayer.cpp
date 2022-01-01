@@ -365,7 +365,7 @@ namespace cm
 
 	ManagedArray<GameCommand> MultiplayerState::DeserializeCommandsFromInputStream(NetworkMemoryStream* inputMemoryStream, uint32 tickNumber)
 	{
-		ManagedArray<GameCommand> commands = GameMemory::PushTransientArray<GameCommand>(256);
+		ManagedArray<GameCommand> commands = ManagedArray<GameCommand>(256, MemoryType::TRANSIENT);
 		while (inputMemoryStream->GetNextType<GameCommandType>() != GameCommandType::INVALID)
 		{
 			GameCommand command = {};

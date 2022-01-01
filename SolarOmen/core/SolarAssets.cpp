@@ -4,7 +4,6 @@
 #include <random>
 
 #if USE_RAW_ASSETS
-#include "serialization/RawModelImporter.h"
 #include "serialization/RawTextureImporter.h"
 #include "serialization/RawShaderImporter.h"
 #include "serialization/RawFontImporter.h"
@@ -217,13 +216,13 @@ namespace cm
 				model.name = binModels.Read<CString>();
 				model.layout = binModels.Read<VertexShaderLayoutType::Value>();
 
-				model.packedVertices = GameMemory::PushPermanentArray<real32>(binModels.Read<uint32>() * model.layout.GetStride());
+				model.packedVertices.Allocate(binModels.Read<uint32>() * model.layout.GetStride(), MemoryType::PERMANENT);
 				for (uint32 i = 0; i < model.packedVertices.GetCapcity(); i++)
 				{
 					model.packedVertices.Add(binModels.Read<real32>());
 				}
 
-				model.indices = GameMemory::PushPermanentArray<uint32>(binModels.Read<uint32>());
+				model.indices.Allocate(binModels.Read<uint32>(), MemoryType::PERMANENT);
 				for (uint32 i = 0; i < model.indices.GetCapcity(); i++)
 				{
 					model.indices.Add(binModels.Read<uint32>());
@@ -339,7 +338,7 @@ namespace cm
 	UnpackedModelAsset ModelAsset::Unpack()
 	{
 		UnpackedModelAsset result = {};
-		result.indices = GameMemory::PushTransientArray<uint32>(indices.count);
+		result.indices.Allocate(indices.count, MemoryType::TRANSIENT);
 		for (uint32 i = 0; i < indices.count; i++)
 		{
 			uint32 vertexIndex = indices[i];
@@ -356,9 +355,9 @@ namespace cm
 		case VertexShaderLayoutType::Value::P_PAD: Assert(0, "Can't unpack model layout"); break;
 		case VertexShaderLayoutType::Value::PNT:
 		{
-			result.positions = GameMemory::PushTransientArray<Vec3f>(result.vertexCount);
-			result.normals = GameMemory::PushTransientArray<Vec3f>(result.vertexCount);
-			result.uvs = GameMemory::PushTransientArray<Vec2f>(result.vertexCount);
+			result.positions.Allocate(result.vertexCount, MemoryType::TRANSIENT);
+			result.normals.Allocate(result.vertexCount, MemoryType::TRANSIENT);
+			result.uvs.Allocate(result.vertexCount, MemoryType::TRANSIENT);
 
 			for (uint32 index = 0, i = 0; i < packedVertices.count; i += layout.GetStride(), index++)
 			{
@@ -369,10 +368,10 @@ namespace cm
 		} break;
 		case VertexShaderLayoutType::Value::PNTC:
 		{
-			result.positions = GameMemory::PushTransientArray<Vec3f>(result.vertexCount);
-			result.normals = GameMemory::PushTransientArray<Vec3f>(result.vertexCount);
-			result.uvs = GameMemory::PushTransientArray<Vec2f>(result.vertexCount);
-			result.colours = GameMemory::PushTransientArray<Vec4f>(result.vertexCount);
+			result.positions.Allocate(result.vertexCount, MemoryType::TRANSIENT);
+			result.normals.Allocate(result.vertexCount, MemoryType::TRANSIENT);
+			result.uvs.Allocate(result.vertexCount, MemoryType::TRANSIENT);
+			result.colours.Allocate(result.vertexCount, MemoryType::TRANSIENT);
 
 			for (uint32 index = 0, i = 0; i < packedVertices.count; i += layout.GetStride(), index++)
 			{

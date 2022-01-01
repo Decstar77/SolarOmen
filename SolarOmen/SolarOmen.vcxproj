@@ -120,7 +120,6 @@
     <ClCompile Include="renderer\dx11\DX11Techniques.cpp" />
     <ClCompile Include="renderer\dx11\DX11Texture.cpp" />
     <ClCompile Include="serialization\RawFontImporter.cpp" />
-    <ClCompile Include="serialization\RawModelImporter.cpp" />
     <ClCompile Include="serialization\RawRoomImporter.cpp" />
     <ClCompile Include="serialization\RawShaderImporter.cpp" />
     <ClCompile Include="serialization\RawTextureImporter.cpp" />
@@ -137,7 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\SolarAudio.h" />
-    <ClInclude Include="core\SolarDataStructures.h" />
+    <ClInclude Include="core\SolarContainers.h" />
     <ClInclude Include="core\SolarIntrospection.h" />
     <ClInclude Include="core\Stract.h" />
     <ClInclude Include="game\components\SolarCamera.h" />
@@ -172,7 +171,6 @@
     <ClInclude Include="renderer\dx11\DX11Topology.h" />
     <ClInclude Include="serialization\RawAudioImporter.h" />
     <ClInclude Include="serialization\RawFontImporter.h" />
-    <ClInclude Include="serialization\RawModelImporter.h" />
     <ClInclude Include="serialization\RawRoomImporter.h" />
     <ClInclude Include="serialization\RawShaderImporter.h" />
     <ClInclude Include="serialization\RawTextureImporter.h" />

@@ -131,7 +131,7 @@ namespace cm
 
 		if (count > 0)
 		{
-			paths = GameMemory::PushTransientArray<CString>(count);
+			paths.Allocate(count, MemoryType::TRANSIENT);
 			GetAllFilePaths(path, fileTypes, paths);
 		}
 

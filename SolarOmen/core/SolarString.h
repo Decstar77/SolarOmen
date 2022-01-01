@@ -13,35 +13,12 @@
 #pragma once
 #include "Defines.h"
 #include "SolarMemory.h"
-#include "SolarDataStructures.h"
+#include "SolarContainers.h"
 
 #include <string>
 
 namespace cm
 {
-	//template<typename T>
-	//class Array
-	//{
-	//	inline T& operator[](const uint32& index)
-	//	{
-	//		Assert(index >= 0 && index < GetLength(), "Array, invalid index");
-
-	//		return data[index];
-	//	}
-
-	//	inline T operator[](const uint32& index) const
-	//	{
-	//		Assert(index >= 0 && index < GetLength(), "Array, invalid index");
-
-	//		return data[index];
-	//	}
-
-	//private:
-	//	uint64 capcity;
-	//	T* data;
-	//};
-
-
 	class CString
 	{
 	public:
@@ -310,7 +287,7 @@ namespace cm
 		// @NOTE: This array is transietory !!!
 		ManagedArray<CString> Split(const char& delim) const
 		{
-			ManagedArray<CString> result = GameMemory::PushTransientArray<CString>(32);
+			ManagedArray<CString> result = ManagedArray<CString>(32, MemoryType::TRANSIENT);
 
 			const int32 len = GetLength();
 
@@ -344,7 +321,7 @@ namespace cm
 
 		ManagedArray<CString> Split(const int32& splitIndex) const
 		{
-			ManagedArray<CString> result = GameMemory::PushTransientArray<CString>(10);
+			ManagedArray<CString> result = ManagedArray<CString>(32, MemoryType::TRANSIENT);
 
 			const int32 len = GetLength();
 

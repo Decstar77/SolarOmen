@@ -14,11 +14,11 @@ namespace cm
 
 		shaderAsset.vertexLayout = VertexShaderLayoutType::Value::PNT;
 
-		shaderAsset.vertexData = ManagedArray<char>(GameMemory::PushPermanentCount<char>(vertexSize), vertexSize);
+		shaderAsset.vertexData = ManagedArray<char>(vertexSize, MemoryType::PERMANENT);
 		shaderAsset.vertexData.count = vertexSize;
 		memcpy(shaderAsset.vertexData.data, vertexFile.data, vertexSize);
 
-		shaderAsset.pixelData = ManagedArray<char>(GameMemory::PushPermanentCount<char>(pixelSize), pixelSize);
+		shaderAsset.pixelData = ManagedArray<char>(pixelSize, MemoryType::PERMANENT);
 		shaderAsset.pixelData.count = pixelSize;
 		memcpy(shaderAsset.pixelData.data, pixelFile.data, pixelSize);
 

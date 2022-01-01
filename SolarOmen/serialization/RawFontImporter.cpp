@@ -16,7 +16,7 @@ namespace cm
 			{
 				FT_Set_Pixel_Sizes(face, 0, 48);
 
-				asset.chars = GameMemory::PushPermanentArray<FontCharacter>(128);
+				asset.chars.Allocate(128, MemoryType::PERMANENT);
 				for (unsigned char c = 0; c < 128; c++)
 				{
 					if (!FT_Load_Char(face, c, FT_LOAD_RENDER))
@@ -29,7 +29,7 @@ namespace cm
 						fontChar.size = Vec2i(width, height);
 						fontChar.bearing = Vec2i(face->glyph->bitmap_left, face->glyph->bitmap_top);
 						fontChar.advance = (int32)face->glyph->advance.x;
-						fontChar.data = GameMemory::PushPermanentArray<uint8>(count);
+						fontChar.data.Allocate(count, MemoryType::PERMANENT);
 
 						for (int32 i = 0; i < count; i++)
 						{
