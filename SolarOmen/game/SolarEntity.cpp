@@ -20,7 +20,6 @@ namespace cm
 		return nullptr;
 	}
 
-
 	EntityId Entity::GetId() const
 	{
 		return id;
@@ -56,17 +55,16 @@ namespace cm
 		cc->alignedBox = aabb;
 	}
 
-	ColliderComponent Entity::GetColliderLocal() const
+	ColliderComponent* Entity::GetColliderLocal() const
 	{
 		Assert(IsValid(), "Entity invalid");
-		ColliderComponent cc = room->colliderComponents[id.index];
 
-		return cc;
+		return &room->colliderComponents[id.index];
 	}
 
 	AABB Entity::GetAlignedBoxColliderLocal() const
 	{
-		ColliderComponent cc = GetColliderLocal();
+		ColliderComponent cc = *GetColliderLocal();
 		Assert(cc.type == ColliderType::ALIGNED_BOUNDING_BOX, "Collider is not of type aabb");
 
 		return cc.alignedBox;
@@ -74,7 +72,7 @@ namespace cm
 
 	Sphere Entity::GetSphereColliderLocal() const
 	{
-		ColliderComponent cc = GetColliderLocal();
+		ColliderComponent cc = *GetColliderLocal();
 		Assert(cc.type == ColliderType::SPHERE, "Collider is not of type sphere");
 
 		return cc.sphere;
@@ -82,7 +80,7 @@ namespace cm
 
 	Sphere Entity::GetSphereColliderWorld() const
 	{
-		ColliderComponent cc = GetColliderLocal();
+		ColliderComponent cc = *GetColliderLocal();
 		Transform tr = GetWorldTransform();
 
 		Assert(cc.type == ColliderType::SPHERE, "Collider is not of type sphere");
@@ -93,7 +91,7 @@ namespace cm
 
 	AABB Entity::GetAlignedBoxColliderWorld() const
 	{
-		ColliderComponent cc = GetColliderLocal();
+		ColliderComponent cc = *GetColliderLocal();
 		Transform tr = GetWorldTransform();
 		Assert(cc.type == ColliderType::ALIGNED_BOUNDING_BOX, "Collider is not of type aabb");
 

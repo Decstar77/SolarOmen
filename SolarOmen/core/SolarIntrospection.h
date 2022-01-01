@@ -26,6 +26,7 @@ namespace cm
 		MAT2F,
 		MAT3F,
 		MAT4F,
+		STRUCT_WITH_TO_STRING,
 	};
 
 	class MemberVariable
@@ -37,7 +38,7 @@ namespace cm
 		MemberVariable(const CString& name, MemberVariableType type, uint32 offset) : name(name), type(type), offset(offset) {}
 	};
 
-#define INTROSPECTION_HEADER() static MemberVariable INTROSPECTED_VARIABLES[];
+#define INTROSPECTION_HEADER(clss) static MemberVariable INTROSPECTED_VARIABLES[]; inline static const char * CLASS_NAME = #clss;
 #define INTROSPECT_MEMBER(clss, name) MemberVariable(#name, GetMemberVariableType(((clss*)0)->name), offsetof(clss, name)) 
 #define INTROSPECT_VARIABLES(clss, ...) inline MemberVariable clss::INTROSPECTED_VARIABLES[] = {__VA_ARGS__}
 
@@ -62,8 +63,8 @@ namespace cm
 	template<typename T>
 	inline MemberVariableType GetMemberVariableType(const T& t)
 	{
-		Assert(0, "Uknown MemberVariableType ");
-		return MemberVariableType::INVALID;
+		CString test = t.ToString();
+		return MemberVariableType::STRUCT_WITH_TO_STRING;
 	}
 
 	template<> inline MemberVariableType GetMemberVariableType<CString>(const CString& t) { return MemberVariableType::STRING; }

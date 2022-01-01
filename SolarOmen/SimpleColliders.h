@@ -191,13 +191,13 @@ namespace cm
 		Vec3f min;
 		Vec3f max;
 
-		inline CString ToString() { return cm::ToString(min).Add(':').Add(cm::ToString(max)); }
+		inline CString ToString() { return min.ToString().Add(':').Add(max.ToString()); }
 
 		inline static AABB Create(const CString& min, const CString& max)
 		{
 			AABB result = {};
-			result.min = StringToVec3<real32>(min);
-			result.min = StringToVec3<real32>(max);
+			result.min = Vec3f(min);
+			result.min = Vec3f(max);
 
 			return result;
 		}

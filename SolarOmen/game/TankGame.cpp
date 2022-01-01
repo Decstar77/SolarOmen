@@ -725,8 +725,15 @@ namespace cm
 		prop.SetRendering("alien", "Prop_01_DefaultMaterial_BaseColor");
 		prop.SetLocalTransform(Transform(Vec3f(0, 0, 0), Quatf(), Vec3f(2)));
 
-		grid.Initialize(&roomAsset.map);
-		CreateEntitiesFromGripMap();
+		for (uint32 i = 0; i < roomAsset.entities.count; i++)
+		{
+			const EntityAsset& asset = roomAsset.entities[i];
+			Entity entity = CreateEntity(asset.name);
+			entity.SetTag(asset.tag);
+			entity.SetLocalTransform(asset.localTransform);
+			*entity.GetRenderComponent() = asset.renderComponent;
+			*entity.GetColliderLocal() = asset.colliderComponent;
+		}
 
 		initialized = true;
 		DISABLE_CALLS_ON_TICK();
@@ -890,7 +897,7 @@ namespace cm
 		BeginEntityLoop();
 		while (Entity entity = GetNextEntity())
 		{
-			ColliderComponent cc = entity.GetColliderLocal();
+			ColliderComponent cc = *entity.GetColliderLocal();
 			Transform tr = entity.GetWorldTransform();
 
 			if (cc.enabled)

@@ -453,6 +453,27 @@ namespace cm
 			this->y = v3.y;
 		}
 
+
+		explicit Vec2(CString str)
+		{
+			str.RemoveCharacter(0);
+			str.RemoveCharacter(str.GetLength() - 1);
+
+			ManagedArray<CString> values = str.Split(';');
+
+			this->x = static_cast<T>(values[0].ToReal32());
+			this->y = static_cast<T>(values[1].ToReal32());
+		}
+
+		inline CString ToString()
+		{
+			CString result = "";
+
+			result.Add('(').Add(x).Add(";").Add(y).Add(')');
+
+			return result;
+		}
+
 		T& operator[](const int32& index)
 		{
 			Assert(index >= 0 && index < 2, "Math error");
@@ -547,32 +568,6 @@ namespace cm
 		T dy = Abs(a1.y - a2.y);
 
 		bool32 result = (dx < epsilon&& dy < epsilon);
-
-		return result;
-	}
-
-	template <typename T>
-	inline CString ToString(const Vec2<T>& a)
-	{
-		CString result;
-
-		result.Add('(').Add(a.x).Add(";").Add(a.y).Add(')');
-
-		return result;
-	}
-
-	template<typename T>
-	inline Vec2<T> StringToVec2(CString str)
-	{
-		str.RemoveCharacter(0);
-		str.RemoveCharacter(str.GetLength() - 1);
-
-		std::vector<CString> values = str.Split(';');
-
-		T x = static_cast<T>(values.at(0).ToReal32());
-		T y = static_cast<T>(values.at(1).ToReal32());
-
-		Vec2<T> result = Vec2<T>(x, y);
 
 		return result;
 	}
@@ -750,6 +745,27 @@ namespace cm
 			this->x = a.x;
 			this->y = a.y;
 			this->z = a.z;
+		}
+
+		explicit Vec3(CString s)
+		{
+			s.RemoveCharacter(0);
+			s.RemoveCharacter(s.GetLength() - 1);
+
+			ManagedArray<CString>values = s.Split(';');
+
+			this->x = values[0].ToReal32();
+			this->y = values[1].ToReal32();
+			this->z = values[2].ToReal32();
+		}
+
+		inline CString ToString()
+		{
+			CString result = "";
+
+			result.Add('(').Add(x).Add(";").Add(y).Add(";").Add(z).Add(')');
+
+			return result;
 		}
 
 		T& operator[](const int32& index)
@@ -968,31 +984,6 @@ namespace cm
 		bool32 resz = Equal(a.z, b.z, epsilon);
 
 		bool32 result = resx && resy && resz;
-
-		return result;
-	}
-
-	template <typename T>
-	inline CString ToString(const Vec3<T>& a)
-	{
-		CString result;
-
-		result.Add('(').Add(a.x).Add(";").Add(a.y).Add(";").Add(a.z).Add(')');
-
-		return result;
-	}
-
-	template <typename T>
-	inline Vec3<T> StringToVec3(CString s)
-	{
-		CString debug = s;
-
-		s.RemoveCharacter(0);
-		s.RemoveCharacter(s.GetLength() - 1);
-
-		ManagedArray<CString>values = s.Split(';');
-
-		Vec3<T> result = Vec3<T>(values[0].ToReal32(), values[1].ToReal32(), values[2].ToReal32());
 
 		return result;
 	}
@@ -1307,6 +1298,29 @@ namespace cm
 			this->y = xyz.y;
 			this->z = xyz.z;
 			this->w = w;
+		}
+
+		explicit Quat(CString s)
+		{
+			s.RemoveCharacter(0);
+			s.RemoveCharacter(s.GetLength() - 1);
+
+			ManagedArray<CString> temp = s.Split(' ');
+			ManagedArray<CString> values = temp[0].Split(';');
+
+			this->x = static_cast<T>(values[0].ToReal32());
+			this->y = static_cast<T>(values[1].ToReal32());
+			this->z = static_cast<T>(values[2].ToReal32());
+			this->w = static_cast<T>(temp[1].ToReal32());
+		}
+
+		inline CString ToString()
+		{
+			CString result;
+
+			result.Add('(').Add('{').Add(x).Add(";").Add(y).Add(";").Add(z).Add('}').Add(' ').Add(w).Add(')');
+
+			return result;
 		}
 
 		T& operator[](const int32& index)
@@ -1693,35 +1707,6 @@ namespace cm
 		result.row2.x = (2) * (qxz + qwy);
 		result.row2.y = (2) * (qyz - qwx);
 		result.row2.z = (1) - (2) * (qxx + qyy);
-
-		return result;
-	}
-
-	template <typename T>
-	inline CString ToString(const Quat<T>& a)
-	{
-		CString result;
-
-		result.Add('(').Add('{').Add(a.x).Add(";").Add(a.y).Add(";").Add(a.z).Add('}').Add(' ').Add(a.w).Add(')');
-
-		return result;
-	}
-
-	template <typename T>
-	inline Quat<T> StringToQuat(CString s)
-	{
-		s.RemoveCharacter(0);
-		s.RemoveCharacter(s.GetLength() - 1);
-
-		std::vector<CString> temp = s.Split(' ');
-		std::vector<CString> values = temp.at(0).Split(';');
-
-		T x = static_cast<T>(values.at(0).ToReal32());
-		T y = static_cast<T>(values.at(1).ToReal32());
-		T z = static_cast<T>(values.at(2).ToReal32());
-		T w = static_cast<T>(temp.at(1).ToReal32());
-
-		Quat<T> result = Quat<T>(x, y, z, w);
 
 		return result;
 	}
@@ -3213,7 +3198,7 @@ namespace cm
 		inline CString ToString()
 		{
 			CString result = "";
-			result.Add(cm::ToString(position)).Add(":").Add(cm::ToString(orientation)).Add(":").Add(cm::ToString(scale));
+			result.Add(position.ToString()).Add(":").Add(orientation.ToString()).Add(":").Add(scale.ToString());
 
 			return result;
 		}
@@ -3254,6 +3239,14 @@ namespace cm
 			: position(position)
 		{
 			orientation = Mat3ToQuat(basis.mat);
+		}
+
+		explicit Transform(const CString& str)
+		{
+			ManagedArray<CString> values = str.Split(':');
+			this->position = Vec3f(values[0]);
+			this->orientation = Quatf(values[1]);
+			this->scale = Vec3f(values[2]);
 		}
 
 		explicit Transform(const Mat4f& m)

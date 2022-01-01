@@ -305,6 +305,7 @@ namespace cm
 		Transform localTransform;
 		RenderComponent renderComponent;
 		ColliderComponent colliderComponent;
+		BrainComponent brainComponent;
 	};
 
 	struct RoomAsset
@@ -320,7 +321,6 @@ namespace cm
 		Vec3f player2StartPos;
 
 		FixedArray<EntityAsset, 1024> entities;
-		FixedArray<int32, ROOM_HORIZTONAL_SIZE* ROOM_VERTICAL_SIZE> map;
 	};
 
 	struct MaterialAsset

@@ -13,7 +13,7 @@ namespace cm
 		int32 generation;
 
 		class Entity* Get() const;
-		CString ToString();
+		inline CString ToString() const { return CString("Index;").Add(index).Add(":Gen;").Add(generation); };
 
 		inline bool operator==(const EntityId& rhs) const
 		{
@@ -268,7 +268,7 @@ namespace cm
 		AssetId textureId;
 		AssetId shaderId;
 
-		INTROSPECTION_HEADER();
+		INTROSPECTION_HEADER(RenderComponent);
 	};
 
 	INTROSPECT_VARIABLES(RenderComponent,
@@ -327,7 +327,7 @@ namespace cm
 		void SetCollider(const AABB& aabb, bool32 enabled = true);
 		void SetCollider(const AssetId& mesh, bool32 setActive = true);
 
-		ColliderComponent GetColliderLocal() const;
+		ColliderComponent* GetColliderLocal() const;
 		AABB GetAlignedBoxColliderLocal() const;
 		Sphere GetSphereColliderLocal() const;
 
@@ -419,7 +419,6 @@ namespace cm
 			TankAIImmobile tankAIImmobile;
 		};
 	};
-
 
 }
 

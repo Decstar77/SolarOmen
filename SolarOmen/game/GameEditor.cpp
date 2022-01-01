@@ -187,65 +187,65 @@ namespace cm
 		TextFileWriter file;
 
 		file.WriteLine("Version: 1");
-		file.WriteLine(CString("Player1 Start Pos:").Add(ToString(asset->player1StartPos)));
-		file.WriteLine(CString("Player2 Start Pos:").Add(ToString(asset->player2StartPos)));
+		file.WriteLine(CString("Player1 Start Pos:").Add(asset->player1StartPos.ToString()));
+		file.WriteLine(CString("Player2 Start Pos:").Add(asset->player2StartPos.ToString()));
 		file.WriteLine("Two Player Game: ?");
 		file.WriteLine(CString("Entities:").Add(asset->entities.count));
 
 		for (uint32 i = 0; i < asset->entities.count; i++)
 		{
 			EntityAsset* entity = &asset->entities[i];
-			file.WriteLine("{");
-			file.Write("Name: "); file.WriteLine(entity->name);
-			file.Write("Tag: "); file.WriteLine(entity->tag.ToString());
-			file.Write("Transform: "); file.WriteLine(entity->localTransform.ToString());
-
-			if (entity->renderComponent.enabled)
+			if (!entity->name.StartsWith("Host") && !entity->name.StartsWith("Peer"))
 			{
-				GetAssetState();
-
-				file.Write("Render: ");
-				CString modelName = "NONE";
-				CString textureName = "NONE";
-				CString shaderName = "NONE";
-				if (entity->renderComponent.modelId != INVALID_ASSET_ID)
-					modelName = as->models.Get(entity->renderComponent.modelId)->name;
-				if (entity->renderComponent.textureId != INVALID_ASSET_ID)
-					textureName = as->textures.Get(entity->renderComponent.textureId)->name;
-				if (entity->renderComponent.shaderId != INVALID_ASSET_ID)
-					shaderName = as->shaders.Get(entity->renderComponent.shaderId)->name;
-
-				file.Write(modelName); file.Write(':');
-				file.Write(textureName); file.Write(':');
-				file.Write(shaderName);
-				file.WriteLine("");
-			}
-
-			if (entity->colliderComponent.enabled)
-			{
-				file.Write("Collider: ");
-				file.Write((uint32)entity->colliderComponent.type); file.Write(':');
-				switch (entity->colliderComponent.type)
+				file.WriteLine("{");
+				file.WriteLine(entity->id.ToString());
+				file.Write("Name: "); file.WriteLine(entity->name);
+				file.Write("Tag: "); file.WriteLine(entity->tag.ToString());
+				file.Write("Transform: "); file.WriteLine(entity->localTransform.ToString());
+				if (entity->renderComponent.enabled)
 				{
-				case ColliderType::SPHERE: file.WriteLine(entity->colliderComponent.sphere.ToString()); break;
-				case ColliderType::ALIGNED_BOUNDING_BOX: file.WriteLine(entity->colliderComponent.alignedBox.ToString()); break;
-				default: Assert(0, "COLLIDER TYPE!!!");
+					GetAssetState();
+
+					file.Write("Render: ");
+					CString modelName = "NONE";
+					CString textureName = "NONE";
+					CString shaderName = "NONE";
+					if (entity->renderComponent.modelId != INVALID_ASSET_ID)
+						modelName = as->models.Get(entity->renderComponent.modelId)->name;
+					if (entity->renderComponent.textureId != INVALID_ASSET_ID)
+						textureName = as->textures.Get(entity->renderComponent.textureId)->name;
+					if (entity->renderComponent.shaderId != INVALID_ASSET_ID)
+						shaderName = as->shaders.Get(entity->renderComponent.shaderId)->name;
+
+					file.Write(modelName); file.Write(':');
+					file.Write(textureName); file.Write(':');
+					file.Write(shaderName);
+					file.WriteLine("");
 				}
-			}
 
-			file.WriteLine("}");
-		}
+				if (entity->colliderComponent.enabled)
+				{
+					file.Write("Collider: ");
+					file.Write((uint32)entity->colliderComponent.type); file.Write(':');
+					switch (entity->colliderComponent.type)
+					{
+					case ColliderType::SPHERE: file.WriteLine(entity->colliderComponent.sphere.ToString()); break;
+					case ColliderType::ALIGNED_BOUNDING_BOX: file.WriteLine(entity->colliderComponent.alignedBox.ToString()); break;
+					default: Assert(0, "COLLIDER TYPE!!!");
+					}
+				}
 
-		file.WriteLine("Map:");
-		for (uint32 i = 0; i < asset->map.GetCapcity(); i++)
-		{
-			int32 data = asset->map[i];
-			file.Write(data);
-			file.Write(" ");
+				if (entity->brainComponent.enabled)
+				{
+					file.Write("Brain: ");
+					switch (entity->brainComponent.type.Get())
+					{
+					case BrainType::Value::TANK_AI_IMMOBILE: break;
+					}
+				}
 
-			if (i % 25 == 0 && i != 0)
-			{
-				file.Write("\n");
+
+				file.WriteLine("}");
 			}
 		}
 
@@ -312,62 +312,19 @@ namespace cm
 		while (Entity entity = room->GetNextEntity())
 		{
 			EntityAsset entityAsset = {};
+			entityAsset.id = entity.GetId();
 			entityAsset.name = entity.GetName();
 			entityAsset.tag = entity.GetTag();
 			entityAsset.localTransform = entity.GetLocalTransform();
 			entityAsset.renderComponent = *entity.GetRenderComponent();
-			entityAsset.colliderComponent = entity.GetColliderLocal();
+			entityAsset.colliderComponent = *entity.GetColliderLocal();
 
 			es->currentRoomAsset.entities.Add(entityAsset);
 		}
 
-		static int32 currentItem = 0;
-		ComboEnum<GridCellType>("Build type", &currentItem);
-
-		Grid* grid = &room->grid;
-
-		room->grid.DebugDraw();
-
-		Ray ray = es->camera.ShootRayFromScreen();
-		Plane plane = CreatePlane(0.0f, Vec3f(0, 1, 0));
-
-		RaycastInfo info = {};
-		if (RaycastPlane(ray, plane, &info))
-		{
-			ImGuiIO& io = ImGui::GetIO();
-			if (!io.WantCaptureMouse)
-			{
-				GridCell* cell = room->grid.GetCellFromPosition(info.closePoint);
-				if (input->mb1 && input->ctrl)
-				{
-					if (cell && cell->type != GridCellType::Value::EMPTY)
-					{
-						cell->type = GridCellType::Value::EMPTY;
-						room->CreateEntitiesFromGripMap();
-					}
-				}
-				else if (input->mb1)
-				{
-					if (cell && cell->type == GridCellType::Value::EMPTY)
-					{
-						cell->type = GridCellType::Value::WALL;
-						room->CreateEntitiesFromGripMap();
-					}
-				}
-
-			}
-			//Debug::DrawPoint(info.closePoint);
-		}
-
 		if (IsKeyJustDown(input, s) && input->ctrl)
 		{
-			for (uint32 i = 0; i < grid->cells.GetCapcity(); i++)
-			{
-				es->currentRoomAsset.map[i] = (int32)grid->cells[i].type;
-			}
-
 			SaveRoomAsset(&es->currentRoomAsset);
-
 			Debug::LogInfo(CString("Saved").Add(es->currentRoomAsset.name));
 		}
 
@@ -532,9 +489,10 @@ namespace cm
 		ImGui::PopStyleVar();
 	}
 
-	void OperateCamera(Camera* camera, real32 dtime)
+	bool OperateCamera(Camera* camera, real32 dtime)
 	{
 		GetInput();
+		bool operating = false;
 		if (input->mb2)
 		{
 			input->mouse_locked = true;
@@ -565,35 +523,21 @@ namespace cm
 			Basisf basis = camera->transform.GetBasis();
 
 			real32 move_speed = 6.0f;
-			if (input->w)
-			{
-				camera->transform.position += (basis.forward * move_speed * dtime);
-			}
-			if (input->s)
-			{
-				camera->transform.position += (-1.0f * basis.forward * move_speed * dtime);
-			}
-			if (input->a)
-			{
-				camera->transform.position += (-1.0f * basis.right * move_speed * dtime);
-			}
-			if (input->d)
-			{
-				camera->transform.position += (basis.right * move_speed * dtime);
-			}
-			if (input->q)
-			{
-				camera->transform.position += (Vec3f(0, 1, 0) * move_speed * dtime);
-			}
-			if (input->e)
-			{
-				camera->transform.position += (Vec3f(0, -1, 0) * move_speed * dtime);
-			}
+			if (input->w) { camera->transform.position += (basis.forward * move_speed * dtime); }
+			if (input->s) { camera->transform.position += (-1.0f * basis.forward * move_speed * dtime); }
+			if (input->a) { camera->transform.position += (-1.0f * basis.right * move_speed * dtime); }
+			if (input->d) { camera->transform.position += (basis.right * move_speed * dtime); }
+			if (input->q) { camera->transform.position += (Vec3f(0, 1, 0) * move_speed * dtime); }
+			if (input->e) { camera->transform.position += (Vec3f(0, -1, 0) * move_speed * dtime); }
+
+			operating = true;
 		}
 		else
 		{
 			input->mouse_locked = false;
 		}
+
+		return operating;
 	}
 
 	static void OperateMouseSelection()
@@ -648,12 +592,81 @@ namespace cm
 		}
 	}
 
+	static void OperateGizmo()
+	{
+		GetInput();
+		GetEditorState();
+
+		if (es->selectedEntities.count > 0)
+		{
+			Entity selectedEntity = es->selectedEntities[0];
+			if (selectedEntity.IsValid())
+			{
+				static ImGuizmo::OPERATION op = ImGuizmo::OPERATION::TRANSLATE;
+				static ImGuizmo::MODE md = ImGuizmo::MODE::WORLD;
+
+				ImGuizmo::Enable(true);
+				ImGuiIO& io = ImGui::GetIO();
+				ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+				if (IsKeyJustDown(input, e) && !input->mb1) { op = ImGuizmo::OPERATION::SCALE; }
+				if (IsKeyJustDown(input, r) && !input->mb1) { op = ImGuizmo::OPERATION::ROTATE; }
+				if (IsKeyJustDown(input, t) && !input->mb1) { op = ImGuizmo::OPERATION::TRANSLATE; }
+				if (IsKeyJustDown(input, tlda) && !input->mb1) { md = (md == ImGuizmo::MODE::LOCAL) ? ImGuizmo::MODE::WORLD : ImGuizmo::MODE::LOCAL; }
+
+				bool snapping = false;
+				Vec3f snapAmount = (op == ImGuizmo::OPERATION::ROTATE) ? Vec3f(15) : Vec3f(1);
+				if (input->ctrl) { snapping = true; }
+
+
+				Mat4f view = es->camera.GetViewMatrix();
+				Mat4f proj = es->camera.GetProjectionMatrix();
+
+
+
+				Mat4f localMat = selectedEntity.GetLocalTransform().CalculateTransformMatrix();
+				Mat4f delta;
+
+				ImGuizmo::Manipulate(view.ptr, proj.ptr, op, md, localMat.ptr, delta.ptr, snapping ? (snapAmount.ptr) : nullptr);
+
+				Vec3f pos;
+				Vec3f euler;
+				Vec3f scale;
+				ImGuizmo::DecomposeMatrixToComponents(localMat.ptr, pos.ptr, euler.ptr, scale.ptr);
+				Quatf qori = EulerToQuat(euler);
+
+				Transform newTransform;
+				newTransform.position = pos;
+				newTransform.orientation = qori;
+				newTransform.scale = scale;
+
+				selectedEntity.SetLocalTransform(newTransform);
+
+				// @NOTE: These equals are done to prevent floating point errors that trick 
+				//		: the undo system for the game state to think that a change has occurred
+				//if (!Equal(pos, es->selected_entity->transform.position))
+				//{
+				//	es->selected_entity->transform.position = pos;
+				//}
+
+				//if (!Equal(qori, es->selected_entity->transform.orientation))
+				//{
+				//	es->selected_entity->transform.orientation = qori;
+				//}
+
+				//if (!Equal(scale, es->selected_entity->transform.scale))
+				//{
+				//	es->selected_entity->transform.scale = scale;
+				//}
+			}
+		}
+	}
+
 	void Editor::UpdateEditor(EntityRenderGroup* renderGroup, real32 dt)
 	{
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
-		//ImGuizmo::BeginFrame();
+		ImGuizmo::BeginFrame();
 
 		GetEditorState();
 		GetInput();
@@ -683,6 +696,8 @@ namespace cm
 			if (es->showBuildWindow) ShowBuildWindow();
 			if (es->showAssetWindow) ShowAssetWindow();
 			if (es->showInspectorWindow) ShowInpsectorWindow();
+
+			if (!input->mb2) { OperateGizmo(); }
 
 			ImGuiIO& io = ImGui::GetIO();
 			if (!io.WantCaptureMouse)

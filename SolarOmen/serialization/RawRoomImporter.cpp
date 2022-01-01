@@ -36,24 +36,36 @@ namespace cm
 
 			if (line.StartsWith("Player1 Start Pos"))
 			{
-				asset->player1StartPos = StringToVec3<real32>(line.Split(':')[1]);
+				asset->player1StartPos = Vec3f(line.Split(':')[1]);
 			}
 			else if (line.StartsWith("Player2 Start Pos"))
 			{
-				asset->player2StartPos = StringToVec3<real32>(line.Split(':')[1]);
+				asset->player2StartPos = Vec3f(line.Split(':')[1]);
 			}
 			else if (line.StartsWith("Entities"))
 			{
-				while (!line.StartsWith("Map"))
+				while (!line.StartsWith("Map") && line != "")
 				{
 					if (line.StartsWith("{"))
 					{
 						EntityAsset entityAsset = {};
 						while (!line.StartsWith("}"))
 						{
-							if (line.StartsWith("Render"))
+							line.RemoveWhiteSpace();
+							if (line.StartsWith("Name"))
 							{
-								line.RemoveWhiteSpace();
+								entityAsset.name = line.Split(':')[1];
+							}
+							else if (line.StartsWith("Tag"))
+							{
+								entityAsset.tag = Tag::ValueOf(line.Split(':')[1]);
+							}
+							else if (line.StartsWith("Transform"))
+							{
+								entityAsset.localTransform = Transform(line.SubStr(line.FindFirstOf(':') + 1));
+							}
+							else if (line.StartsWith("Render"))
+							{
 								ManagedArray<CString> values = line.Split(':');
 								GetAssetState();
 
@@ -67,7 +79,6 @@ namespace cm
 							}
 							else if (line.StartsWith("Collider"))
 							{
-								line.RemoveWhiteSpace();
 								ManagedArray<CString> values = line.Split(':');
 								entityAsset.colliderComponent.enabled = true;
 								entityAsset.colliderComponent.type = (ColliderType)values[1].ToInt32();
@@ -92,20 +103,6 @@ namespace cm
 						continue;
 					}
 
-					line = GetNextLine((const char*)file.data, (uint32)file.sizeBytes, &cursor);
-				}
-			}
-
-			if (line.StartsWith("Map"))
-			{
-				line = GetNextLine((const char*)file.data, (uint32)file.sizeBytes, &cursor);
-				while (line != "")
-				{
-					ManagedArray<CString> values = line.Split(' ');
-					for (uint32 i = 0; i < values.count; i++)
-					{
-						asset->map.Add(values[i].ToInt32());
-					}
 					line = GetNextLine((const char*)file.data, (uint32)file.sizeBytes, &cursor);
 				}
 			}
