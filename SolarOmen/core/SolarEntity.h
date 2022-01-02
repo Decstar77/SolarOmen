@@ -3,28 +3,10 @@
 #include "SolarMemory.h"
 #include "SolarIntrospection.h"
 
+#include "SolarTypes.h"
+
 namespace cm
 {
-	class Room;
-
-	struct EntityId
-	{
-		int32 index;
-		int32 generation;
-
-		class Entity* Get() const;
-		inline CString ToString() const { return CString("Index;").Add(index).Add(":Gen;").Add(generation); };
-
-		inline bool operator==(const EntityId& rhs) const
-		{
-			return this->index == rhs.index && this->generation == rhs.generation;
-		}
-
-		inline bool operator!=(const EntityId& rhs) const
-		{
-			return this->index != rhs.index || this->generation != rhs.generation;
-		}
-	};
 
 	enum class PlayerNumber
 	{

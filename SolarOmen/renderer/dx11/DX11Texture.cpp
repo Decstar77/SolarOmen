@@ -50,8 +50,8 @@ namespace cm
 		TextureInstance result = {};
 		result.width = fontChar.size.x;
 		result.height = fontChar.size.y;
-		result.format = TextureFormat::R8_BYTE;
-		result.cpuFlags = TextureCPUFlags::NONE;
+		result.format = TextureFormat::Value::R8_BYTE;
+		result.cpuFlags = ResourceCPUFlags::NONE;
 		result.usage[0] = TextureUsage::SHADER_RESOURCE;
 
 		int32 bind_flags = 0;
@@ -71,9 +71,9 @@ namespace cm
 		desc.Format = DXGI_FORMAT_R8_UNORM;
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
-		desc.Usage = result.cpuFlags == TextureCPUFlags::NONE ? D3D11_USAGE_DEFAULT : D3D11_USAGE_STAGING;
+		desc.Usage = result.cpuFlags == ResourceCPUFlags::NONE ? D3D11_USAGE_DEFAULT : D3D11_USAGE_STAGING;
 		desc.BindFlags = bind_flags;
-		desc.CPUAccessFlags = GetTextureCPUFlagsToD3DFlags(result.cpuFlags);
+		desc.CPUAccessFlags = GetCPUFlagsToD3DFlags(result.cpuFlags);
 		desc.MiscFlags = 0;
 
 		D3D11_SUBRESOURCE_DATA sd = {};
@@ -122,9 +122,9 @@ namespace cm
 		desc.Format = GetTextureFormatToD3D(textureAsset.format);
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
-		desc.Usage = textureAsset.cpuFlags == TextureCPUFlags::NONE ? D3D11_USAGE_DEFAULT : D3D11_USAGE_STAGING;
+		desc.Usage = textureAsset.cpuFlags == ResourceCPUFlags::NONE ? D3D11_USAGE_DEFAULT : D3D11_USAGE_STAGING;
 		desc.BindFlags = bind_flags;
-		desc.CPUAccessFlags = GetTextureCPUFlagsToD3DFlags(textureAsset.cpuFlags);
+		desc.CPUAccessFlags = GetCPUFlagsToD3DFlags(textureAsset.cpuFlags);
 		desc.MiscFlags = 0;
 
 		if (textureAsset.pixels)
@@ -144,7 +144,7 @@ namespace cm
 		if (result.texture && (bind_flags & D3D11_BIND_SHADER_RESOURCE))
 		{
 			D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {};
-			if (textureAsset.format == TextureFormat::R32_TYPELESS)
+			if (textureAsset.format == TextureFormat::Value::R32_TYPELESS)
 			{
 				LOG("Warning making r32typeless format into a r32 float for shader resource");
 				view_desc.Format = DXGI_FORMAT_R32_FLOAT;
@@ -173,7 +173,7 @@ namespace cm
 		if (result.texture && (bind_flags & D3D11_BIND_DEPTH_STENCIL))
 		{
 			D3D11_DEPTH_STENCIL_VIEW_DESC depth_view_dsc = {};
-			if (textureAsset.format == TextureFormat::R32_TYPELESS)
+			if (textureAsset.format == TextureFormat::Value::R32_TYPELESS)
 			{
 				LOG("Warning making r32typeless format into a d32 float for depth-stencil buffer");
 				depth_view_dsc.Format = DXGI_FORMAT_D32_FLOAT;

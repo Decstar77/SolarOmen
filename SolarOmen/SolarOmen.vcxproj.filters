@@ -272,9 +272,6 @@
     <ClInclude Include="core\Stract.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="core\SolarNetwork.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="game\Multiplayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -294,6 +291,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\SolarContainers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\SolarTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

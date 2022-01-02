@@ -130,21 +130,21 @@ namespace cm
 
 	inline DXGI_FORMAT GetTextureFormatToD3D(const TextureFormat& format)
 	{
-		switch (format)
+		switch (format.Get())
 		{
-		case TextureFormat::R8G8B8A8_UNORM: return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case TextureFormat::R16G16_UNORM: return DXGI_FORMAT_R16G16_UNORM;
-		case TextureFormat::R8_BYTE: return DXGI_FORMAT_R8_UINT;
-		case TextureFormat::R32_FLOAT: return DXGI_FORMAT_R32_FLOAT;
-		case TextureFormat::D32_FLOAT: return DXGI_FORMAT_D32_FLOAT;
-		case TextureFormat::R32_TYPELESS: return DXGI_FORMAT_R32_TYPELESS;
-		case TextureFormat::R16_UNORM: return DXGI_FORMAT_R16_UNORM;
-		case TextureFormat::D16_UNORM: return DXGI_FORMAT_D16_UNORM;
-		case TextureFormat::R16_TYPELESS: return DXGI_FORMAT_R16_TYPELESS;
-		case TextureFormat::R32G32_FLOAT: return DXGI_FORMAT_R32G32_FLOAT;
-		case TextureFormat::R32G32B32_FLOAT: return DXGI_FORMAT_R32G32B32_FLOAT;
-		case TextureFormat::R32G32B32A32_FLOAT: return DXGI_FORMAT_R32G32B32A32_FLOAT;
-		case TextureFormat::R16G16B16A16_FLOAT: return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		case TextureFormat::Value::R8G8B8A8_UNORM: return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case TextureFormat::Value::R16G16_UNORM: return DXGI_FORMAT_R16G16_UNORM;
+		case TextureFormat::Value::R8_BYTE: return DXGI_FORMAT_R8_UINT;
+		case TextureFormat::Value::R32_FLOAT: return DXGI_FORMAT_R32_FLOAT;
+		case TextureFormat::Value::D32_FLOAT: return DXGI_FORMAT_D32_FLOAT;
+		case TextureFormat::Value::R32_TYPELESS: return DXGI_FORMAT_R32_TYPELESS;
+		case TextureFormat::Value::R16_UNORM: return DXGI_FORMAT_R16_UNORM;
+		case TextureFormat::Value::D16_UNORM: return DXGI_FORMAT_D16_UNORM;
+		case TextureFormat::Value::R16_TYPELESS: return DXGI_FORMAT_R16_TYPELESS;
+		case TextureFormat::Value::R32G32_FLOAT: return DXGI_FORMAT_R32G32_FLOAT;
+		case TextureFormat::Value::R32G32B32_FLOAT: return DXGI_FORMAT_R32G32B32_FLOAT;
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return DXGI_FORMAT_R16G16B16A16_FLOAT;
 		default: Assert(0, "TextureFormatToD3D ??");
 		}
 
@@ -153,21 +153,21 @@ namespace cm
 
 	inline uint32 GetTextureFormatElementSizeBytes(const TextureFormat& format)
 	{
-		switch (format)
+		switch (format.Get())
 		{
-		case TextureFormat::R8G8B8A8_UNORM: return sizeof(uint8);
-		case TextureFormat::R16G16_UNORM: return sizeof(uint16);
-		case TextureFormat::R8_BYTE: return sizeof(uint8);
-		case TextureFormat::R32_FLOAT: return sizeof(real32);
-		case TextureFormat::D32_FLOAT: return sizeof(real32);
-		case TextureFormat::R32_TYPELESS: return sizeof(real32);
-		case TextureFormat::R16_UNORM: return sizeof(uint16);
-		case TextureFormat::D16_UNORM: return sizeof(uint16);
-		case TextureFormat::R16_TYPELESS: return sizeof(uint16);
-		case TextureFormat::R32G32_FLOAT: return sizeof(real32);
-		case TextureFormat::R32G32B32_FLOAT: return sizeof(real32);
-		case TextureFormat::R32G32B32A32_FLOAT: return sizeof(real32);
-		case TextureFormat::R16G16B16A16_FLOAT: return sizeof(uint16);
+		case TextureFormat::Value::R8G8B8A8_UNORM: return sizeof(uint8);
+		case TextureFormat::Value::R16G16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::R8_BYTE: return sizeof(uint8);
+		case TextureFormat::Value::R32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::D32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32_TYPELESS: return sizeof(real32);
+		case TextureFormat::Value::R16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::D16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::R16_TYPELESS: return sizeof(uint16);
+		case TextureFormat::Value::R32G32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32G32B32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return sizeof(uint16);
 		default: Assert(0, "TextureFormatToD3D ??");
 		}
 
@@ -176,21 +176,21 @@ namespace cm
 
 	inline uint32 GetTextureFormatElementCount(const TextureFormat& format)
 	{
-		switch (format)
+		switch (format.Get())
 		{
-		case TextureFormat::R8G8B8A8_UNORM: return 4;
-		case TextureFormat::R16G16_UNORM: return 2;
-		case TextureFormat::R8_BYTE: return 1;
-		case TextureFormat::R32_FLOAT: return 1;
-		case TextureFormat::D32_FLOAT: return 1;
-		case TextureFormat::R32_TYPELESS: return 1;
-		case TextureFormat::R16_UNORM: return 1;
-		case TextureFormat::D16_UNORM: return 1;
-		case TextureFormat::R16_TYPELESS: return 1;
-		case TextureFormat::R32G32_FLOAT: return 2;
-		case TextureFormat::R32G32B32_FLOAT: return 3;
-		case TextureFormat::R32G32B32A32_FLOAT: return 4;
-		case TextureFormat::R16G16B16A16_FLOAT: return 4;
+		case TextureFormat::Value::R8G8B8A8_UNORM: return 4;
+		case TextureFormat::Value::R16G16_UNORM: return 2;
+		case TextureFormat::Value::R8_BYTE: return 1;
+		case TextureFormat::Value::R32_FLOAT: return 1;
+		case TextureFormat::Value::D32_FLOAT: return 1;
+		case TextureFormat::Value::R32_TYPELESS: return 1;
+		case TextureFormat::Value::R16_UNORM: return 1;
+		case TextureFormat::Value::D16_UNORM: return 1;
+		case TextureFormat::Value::R16_TYPELESS: return 1;
+		case TextureFormat::Value::R32G32_FLOAT: return 2;
+		case TextureFormat::Value::R32G32B32_FLOAT: return 3;
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return 4;
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return 4;
 		default: Assert(0, "TextureFormatToD3D ??");
 		}
 
@@ -237,14 +237,14 @@ namespace cm
 		return 0;
 	}
 
-	inline int32 GetTextureCPUFlagsToD3DFlags(const TextureCPUFlags& flags)
+	inline int32 GetCPUFlagsToD3DFlags(const ResourceCPUFlags& flags)
 	{
 		switch (flags)
 		{
-		case TextureCPUFlags::NONE: return 0;
-		case TextureCPUFlags::READ: return D3D11_CPU_ACCESS_READ;
-		case TextureCPUFlags::WRITE: return D3D11_CPU_ACCESS_WRITE;
-		case TextureCPUFlags::READ_WRITE: return D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+		case ResourceCPUFlags::NONE: return 0;
+		case ResourceCPUFlags::READ: return D3D11_CPU_ACCESS_READ;
+		case ResourceCPUFlags::WRITE: return D3D11_CPU_ACCESS_WRITE;
+		case ResourceCPUFlags::READ_WRITE: return D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
 		}
 		return 0;
 	}

@@ -1,5 +1,5 @@
 #include "MeshProcessor.h"
-#include "MetaProcessor.h"
+
 namespace cm
 {
 	MetaProcessor::MetaProcessor()

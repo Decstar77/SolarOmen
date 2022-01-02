@@ -157,6 +157,7 @@
     <ClCompile Include="src\MeshProcessor.cpp" />
     <ClCompile Include="src\MetaProcessor.cpp" />
     <ClCompile Include="src\TextFile.cpp" />
+    <ClCompile Include="src\TextureProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ContentTools\ContentTools.vcxproj">
@@ -172,6 +173,7 @@
     <ClInclude Include="src\MeshProcessor.h" />
     <ClInclude Include="src\MetaProcessor.h" />
     <ClInclude Include="src\TextFile.h" />
+    <ClInclude Include="src\TextureProcessor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

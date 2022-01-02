@@ -4,7 +4,7 @@
 #include "SolarMemory.h"
 #include "SolarContainers.h"
 #include "SimpleColliders.h"
-
+#include "SolarTypes.h"
 #include "SolarEntity.h"
 
 namespace cm
@@ -16,25 +16,101 @@ namespace cm
 		COMPUTE,
 	};
 
-	enum class TextureFormat
+	class TextureFormat
 	{
-		R8G8B8A8_UNORM,
-		R16G16_UNORM,
-		R8_BYTE,
-		R32_FLOAT,
-		D32_FLOAT,
-		R32_TYPELESS,
-		R16_UNORM,
-		D16_UNORM,
-		R16_TYPELESS,
-		R32G32_FLOAT,
-		R32G32B32_FLOAT,
-		R32G32B32A32_FLOAT,
-		R16G16B16A16_FLOAT,
+	public:
+		enum class Value
+		{
+			INVALID = 0,
+			R8G8B8A8_UNORM,
+			R16G16_UNORM,
+			R8_BYTE,
+			R32_FLOAT,
+			D32_FLOAT,
+			R32_TYPELESS,
+			R16_UNORM,
+			D16_UNORM,
+			R16_TYPELESS,
+			R32G32_FLOAT,
+			R32G32B32_FLOAT,
+			R32G32B32A32_FLOAT,
+			R16G16B16A16_FLOAT,
+			COUNT,
+		};
+
+		TextureFormat()
+		{
+			value = Value::INVALID;
+		}
+
+		TextureFormat(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline Value Get() const { return value; }
+
+		inline static TextureFormat ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (TextureFormat::Value)v;
+		}
+
+		inline static TextureFormat ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::INVALID;
+		}
+
+		inline bool operator==(const TextureFormat& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const TextureFormat& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+	private:
+		Value value;
+
+		inline static const CString __STRINGS__[] = {
+			"INVALID",
+			"R8G8B8A8_UNORM",
+			"R16G16_UNORM",
+			"R8_BYTE",
+			"R32_FLOAT",
+			"D32_FLOAT",
+			"R32_TYPELESS",
+			"R16_UNORM",
+			"D16_UNORM",
+			"R16_TYPELESS",
+			"R32G32_FLOAT",
+			"R32G32B32_FLOAT",
+			"R32G32B32A32_FLOAT",
+			"R16G16B16A16_FLOAT",
+			"COUNT",
+		};
 	};
 
 	// TODO: Maybe more generic name for other data types too, ResourceCPUFlags?
-	enum class TextureCPUFlags
+	enum class ResourceCPUFlags
 	{
 		NONE,
 		READ,
@@ -73,7 +149,7 @@ namespace cm
 	public:
 		enum class Value : uint32
 		{
-			INAVLID = 0,
+			INVALID = 0,
 			P,		// @NOTE: Postion
 			P_PAD,	// @NOTE: Postion and a padd
 			PNT,	// @NOTE: Postions, normal, texture coords(uv)
@@ -85,7 +161,7 @@ namespace cm
 
 		VertexShaderLayoutType()
 		{
-			value = Value::INAVLID;
+			value = Value::INVALID;
 		}
 
 		VertexShaderLayoutType(Value v)
@@ -135,7 +211,7 @@ namespace cm
 				}
 			}
 
-			return Value::INAVLID;
+			return Value::INVALID;
 		}
 
 		inline bool operator==(const VertexShaderLayoutType& rhs) const
@@ -152,7 +228,7 @@ namespace cm
 		Value value;
 
 		inline static const CString __STRINGS__[] = {
-			"INAVLID",
+			"INVALID",
 			"P",
 			"P_PAD",
 			"PNT",
@@ -241,7 +317,7 @@ namespace cm
 
 		TextureFormat format;
 		TextureUsage usage[4];
-		TextureCPUFlags cpuFlags;
+		ResourceCPUFlags cpuFlags;
 		int32 width;
 		int32 height;
 		void* pixels;

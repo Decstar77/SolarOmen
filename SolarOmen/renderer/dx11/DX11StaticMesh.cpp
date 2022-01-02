@@ -33,7 +33,7 @@ namespace cm
 
 	StaticMesh cm::StaticMesh::Create(const ModelAsset& modelAsset)
 	{
-		Assert(modelAsset.layout != VertexShaderLayoutType::Value::INAVLID, "Invalid mesh vertex layout");
+		Assert(modelAsset.layout != VertexShaderLayoutType::Value::INVALID, "Invalid mesh vertex layout");
 
 		GetRenderState();
 

@@ -137,6 +137,7 @@
   <ItemGroup>
     <ClInclude Include="core\SolarAudio.h" />
     <ClInclude Include="core\SolarContainers.h" />
+    <ClInclude Include="core\SolarTypes.h" />
     <ClInclude Include="core\SolarIntrospection.h" />
     <ClInclude Include="core\Stract.h" />
     <ClInclude Include="game\components\SolarCamera.h" />
@@ -175,7 +176,6 @@
     <ClInclude Include="serialization\RawShaderImporter.h" />
     <ClInclude Include="serialization\RawTextureImporter.h" />
     <ClInclude Include="SimpleColliders.h" />
-    <ClInclude Include="core\SolarNetwork.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\ImGuizmo.h" />

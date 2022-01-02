@@ -1,6 +1,6 @@
 #pragma once
 #include "core/Defines.h"
-
+#include "SolarTypes.h"
 namespace cm
 {
 	namespace Game

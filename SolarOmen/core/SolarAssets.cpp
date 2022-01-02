@@ -383,7 +383,7 @@ namespace cm
 		} break;
 		case VertexShaderLayoutType::Value::PNTM:Assert(0, "Can't unpack model layout"); break;
 		case VertexShaderLayoutType::Value::TEXT:Assert(0, "Can't unpack model layout"); break;
-		case VertexShaderLayoutType::Value::INAVLID:Assert(0, "Can't unpack model layout"); break;
+		case VertexShaderLayoutType::Value::INVALID:Assert(0, "Can't unpack model layout"); break;
 		case VertexShaderLayoutType::Value::COUNT:Assert(0, "Can't unpack model layout"); break;
 		}
 
