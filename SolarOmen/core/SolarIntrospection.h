@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Defines.h"
-#include "SolarMath.h"
+#include "SolarTypes.h"
 
 namespace cm
 {
@@ -9,6 +9,7 @@ namespace cm
 	{
 		INVALID = 0,
 		STRING,
+		ASSETID,
 		UINT8,
 		UINT16,
 		UINT32,
@@ -67,6 +68,7 @@ namespace cm
 		return MemberVariableType::STRUCT_WITH_TO_STRING;
 	}
 
+	template<> inline MemberVariableType GetMemberVariableType<AssetId>(const AssetId& t) { return MemberVariableType::ASSETID; }
 	template<> inline MemberVariableType GetMemberVariableType<CString>(const CString& t) { return MemberVariableType::STRING; }
 	template<> inline MemberVariableType GetMemberVariableType<int32>(const int32& t) { return MemberVariableType::INT32; }
 	template<> inline MemberVariableType GetMemberVariableType<uint32>(const uint32& t) { return MemberVariableType::UINT32; }

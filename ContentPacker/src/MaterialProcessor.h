@@ -2,7 +2,7 @@
 #include "Core.h"
 #include "TextFile.h"
 #include "BinaryFile.h"
-#include "core/SolarAssets.h"
+#include "core/SolarTypes.h"
 #include "AssetIdGenerator.h"
 
 namespace cm
@@ -10,7 +10,10 @@ namespace cm
 	class Material : Serializable
 	{
 	public:
-		MaterialAsset asset;
+		AssetId id;
+		CString name;
+		Vec3f colourKd;
+
 		virtual void SaveBinaryData(BinaryFile* file) const override;
 	};
 

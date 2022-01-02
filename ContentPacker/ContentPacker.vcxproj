@@ -161,11 +161,6 @@
     <ClCompile Include="src\TextureProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ContentTools\ContentTools.vcxproj">
-      <Project>{3120863d-a4f3-4672-819e-abc61114a464}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="src\AssetIdGenerator.h" />
     <ClInclude Include="src\BinaryFile.h" />
     <ClInclude Include="src\Core.h" />

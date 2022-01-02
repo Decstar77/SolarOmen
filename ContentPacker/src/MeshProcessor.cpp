@@ -22,7 +22,7 @@ namespace cm
 			if (metaPath.GetLength() != 0)
 			{
 				ModelMetaFile metaFile = metaProcessor.ParseModelMetaFile(metaPath);
-				Assert(metaFile.id != 0, "");
+				Assert(metaFile.id.IsValid(), "");
 
 				Model model = Model(modelPath, metaFile.id, Util::StripFilePathAndExtentions(modelPath));
 				models.push_back(model);

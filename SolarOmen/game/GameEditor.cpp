@@ -210,12 +210,12 @@ namespace cm
 					CString modelName = "NONE";
 					CString textureName = "NONE";
 					CString shaderName = "NONE";
-					if (entity->renderComponent.modelId != INVALID_ASSET_ID)
-						modelName = as->models.Get(entity->renderComponent.modelId)->name;
-					if (entity->renderComponent.textureId != INVALID_ASSET_ID)
-						textureName = as->textures.Get(entity->renderComponent.textureId)->name;
-					if (entity->renderComponent.shaderId != INVALID_ASSET_ID)
-						shaderName = as->shaders.Get(entity->renderComponent.shaderId)->name;
+					if (entity->renderComponent.modelId.IsValid())
+						modelName = as->models.Get(entity->renderComponent.modelId.number)->name;
+					if (entity->renderComponent.textureId.IsValid())
+						textureName = as->textures.Get(entity->renderComponent.textureId.number)->name;
+					if (entity->renderComponent.shaderId.IsValid())
+						shaderName = as->shaders.Get(entity->renderComponent.shaderId.number)->name;
 
 					file.Write(modelName); file.Write(':');
 					file.Write(textureName); file.Write(':');
@@ -557,11 +557,11 @@ namespace cm
 			gs->currentRoom.BeginEntityLoop();
 			while (Entity entity = gs->currentRoom.GetNextEntity())
 			{
-				if (entity.GetModelId() != INVALID_ASSET_ID)
+				if (entity.GetModelId().IsValid())
 				{
 					Mat4f transform = entity.GetWorldTransform().CalculateTransformMatrix();
 
-					UnpackedModelAsset model = as->models.Get(entity.GetModelId())->Unpack();
+					UnpackedModelAsset model = as->models.Get(entity.GetModelId().number)->Unpack();
 					for (uint32 i = 0; i < model.triangleCount; i += 1)
 					{
 						real32 dist = 0;

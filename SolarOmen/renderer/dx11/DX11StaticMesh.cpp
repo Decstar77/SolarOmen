@@ -93,7 +93,7 @@ namespace cm
 		};
 
 		ModelAsset asset = {};
-		asset.id = 1;
+		asset.id.number = 1;
 		asset.layout = VertexLayoutType::Value::PNT;
 		asset.packedVertices.data = vertexData;
 		asset.packedVertices.count = ArrayCount(vertexData);

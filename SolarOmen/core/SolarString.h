@@ -369,7 +369,7 @@ namespace cm
 			return result;
 		}
 
-		inline int64 ToUint64() const
+		inline uint64 ToUint64() const
 		{
 			uint64 result = std::stoull(data);
 

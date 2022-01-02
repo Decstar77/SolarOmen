@@ -13,131 +13,9 @@
 
 namespace cm
 {
-	//void AssetState::Initialize(AssetState* as)
-	//{
-	//	/*assetState = as;
-	//	LoadAllShaders(as);
-	//	LoadAllModels(as);
-	//	LoadAllTextures(as);
-	//	LoadAllFonts(as);
-	//	LoadAllAudio(as);*/
-	//}
-
 	inline static AssetState* as = nullptr;
-	static std::random_device randomDevice;
-	static std::mt19937_64 randomEngine(randomDevice());
-	static std::uniform_int_distribution<uint64> randomDistribution;
-
 	static CString ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
 	static CString PACKED_ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Packed/";
-
-	inline uint64 GenerateGUID()
-	{
-		return randomDistribution(randomEngine);
-	}
-
-	int32 FindMetaFile(ManagedArray<CString> metaFiles, const CString& other)
-	{
-		CString test = Util::StripFilePathAndExtentions(other);
-		for (int32 i = 0; i < (int32)metaFiles.GetCount(); i++)
-		{
-			CString meta = Util::StripFilePathAndExtentions(metaFiles[i]);
-			if (test == meta)
-				return i;
-		}
-
-		return -1;
-	}
-
-	CString ParseLine(const char* data, int32* current)
-	{
-		CString result;
-		if (data)
-		{
-			for (;; (*current)++)
-			{
-				if (data[*current] == '\0')
-				{
-					break;
-				}
-
-				if (data[*current] == '\n' || data[*current] == '\r')
-				{
-					(*current)++;
-					break;
-				}
-				result.Add(data[*current]);
-			}
-		}
-
-		return result;
-	}
-
-	ManagedArray<TextureAsset> LoadOrCreateTextureMetaData(ManagedArray<CString> metaFiles, ManagedArray<CString> textureFiles)
-	{
-		ManagedArray<TextureAsset> textures = {};
-		textures.data = GameMemory::PushTransientCount<TextureAsset>(textureFiles.GetCount());
-		textures.capcity = textureFiles.GetCount();
-
-		for (uint32 i = 0; i < textureFiles.GetCount(); i++)
-		{
-			int32 index = FindMetaFile(metaFiles, textureFiles[i]);
-			uint64 guid = 0;
-
-			if (index >= 0)
-			{
-				PlatformFile metaFile = Platform::LoadEntireFile(metaFiles[index], false);
-
-				int32 current = 0;
-				CString line = ParseLine((const char*)metaFile.data, &current);
-				bool32 correctFile = false;
-
-				while (line.GetLength() > 0)
-				{
-					if (line.StartsWith("GUID="))
-					{
-						guid = line.Split('=')[1].ToUint64();
-					}
-
-					if (line == "Type=Texture")
-					{
-						correctFile = true;
-					}
-					line = ParseLine((const char*)metaFile.data, &current);
-				}
-
-				if (!correctFile)
-				{
-					Debug::LogInfo(CString("Incorrect meta file for: ").Add(textureFiles[i]));
-					continue;
-				}
-			}
-			else
-			{
-				CString data = "";
-				guid = randomDistribution(randomEngine);
-				data.Add("GUID=").Add(guid).Add("\n");
-				data.Add("Type=Texture\n");
-
-				Debug::LogInfo(CString("No meta file for ").Add(textureFiles[i]).Add(" creating one ").Add(guid));
-
-				CString path = Util::StripFileExtension(textureFiles[i]);
-				path.Add(".slo");
-
-				if (!Platform::WriteFile(path, (void*)data.GetCStr(), data.GetLength()))
-				{
-					Debug::LogInfo("Could not save meta file !!");
-				}
-			}
-
-			TextureAsset asset = {};
-			asset.id = guid;
-			asset.name = Util::StripFilePathAndExtentions(textureFiles[i]);
-			textures.Add(asset);
-		}
-
-		return textures;
-	}
 
 	struct BinaryAssetFile
 	{
@@ -175,29 +53,10 @@ namespace cm
 		as = GameMemory::PushPermanentStruct<AssetState>();
 		AssetState::Initialize(as);
 
-		ManagedArray<CString> metaFiles = Platform::LoadEntireFolder(ASSET_PATH, "slo");
-
-		ManagedArray<CString> vertexShaderFiles = Platform::LoadEntireFolder(ASSET_PATH, "vert.cso");
-		ManagedArray<CString> pixelShaderFiles = Platform::LoadEntireFolder(ASSET_PATH, "pixl.cso");
-
 		ManagedArray<CString> roomFiles = Platform::LoadEntireFolder(CString(ASSET_PATH).Add("Rooms/"), "txt");
 
 		ManagedArray<CString> audioFiles = Platform::LoadEntireFolder(CString(ASSET_PATH), "wav");
 
-#if 0
-		for (uint32 modelIndex = 0; modelIndex < modelFiles.GetCount(); modelIndex++)
-		{
-			ModelAsset modelAsset = LoadModel(modelFiles[modelIndex]);
-
-			// @NOTE: Copy over the meta data
-			modelAsset.name = models[modelIndex].name;
-			modelAsset.id = models[modelIndex].id;
-
-			// @NOTE: Now override
-			models[modelIndex] = modelAsset;
-			as->models.Put(modelAsset.id, modelAsset);
-		}
-#else
 		{
 			BinaryAssetFile binModels = {};
 			binModels.file = Platform::LoadEntireFile(CString(PACKED_ASSET_PATH).Add("models.bin"), false);
@@ -206,7 +65,7 @@ namespace cm
 			for (uint32 modelIndex = 0; modelIndex < modelCount; modelIndex++)
 			{
 				ModelAsset model = {};
-				model.id = binModels.Read<uint64>();
+				model.id = binModels.Read<AssetId>();
 				model.name = binModels.Read<CString>();
 				model.layout = binModels.Read<VertexLayoutType::Value>();
 
@@ -222,7 +81,7 @@ namespace cm
 					model.indices.Add(binModels.Read<uint32>());
 				}
 
-				as->models.Put(model.id, model);
+				as->models.Put(model.id.number, model);
 			}
 		}
 		{
@@ -233,7 +92,7 @@ namespace cm
 			for (uint32 textureIndex = 0; textureIndex < textureCount; textureIndex++)
 			{
 				TextureAsset texture = {};
-				texture.id = binTextures.Read<uint64>();
+				texture.id = binTextures.Read<AssetId>();
 				texture.name = binTextures.Read<CString>();
 				texture.mips = (bool32)binTextures.Read<uint8>();
 				texture.width = binTextures.Read<uint32>();
@@ -255,11 +114,9 @@ namespace cm
 
 				texture.pixels = pixels;
 
-				as->textures.Put(texture.id, texture);
+				as->textures.Put(texture.id.number, texture);
 			}
 		}
-#endif
-
 		{
 			BinaryAssetFile binPrograms = {};
 			binPrograms.file = Platform::LoadEntireFile(CString(PACKED_ASSET_PATH).Add("programs.bin"), false);
@@ -268,7 +125,7 @@ namespace cm
 			for (uint32 programIndex = 0; programIndex < programCount; programIndex++)
 			{
 				ShaderAsset shader = {};
-				shader.id = binPrograms.Read<uint64>();
+				shader.id = binPrograms.Read<AssetId>();
 				shader.name = binPrograms.Read<CString>();
 				shader.stageLayout = binPrograms.Read<ProgramStagesLayout::Value>();
 				shader.vertexLayout = binPrograms.Read<VertexLayoutType::Value>();
@@ -291,7 +148,7 @@ namespace cm
 				default: Assert(0, "Loading shaders");
 				}
 
-				as->shaders.Put(shader.id, shader);
+				as->shaders.Put(shader.id.number, shader);
 			}
 		}
 

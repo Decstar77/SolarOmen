@@ -68,7 +68,7 @@ namespace cm
 		{
 			if (line.StartsWith("GUID"))
 			{
-				metaFile.id = line.SubStr(line.FindFirstOf('=') + 1).ToUint64();
+				metaFile.id.number = line.SubStr(line.FindFirstOf('=') + 1).ToUint64();
 			}
 			else if (line.StartsWith("Type"))
 			{
@@ -100,7 +100,7 @@ namespace cm
 		{
 			if (line.StartsWith("GUID"))
 			{
-				metaFile.id = line.SubStr(line.FindFirstOf('=') + 1).ToUint64();
+				metaFile.id.number = line.SubStr(line.FindFirstOf('=') + 1).ToUint64();
 			}
 			else if (line.StartsWith("Type"))
 			{

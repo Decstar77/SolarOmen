@@ -1,5 +1,6 @@
 #pragma once
 #include "Core.h"
+#include "core/SolarTypes.h"
 
 namespace cm
 {
@@ -25,6 +26,7 @@ namespace cm
 			}
 		}
 
+		void Write(const AssetId& v);
 		void Write(const uint64& v);
 		void Write(const uint32& v);
 		void Write(const bool32& v);

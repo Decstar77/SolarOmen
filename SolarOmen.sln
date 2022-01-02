@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.31005.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SolarOmen", "SolarOmen\SolarOmen.vcxproj", "{2678C380-0B4B-425C-A9E2-CB0ED4DF70EC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ContentTools", "ContentTools\ContentTools.vcxproj", "{3120863D-A4F3-4672-819E-ABC61114A464}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ContentPacker", "ContentPacker\ContentPacker.vcxproj", "{6EB7D504-C001-41A7-A577-48C8B947A689}"
 EndProject
 Global
@@ -23,14 +21,6 @@ Global
 		{2678C380-0B4B-425C-A9E2-CB0ED4DF70EC}.Release|x64.ActiveCfg = Release|x64
 		{2678C380-0B4B-425C-A9E2-CB0ED4DF70EC}.Release|x64.Build.0 = Release|x64
 		{2678C380-0B4B-425C-A9E2-CB0ED4DF70EC}.Release|x86.ActiveCfg = Release|x64
-		{3120863D-A4F3-4672-819E-ABC61114A464}.Debug|x64.ActiveCfg = Debug|x64
-		{3120863D-A4F3-4672-819E-ABC61114A464}.Debug|x64.Build.0 = Debug|x64
-		{3120863D-A4F3-4672-819E-ABC61114A464}.Debug|x86.ActiveCfg = Debug|Win32
-		{3120863D-A4F3-4672-819E-ABC61114A464}.Debug|x86.Build.0 = Debug|Win32
-		{3120863D-A4F3-4672-819E-ABC61114A464}.Release|x64.ActiveCfg = Release|x64
-		{3120863D-A4F3-4672-819E-ABC61114A464}.Release|x64.Build.0 = Release|x64
-		{3120863D-A4F3-4672-819E-ABC61114A464}.Release|x86.ActiveCfg = Release|Win32
-		{3120863D-A4F3-4672-819E-ABC61114A464}.Release|x86.Build.0 = Release|Win32
 		{6EB7D504-C001-41A7-A577-48C8B947A689}.Debug|x64.ActiveCfg = Debug|x64
 		{6EB7D504-C001-41A7-A577-48C8B947A689}.Debug|x64.Build.0 = Debug|x64
 		{6EB7D504-C001-41A7-A577-48C8B947A689}.Debug|x86.ActiveCfg = Debug|Win32

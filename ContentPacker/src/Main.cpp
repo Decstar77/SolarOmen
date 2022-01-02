@@ -149,11 +149,11 @@ void CombineModels(std::vector<Model>& models, std::vector<Material>& materials)
 		{
 			for (Material& mat : materials)
 			{
-				if (mat.asset.name == mesh.materialName)
+				if (mat.name == mesh.materialName)
 				{
 					for (int32 i = 0; i < mesh.vertices.size(); i++)
 					{
-						mesh.vertices.at(i).colours = Vec4f(mat.asset.colourKd, 1.0f);
+						mesh.vertices.at(i).colours = Vec4f(mat.colourKd, 1.0f);
 						mesh.hasColours = true;
 					}
 

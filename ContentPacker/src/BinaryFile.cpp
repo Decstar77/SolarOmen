@@ -3,6 +3,11 @@
 
 namespace cm
 {
+	void BinaryFile::Write(const AssetId& v)
+	{
+		WritePrimitive(v.number);
+	}
+
 	void BinaryFile::Write(const uint64& v)
 	{
 		WritePrimitive(v);

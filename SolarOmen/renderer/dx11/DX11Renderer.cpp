@@ -303,7 +303,7 @@ namespace cm
 		rs->meshes.Put(rs->quad.id, rs->quad);
 
 		ModelAsset cube = GetAssetFromName(models, "cube");
-		cube.id = 2;
+		cube.id.number = 2;
 		rs->cube = StaticMesh::Create(cube);
 		rs->meshes.Put(rs->cube.id, rs->cube);
 	}
@@ -405,7 +405,7 @@ namespace cm
 		rs->uiConstBuffer.data.colour = colour;
 		rs->uiConstBuffer.data.sizePos = Vec4f(w, h, x, y);
 
-		if (textureId == INVALID_ASSET_ID)
+		if (!textureId.IsValid())
 		{
 			rs->uiConstBuffer.data.uiUses = Vec4i(0, 0, 0, 0);
 		}
@@ -513,8 +513,8 @@ namespace cm
 		rs->lightingConstBuffer.data.viewPos = Vec4f(renderGroup->playerCamera.transform.position, 0.0f);
 		RenderCommand::UpdateConstBuffer(rs->lightingConstBuffer);
 
-		AssetId lastModelId = 0;
-		AssetId lastTextureId = 0;
+		AssetId lastModelId = {};
+		AssetId lastTextureId = {};
 		for (uint32 entryIndex = 0; entryIndex < renderGroup->entries.count; entryIndex++)
 		{
 			RenderEntry* entry = &renderGroup->entries[entryIndex];

@@ -1419,7 +1419,7 @@ namespace cm
 		el.rect.oY = oY;
 		el.rect.width = halfWidth * 2.0f;
 		el.rect.height = halfHeight * 2.0f;
-		el.rect.texture = 0;
+		el.rect.texture.number = 0;
 		el.rect.colour = colour;
 
 		uiElements.Add(el);

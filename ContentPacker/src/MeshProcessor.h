@@ -1,6 +1,6 @@
 #pragma once
 #include "Core.h"
-#include "core/SolarAssets.h"
+#include "core/SolarTypes.h"
 #include "TextFile.h"
 #include "MetaProcessor.h"
 #include "BinaryFile.h"

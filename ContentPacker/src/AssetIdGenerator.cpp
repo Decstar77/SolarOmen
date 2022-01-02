@@ -9,6 +9,9 @@ namespace cm
 
 	AssetId GenerateAssetId()
 	{
-		return randomDistribution(randomEngine);
+		AssetId id = {};
+		id.number = randomDistribution(randomEngine);
+
+		return id;
 	}
 }

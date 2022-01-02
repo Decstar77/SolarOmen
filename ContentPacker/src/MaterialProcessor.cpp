@@ -39,8 +39,9 @@ namespace cm
 
 	void Material::SaveBinaryData(BinaryFile* file) const
 	{
-		file->Write(asset.name);
-		file->Write(asset.colourKd);
+		file->Write(id);
+		file->Write(name);
+		file->Write(colourKd);
 	}
 
 	std::vector<Material> MaterialProcessor::LoadMTLMaterials(const std::vector<CString>& paths)
@@ -59,7 +60,7 @@ namespace cm
 				{
 					Material material;
 					line = line.SubStr(line.FindFirstOf(' ') + 1);
-					material.asset.name = line;
+					material.name = line;
 
 					line = fileReader.NextLine();
 					if (line.StartsWith("Kd"))
@@ -70,13 +71,13 @@ namespace cm
 						real32 y = values[1].ToReal32();
 						real32 z = values[2].ToReal32();
 
-						material.asset.colourKd = Vec3f(x, y, z);
+						material.colourKd = Vec3f(x, y, z);
 					}
 
 					bool add = true;
 					for (const Material& mat : materials)
 					{
-						if (mat.asset.name == material.asset.name)
+						if (mat.name == material.name)
 						{
 							add = false;
 							break;
