@@ -178,8 +178,6 @@ namespace cm
 		AssetState::Initialize(as);
 
 		ManagedArray<CString> metaFiles = Platform::LoadEntireFolder(ASSET_PATH, "slo");
-		ManagedArray<CString> modelFiles = Platform::LoadEntireFolder(ASSET_PATH, "obj");
-		ManagedArray<CString> textureFiles = Platform::LoadEntireFolder(ASSET_PATH, "png");
 
 		ManagedArray<CString> vertexShaderFiles = Platform::LoadEntireFolder(ASSET_PATH, "vert.cso");
 		ManagedArray<CString> pixelShaderFiles = Platform::LoadEntireFolder(ASSET_PATH, "pixl.cso");
@@ -187,8 +185,6 @@ namespace cm
 		ManagedArray<CString> roomFiles = Platform::LoadEntireFolder(CString(ASSET_PATH).Add("Rooms/"), "txt");
 
 		ManagedArray<CString> audioFiles = Platform::LoadEntireFolder(CString(ASSET_PATH), "wav");
-
-		ManagedArray<TextureAsset> textures = LoadOrCreateTextureMetaData(metaFiles, textureFiles);
 
 #if 0
 		for (uint32 modelIndex = 0; modelIndex < modelFiles.GetCount(); modelIndex++)
@@ -228,27 +224,43 @@ namespace cm
 					model.indices.Add(binModels.Read<uint32>());
 				}
 
-
-
 				as->models.Put(model.id, model);
 			}
+		}
+		{
+			BinaryAssetFile binTextures = {};
+			binTextures.file = Platform::LoadEntireFile(CString(PACKED_ASSET_PATH).Add("textures.bin"), false);
 
-			int a = 2;
+			uint32 textureCount = binTextures.Read<uint32>();
+			for (uint32 textureIndex = 0; textureIndex < textureCount; textureIndex++)
+			{
+				TextureAsset texture = {};
+				texture.id = binTextures.Read<uint64>();
+				texture.name = binTextures.Read<CString>();
+				texture.mips = (bool32)binTextures.Read<uint8>();
+				texture.width = binTextures.Read<uint32>();
+				texture.height = binTextures.Read<uint32>();
+				texture.format = binTextures.Read<TextureFormat::Value>();
+				texture.usage[0] = binTextures.Read<BindUsage::Value>();
+				texture.usage[1] = binTextures.Read<BindUsage::Value>();
+				texture.usage[2] = binTextures.Read<BindUsage::Value>();
+				texture.usage[3] = binTextures.Read<BindUsage::Value>();
+				texture.cpuFlags = binTextures.Read<ResourceCPUFlags::Value>();
+
+				uint32 pixelCount = binTextures.Read<uint32>();
+				uint8* pixels = GameMemory::PushPermanentCount<uint8>(pixelCount);
+
+				for (int32 i = 0; i < pixelCount; i++)
+				{
+					pixels[i] = binTextures.Read<uint8>();
+				}
+
+				texture.pixels = pixels;
+
+				as->textures.Put(texture.id, texture);
+			}
 		}
 #endif
-
-		for (uint32 textureIndex = 0; textureIndex < textureFiles.GetCount(); textureIndex++)
-		{
-			TextureAsset textureAsset = LoadTexture(textureFiles[textureIndex]);
-
-			// @NOTE: Copy over the meta data
-			textureAsset.name = textures[textureIndex].name;
-			textureAsset.id = textures[textureIndex].id;
-
-			// @NOTE: Now override
-			textures[textureIndex] = textureAsset;
-			as->textures.Put(textureAsset.id, textureAsset);
-		}
 
 		Assert(vertexShaderFiles.GetCount() == pixelShaderFiles.GetCount(), "Vertex shader does not have pixel shader or vice versa");
 		for (uint32 shaderIndex = 0; shaderIndex < vertexShaderFiles.GetCount(); shaderIndex++)

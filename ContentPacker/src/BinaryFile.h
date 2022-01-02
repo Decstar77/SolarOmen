@@ -27,6 +27,8 @@ namespace cm
 
 		void Write(const uint64& v);
 		void Write(const uint32& v);
+		void Write(const bool32& v);
+		void Write(const uint8& v);
 		void Write(const Vec2f& v);
 		void Write(const Vec3f& v);
 		void Write(const Vec4f& v);

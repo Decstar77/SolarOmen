@@ -37,17 +37,6 @@ namespace cm
 		return models;
 	}
 
-	void ModelProcessor::SaveModels(const std::vector<Model>& models)
-	{
-		BinaryFile file;
-		file.Write((uint32)models.size());
-		for (const Model& model : models)
-		{
-			model.SaveBinaryData(&file);
-		}
-		file.SaveToDisk("../Assets/Packed/models.bin");
-	}
-
 	void Model::LoadModel(const CString& path)
 	{
 		// read file via ASSIMP

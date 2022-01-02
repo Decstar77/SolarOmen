@@ -19,7 +19,7 @@ namespace cm
 	class TextureFormat
 	{
 	public:
-		enum class Value
+		enum class Value : uint8
 		{
 			INVALID = 0,
 			R8G8B8A8_UNORM,
@@ -112,7 +112,7 @@ namespace cm
 	class ResourceCPUFlags
 	{
 	public:
-		enum class Value
+		enum class Value : uint8
 		{
 			NONE = 0,
 			READ,
@@ -185,7 +185,7 @@ namespace cm
 	class TextureWrapMode
 	{
 	public:
-		enum class Value
+		enum class Value : uint8
 		{
 			INVALID = 0,
 			REPEAT,
@@ -256,7 +256,7 @@ namespace cm
 	class TextureFilterMode
 	{
 	public:
-		enum class Value
+		enum class Value : uint8
 		{
 			INVALID = 0,
 			POINT,
@@ -330,7 +330,7 @@ namespace cm
 	class BindUsage
 	{
 	public:
-		enum class Value
+		enum class Value : uint8
 		{
 			NONE = 0,
 			SHADER_RESOURCE,

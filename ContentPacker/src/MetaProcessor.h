@@ -27,8 +27,11 @@ namespace cm
 
 	struct TextureMetaFile
 	{
-		bool mips;
+		AssetId id;
 		TextureFormat format;
+		BindUsage usage[4];
+		ResourceCPUFlags cpuFlags;
+		bool mips;
 	};
 
 	class MetaProcessor
@@ -46,6 +49,7 @@ namespace cm
 		void SaveMetaData(const CString& path, const TextureMetaFile& textureData);
 
 		ModelMetaFile ParseModelMetaFile(const CString& path) const;
+		TextureMetaFile ParseTextureMetaFile(const CString& path) const;
 
 		DISABLE_COPY_AND_MOVE(MetaProcessor);
 	};

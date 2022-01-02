@@ -87,5 +87,33 @@ namespace cm
 		return metaFile;
 	}
 
+	TextureMetaFile MetaProcessor::ParseTextureMetaFile(const CString& path) const
+	{
+		TextFileReader file;
+		file.Read(path);
 
+		TextureMetaFile metaFile = {};
+		metaFile.format = TextureFormat::Value::R8G8B8A8_UNORM;
+		metaFile.usage[0] = BindUsage::Value::SHADER_RESOURCE;
+
+		for (CString line = file.NextLine(); line != TextFileReader::END_OF_FILE_STRING; line = file.NextLine())
+		{
+			if (line.StartsWith("GUID"))
+			{
+				metaFile.id = line.SubStr(line.FindFirstOf('=') + 1).ToUint64();
+			}
+			else if (line.StartsWith("Type"))
+			{
+
+			}
+			else if (line.StartsWith("Scale"))
+			{
+			}
+			else if (line.StartsWith("Layout"))
+			{
+			}
+		}
+
+		return metaFile;
+	}
 }

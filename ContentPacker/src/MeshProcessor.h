@@ -74,7 +74,6 @@ namespace cm
 		ModelProcessor();
 
 		std::vector<Model> LoadModels(const std::vector<CString>& modelPaths, const MetaProcessor& metaProcessor);
-		void SaveModels(const std::vector<Model>& models);
 
 		DISABLE_COPY_AND_MOVE(ModelProcessor);
 	};
