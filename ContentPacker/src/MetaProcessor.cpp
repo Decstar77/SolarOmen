@@ -80,7 +80,7 @@ namespace cm
 			}
 			else if (line.StartsWith("Layout"))
 			{
-				metaFile.layout = VertexShaderLayoutType::ValueOf(line.SubStr(line.FindFirstOf('=') + 1));
+				metaFile.layout = VertexLayoutType::ValueOf(line.SubStr(line.FindFirstOf('=') + 1));
 			}
 		}
 

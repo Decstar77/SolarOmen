@@ -12,11 +12,11 @@ namespace cm
 		ID3D11Buffer* vertexBuffer;
 		ID3D11Buffer* indexBuffer;
 
-		VertexShaderLayoutType vertexLayout;
+		VertexLayoutType vertexLayout;
 
 		void UpdateVertexBuffer(real32* vertices, uint32 sizeBytes);
 
-		static StaticMesh Create(real32* vertices, uint32 sizeBytes, VertexShaderLayoutType layout);
+		static StaticMesh Create(real32* vertices, uint32 sizeBytes, VertexLayoutType layout);
 		static StaticMesh Create(const ModelAsset& modelAsset);
 		static StaticMesh CreateScreenSpaceQuad();
 	};

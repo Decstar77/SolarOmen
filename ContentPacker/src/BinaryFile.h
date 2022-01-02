@@ -59,4 +59,13 @@ namespace cm
 	public:
 		virtual void SaveBinaryData(BinaryFile* file) const = 0;
 	};
+
+	class BinaryFileReader
+	{
+	public:
+		BinaryFileReader();
+		std::vector<char> Read(const CString& path);
+		std::vector<char> fileBytes;
+	};
+
 }

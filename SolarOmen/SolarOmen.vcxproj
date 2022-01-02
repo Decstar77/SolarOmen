@@ -121,8 +121,6 @@
     <ClCompile Include="renderer\dx11\DX11Texture.cpp" />
     <ClCompile Include="serialization\RawFontImporter.cpp" />
     <ClCompile Include="serialization\RawRoomImporter.cpp" />
-    <ClCompile Include="serialization\RawShaderImporter.cpp" />
-    <ClCompile Include="serialization\RawTextureImporter.cpp" />
     <ClCompile Include="SimpleColliders.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
     <ClCompile Include="vendor\imgui\ImGuizmo.cpp" />
@@ -173,8 +171,6 @@
     <ClInclude Include="serialization\RawAudioImporter.h" />
     <ClInclude Include="serialization\RawFontImporter.h" />
     <ClInclude Include="serialization\RawRoomImporter.h" />
-    <ClInclude Include="serialization\RawShaderImporter.h" />
-    <ClInclude Include="serialization\RawTextureImporter.h" />
     <ClInclude Include="SimpleColliders.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />

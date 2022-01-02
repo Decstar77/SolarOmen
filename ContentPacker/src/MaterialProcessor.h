@@ -18,6 +18,6 @@ namespace cm
 	{
 	public:
 		std::vector<Material> LoadMTLMaterials(const std::vector<CString>& paths);
-		void SaveMaterials(const std::vector<Material>& material);
+
 	};
 }

@@ -22,7 +22,7 @@ namespace cm
 	{
 		AssetId id;
 		real32 scale;
-		VertexShaderLayoutType layout;
+		VertexLayoutType layout;
 	};
 
 	struct TextureMetaFile

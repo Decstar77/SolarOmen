@@ -4,8 +4,6 @@
 #include <random>
 
 #if USE_RAW_ASSETS
-#include "serialization/RawTextureImporter.h"
-#include "serialization/RawShaderImporter.h"
 #include "serialization/RawFontImporter.h"
 #include "serialization/RawRoomImporter.h"
 #include "serialization/RawAudioImporter.h"
@@ -210,7 +208,7 @@ namespace cm
 				ModelAsset model = {};
 				model.id = binModels.Read<uint64>();
 				model.name = binModels.Read<CString>();
-				model.layout = binModels.Read<VertexShaderLayoutType::Value>();
+				model.layout = binModels.Read<VertexLayoutType::Value>();
 
 				model.packedVertices.Allocate(binModels.Read<uint32>() * model.layout.GetStride(), MemoryType::PERMANENT);
 				for (uint32 i = 0; i < model.packedVertices.GetCapcity(); i++)
@@ -250,7 +248,7 @@ namespace cm
 				uint32 pixelCount = binTextures.Read<uint32>();
 				uint8* pixels = GameMemory::PushPermanentCount<uint8>(pixelCount);
 
-				for (int32 i = 0; i < pixelCount; i++)
+				for (uint32 i = 0; i < pixelCount; i++)
 				{
 					pixels[i] = binTextures.Read<uint8>();
 				}
@@ -262,20 +260,39 @@ namespace cm
 		}
 #endif
 
-		Assert(vertexShaderFiles.GetCount() == pixelShaderFiles.GetCount(), "Vertex shader does not have pixel shader or vice versa");
-		for (uint32 shaderIndex = 0; shaderIndex < vertexShaderFiles.GetCount(); shaderIndex++)
 		{
-			CString vertexPath = vertexShaderFiles[shaderIndex];
-			CString pixelPath = pixelShaderFiles[shaderIndex];
+			BinaryAssetFile binPrograms = {};
+			binPrograms.file = Platform::LoadEntireFile(CString(PACKED_ASSET_PATH).Add("programs.bin"), false);
 
-			Assert(Util::StripFilePathAndExtentions(vertexPath) == Util::StripFilePathAndExtentions(pixelPath),
-				"Vertex shader does not have pixel shader or vice versa");
+			uint32 programCount = binPrograms.Read<uint32>();
+			for (uint32 programIndex = 0; programIndex < programCount; programIndex++)
+			{
+				ShaderAsset shader = {};
+				shader.id = binPrograms.Read<uint64>();
+				shader.name = binPrograms.Read<CString>();
+				shader.stageLayout = binPrograms.Read<ProgramStagesLayout::Value>();
+				shader.vertexLayout = binPrograms.Read<VertexLayoutType::Value>();
 
-			ShaderAsset shaderAsset = LoadShader(vertexPath, pixelPath);
-			shaderAsset.id = GenerateGUID();
-			shaderAsset.name = Util::StripFilePathAndExtentions(vertexPath);
+				switch (shader.stageLayout.Get())
+				{
+				case ProgramStagesLayout::Value::VERTEX_PIXEL:
+				{
+					shader.vertexData.Allocate(binPrograms.Read<uint32>(), MemoryType::PERMANENT);
+					for (uint32 i = 0; i < shader.vertexData.GetCapcity(); i++) { shader.vertexData.Add(binPrograms.Read<uint8>()); }
+					shader.pixelData.Allocate(binPrograms.Read<uint32>(), MemoryType::PERMANENT);
+					for (uint32 i = 0; i < shader.pixelData.GetCapcity(); i++) { shader.pixelData.Add(binPrograms.Read<uint8>()); }
 
-			as->shaders.Put(shaderAsset.id, shaderAsset);
+				} break;
+				case ProgramStagesLayout::Value::COMPUTE:
+				{
+					shader.computeData.Allocate(binPrograms.Read<uint32>(), MemoryType::PERMANENT);
+					for (uint32 i = 0; i < shader.computeData.GetCapcity(); i++) { shader.computeData.Add(binPrograms.Read<uint8>()); }
+				} break;
+				default: Assert(0, "Loading shaders");
+				}
+
+				as->shaders.Put(shader.id, shader);
+			}
 		}
 
 		for (uint32 roomIndex = 0; roomIndex < roomFiles.GetCount(); roomIndex++)
@@ -363,9 +380,9 @@ namespace cm
 
 		switch (layout.Get())
 		{
-		case VertexShaderLayoutType::Value::P:Assert(0, "Can't unpack model layout"); break;
-		case VertexShaderLayoutType::Value::P_PAD: Assert(0, "Can't unpack model layout"); break;
-		case VertexShaderLayoutType::Value::PNT:
+		case VertexLayoutType::Value::P:Assert(0, "Can't unpack model layout"); break;
+		case VertexLayoutType::Value::P_PAD: Assert(0, "Can't unpack model layout"); break;
+		case VertexLayoutType::Value::PNT:
 		{
 			result.positions.Allocate(result.vertexCount, MemoryType::TRANSIENT);
 			result.normals.Allocate(result.vertexCount, MemoryType::TRANSIENT);
@@ -378,7 +395,7 @@ namespace cm
 				result.uvs[index] = Vec2f(packedVertices[i + 6], packedVertices[i + 7]);
 			}
 		} break;
-		case VertexShaderLayoutType::Value::PNTC:
+		case VertexLayoutType::Value::PNTC:
 		{
 			result.positions.Allocate(result.vertexCount, MemoryType::TRANSIENT);
 			result.normals.Allocate(result.vertexCount, MemoryType::TRANSIENT);
@@ -393,10 +410,10 @@ namespace cm
 				result.colours[index] = Vec4f(packedVertices[i + 8], packedVertices[i + 9], packedVertices[i + 10], packedVertices[i + 11]);
 			}
 		} break;
-		case VertexShaderLayoutType::Value::PNTM:Assert(0, "Can't unpack model layout"); break;
-		case VertexShaderLayoutType::Value::TEXT:Assert(0, "Can't unpack model layout"); break;
-		case VertexShaderLayoutType::Value::INVALID:Assert(0, "Can't unpack model layout"); break;
-		case VertexShaderLayoutType::Value::COUNT:Assert(0, "Can't unpack model layout"); break;
+		case VertexLayoutType::Value::PNTM:Assert(0, "Can't unpack model layout"); break;
+		case VertexLayoutType::Value::TEXT:Assert(0, "Can't unpack model layout"); break;
+		case VertexLayoutType::Value::INVALID:Assert(0, "Can't unpack model layout"); break;
+		case VertexLayoutType::Value::COUNT:Assert(0, "Can't unpack model layout"); break;
 		}
 
 		return result;

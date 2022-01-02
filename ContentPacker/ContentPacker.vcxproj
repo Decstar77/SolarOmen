@@ -156,6 +156,7 @@
     <ClCompile Include="src\MaterialProcessor.cpp" />
     <ClCompile Include="src\MeshProcessor.cpp" />
     <ClCompile Include="src\MetaProcessor.cpp" />
+    <ClCompile Include="src\ProgramProcessor.cpp" />
     <ClCompile Include="src\TextFile.cpp" />
     <ClCompile Include="src\TextureProcessor.cpp" />
   </ItemGroup>
@@ -172,6 +173,7 @@
     <ClInclude Include="src\MaterialProcessor.h" />
     <ClInclude Include="src\MeshProcessor.h" />
     <ClInclude Include="src\MetaProcessor.h" />
+    <ClInclude Include="src\ProgramProcessor.h" />
     <ClInclude Include="src\TextFile.h" />
     <ClInclude Include="src\TextureProcessor.h" />
   </ItemGroup>

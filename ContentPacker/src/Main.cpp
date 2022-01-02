@@ -4,6 +4,11 @@
 #include "MeshProcessor.h"
 #include "MaterialProcessor.h"
 #include "TextureProcessor.h"
+#include "ProgramProcessor.h"
+
+#define PROCESS_MODELS 1
+#define PROCESS_MATERIALS 1
+#define PROCESS_TEXTURES 1
 
 using namespace cm;
 
@@ -18,7 +23,7 @@ static std::vector<Model> LoadAndProcessModels(FileProcessor& fileProcessor, Met
 	{
 		ModelMetaFile metaData = {};
 		metaData.scale = 2.0f;
-		metaData.layout = VertexShaderLayoutType::Value::PNT;
+		metaData.layout = VertexLayoutType::Value::PNT;
 
 		CString newPath = Util::StripFileExtension(path).Add(".slo");
 		metaProcessor.SaveMetaData(newPath, metaData);
@@ -35,6 +40,16 @@ static std::vector<Model> LoadAndProcessModels(FileProcessor& fileProcessor, Met
 	return models;
 }
 
+static std::vector<Material> LoadAndProcessMaterials(FileProcessor& fileProcessor)
+{
+	LOG("PROCESSING MATERIALS");
+	MaterialProcessor materialProcessor;
+	std::vector<Material> materials = materialProcessor.LoadMTLMaterials(fileProcessor.GetFilePaths(ASSET_PATH, "mtl"));
+	LOG("COMPLETE");
+
+	return materials;
+}
+
 static std::vector<Texture> LoadAndProcessTextures(FileProcessor& fileProcessor, MetaProcessor& metaProcessor)
 {
 	std::vector<CString> paths = fileProcessor.GetFilePaths(ASSET_PATH, "png");
@@ -42,7 +57,6 @@ static std::vector<Texture> LoadAndProcessTextures(FileProcessor& fileProcessor,
 
 	for (const CString& path : missingMetaFiles)
 	{
-
 		LOG("Creating meta file for: " << path.GetCStr());
 	}
 
@@ -56,6 +70,22 @@ static std::vector<Texture> LoadAndProcessTextures(FileProcessor& fileProcessor,
 	return textures;
 }
 
+static std::vector<Program> LoadAndProcessPrograms(FileProcessor& fileProcessor)
+{
+	std::vector<CString> paths = CombineStdVectors(
+		fileProcessor.GetFilePaths(ASSET_PATH, "vert.cso"),
+		fileProcessor.GetFilePaths(ASSET_PATH, "pixl.cso"),
+		fileProcessor.GetFilePaths(ASSET_PATH, "comp.cso")
+	);
+
+	LOG("PROCESSING SHADER PROGRAMS");
+	ProgramProcessor textureProcessor;
+	std::vector<Program> programs = textureProcessor.LoadPrograms(paths);
+	LOG("COMPLETE");
+
+	return programs;
+}
+
 template<typename T>
 void SaveBinaryData(const std::vector<T>& data, const CString& path)
 {
@@ -66,9 +96,9 @@ void SaveBinaryData(const std::vector<T>& data, const CString& path)
 		d.SaveBinaryData(&file);
 	}
 	file.SaveToDisk(path);
-
 }
 
+void CombineModels(std::vector<Model>& models, std::vector<Material>& materials);
 int main()
 {
 	FileProcessor fileProcessor;
@@ -76,14 +106,43 @@ int main()
 	MetaProcessor metaProcessor;
 	metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
 
+#if PROCESS_MODELS
 	std::vector<Model> models = LoadAndProcessModels(fileProcessor, metaProcessor);
+#endif
+#if PROCESS_TEXTURES
 	std::vector<Texture> textures = LoadAndProcessTextures(fileProcessor, metaProcessor);
+#endif
+	std::vector<Program> programs = LoadAndProcessPrograms(fileProcessor);
+	std::vector<Material> materials = LoadAndProcessMaterials(fileProcessor);
 
-	LOG("PROCESSING MATERIALS");
-	MaterialProcessor materialProcessor;
-	std::vector<Material> materials = materialProcessor.LoadMTLMaterials(fileProcessor.GetFilePaths(ASSET_PATH, "mtl"));
+#if PROCESS_MODELS 
+	CombineModels(models, materials);
+	LOG("SAVING MODELS");
+	SaveBinaryData(models, "../Assets/Packed/models.bin");
+	LOG("COMPLETE");
+#endif
+
+#if PROCESS_MATERIALS
+	LOG("SAVING MATERIALS");
+	SaveBinaryData(materials, "../Assets/Packed/materials.bin");
+	LOG("COMPLETE");
+#endif
+
+#if PROCESS_TEXTURES
+	LOG("SAVING TEXTURES");
+	SaveBinaryData(textures, "../Assets/Packed/textures.bin");
+	LOG("COMPLETE");
+#endif
+
+	LOG("SAVING SHADER PROGRAMS");
+	SaveBinaryData(programs, "../Assets/Packed/programs.bin");
 	LOG("COMPLETE");
 
+	return 0;
+}
+
+void CombineModels(std::vector<Model>& models, std::vector<Material>& materials)
+{
 	for (Model& model : models)
 	{
 		for (Mesh& mesh : model.meshes)
@@ -134,15 +193,4 @@ int main()
 			model.meshes.push_back(mesh);
 		}
 	}
-	LOG("SAVING MODELS");
-	SaveBinaryData(models, "../Assets/Packed/models.bin");
-	LOG("COMPLETE");
-
-	LOG("SAVING TEXTURES");
-	SaveBinaryData(textures, "../Assets/Packed/textures.bin");
-	LOG("COMPLETE");
-
-	materialProcessor.SaveMaterials(materials);
-
-	return 0;
 }

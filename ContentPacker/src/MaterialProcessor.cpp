@@ -95,16 +95,4 @@ namespace cm
 
 		return materials;
 	}
-
-	void MaterialProcessor::SaveMaterials(const std::vector<Material>& materials)
-	{
-		BinaryFile file;
-		file.Write((uint32)materials.size());
-		for (const Material& mat : materials)
-		{
-			mat.SaveBinaryData(&file);
-		}
-
-		file.SaveToDisk("../Assets/Packed/materials.bin");
-	}
 }

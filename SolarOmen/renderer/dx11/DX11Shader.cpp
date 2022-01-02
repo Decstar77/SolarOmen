@@ -9,7 +9,7 @@ namespace cm
 
 		switch (shaderAsset.vertexLayout.Get())
 		{
-		case VertexShaderLayoutType::Value::P:
+		case VertexLayoutType::Value::P:
 		{
 			D3D11_INPUT_ELEMENT_DESC pos_desc = {};
 			pos_desc.SemanticName = "Position";
@@ -36,7 +36,7 @@ namespace cm
 			return shader;
 		}break;
 
-		case VertexShaderLayoutType::Value::PNT:
+		case VertexLayoutType::Value::PNT:
 		{
 			D3D11_INPUT_ELEMENT_DESC pos_desc = {};
 			pos_desc.SemanticName = "Position";
@@ -81,7 +81,7 @@ namespace cm
 
 			return shader;
 		}break;
-		case VertexShaderLayoutType::Value::PNTC:
+		case VertexLayoutType::Value::PNTC:
 		{
 			D3D11_INPUT_ELEMENT_DESC pos_desc = {};
 			pos_desc.SemanticName = "Position";
@@ -135,7 +135,7 @@ namespace cm
 
 			return shader;
 		}break;
-		case VertexShaderLayoutType::Value::TEXT:
+		case VertexLayoutType::Value::TEXT:
 		{
 			D3D11_INPUT_ELEMENT_DESC desc = {};
 			desc.SemanticName = "POSITION";

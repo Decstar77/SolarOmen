@@ -109,6 +109,79 @@ namespace cm
 		};
 	};
 
+	class ProgramStagesLayout
+	{
+	public:
+		enum class Value : uint8
+		{
+			INVALID = 0,
+			VERTEX_PIXEL,
+			VERTEX_GEOMETRY_PIXEL,
+			COMPUTE,
+			COUNT
+		};
+
+		ProgramStagesLayout()
+		{
+			value = Value::INVALID;
+		}
+
+		ProgramStagesLayout(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline Value Get() const { return value; }
+
+		inline static ProgramStagesLayout ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (ProgramStagesLayout::Value)v;
+		}
+
+		inline static ProgramStagesLayout ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::INVALID;
+		}
+
+		inline bool operator==(const ProgramStagesLayout& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const ProgramStagesLayout& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+	private:
+		Value value;
+
+		inline static const CString __STRINGS__[] = {
+			"INVALID",
+			"VERTEX_PIXEL",
+			"VERTEX_GEOMETRY_PIXEL",
+			"COMPUTE",
+			"COUNT"
+		};
+	};
+
 	class ResourceCPUFlags
 	{
 	public:
@@ -403,10 +476,10 @@ namespace cm
 		};
 	};
 
-	class VertexShaderLayoutType
+	class VertexLayoutType
 	{
 	public:
-		enum class Value : uint32
+		enum class Value : uint8
 		{
 			INVALID = 0,
 			P,		// @NOTE: Postion
@@ -418,12 +491,12 @@ namespace cm
 			COUNT,
 		};
 
-		VertexShaderLayoutType()
+		VertexLayoutType()
 		{
 			value = Value::INVALID;
 		}
 
-		VertexShaderLayoutType(Value v)
+		VertexLayoutType(Value v)
 		{
 			this->value = v;
 		}
@@ -453,13 +526,13 @@ namespace cm
 
 		inline Value Get() const { return value; }
 
-		inline static VertexShaderLayoutType ValueOf(const uint32& v)
+		inline static VertexLayoutType ValueOf(const uint32& v)
 		{
 			Assert(v < (uint32)Value::COUNT, "Invalid model id");
-			return (VertexShaderLayoutType::Value)v;
+			return (VertexLayoutType::Value)v;
 		}
 
-		inline static VertexShaderLayoutType ValueOf(const CString& str)
+		inline static VertexLayoutType ValueOf(const CString& str)
 		{
 			uint32 count = (uint32)Value::COUNT;
 			for (uint32 i = 0; i < count; i++)
@@ -473,12 +546,12 @@ namespace cm
 			return Value::INVALID;
 		}
 
-		inline bool operator==(const VertexShaderLayoutType& rhs) const
+		inline bool operator==(const VertexLayoutType& rhs) const
 		{
 			return this->value == rhs.value;
 		}
 
-		inline bool operator!=(const VertexShaderLayoutType& rhs) const
+		inline bool operator!=(const VertexLayoutType& rhs) const
 		{
 			return this->value != rhs.value;
 		}
@@ -547,7 +620,7 @@ namespace cm
 		AssetId id;
 		CString name;
 
-		VertexShaderLayoutType layout;
+		VertexLayoutType layout;
 		ManagedArray<real32> packedVertices;
 		ManagedArray<uint32> indices;
 
@@ -561,8 +634,8 @@ namespace cm
 	{
 		AssetId id;
 		CString name;
-
-		VertexShaderLayoutType vertexLayout;
+		ProgramStagesLayout stageLayout;
+		VertexLayoutType vertexLayout;
 		ManagedArray<char> vertexData;
 		ManagedArray<char> computeData;
 		ManagedArray<char> pixelData;

@@ -12,7 +12,7 @@ namespace cm
 		DXINFO(rs->context->Unmap(vertexBuffer, 0));
 	}
 
-	StaticMesh StaticMesh::Create(real32* vertices, uint32 sizeBytes, VertexShaderLayoutType layout)
+	StaticMesh StaticMesh::Create(real32* vertices, uint32 sizeBytes, VertexLayoutType layout)
 	{
 		D3D11_BUFFER_DESC vertexDesc = {};
 		vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -33,7 +33,7 @@ namespace cm
 
 	StaticMesh cm::StaticMesh::Create(const ModelAsset& modelAsset)
 	{
-		Assert(modelAsset.layout != VertexShaderLayoutType::Value::INVALID, "Invalid mesh vertex layout");
+		Assert(modelAsset.layout != VertexLayoutType::Value::INVALID, "Invalid mesh vertex layout");
 
 		GetRenderState();
 
@@ -94,7 +94,7 @@ namespace cm
 
 		ModelAsset asset = {};
 		asset.id = 1;
-		asset.layout = VertexShaderLayoutType::Value::PNT;
+		asset.layout = VertexLayoutType::Value::PNT;
 		asset.packedVertices.data = vertexData;
 		asset.packedVertices.count = ArrayCount(vertexData);
 		asset.indices.data = indexData;

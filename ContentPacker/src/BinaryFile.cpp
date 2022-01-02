@@ -61,4 +61,30 @@ namespace cm
 		file.write((const char*)fileBytes.data(), fileBytes.size());
 		file.close();
 	}
+
+	BinaryFileReader::BinaryFileReader()
+	{
+
+	}
+
+	std::vector<char> BinaryFileReader::Read(const CString& path)
+	{
+		fileBytes.clear();
+
+		std::ifstream file(path.GetCStr(), std::ios::in | std::ios::binary | std::ios::ate);
+		if (file.is_open())
+		{
+			std::streamsize size = file.tellg();
+			fileBytes.resize(size);
+			file.seekg(0, std::ios::beg);
+			if (!file.read(fileBytes.data(), size))
+			{
+				Assert(0, "INVALID BINARY FILE READ");
+			}
+		}
+
+		file.close();
+
+		return fileBytes;
+	}
 }

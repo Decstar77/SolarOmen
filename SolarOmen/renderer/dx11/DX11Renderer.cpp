@@ -338,7 +338,7 @@ namespace cm
 			}
 		}
 
-		rs->fontMesh = StaticMesh::Create(nullptr, sizeof(real32) * 6 * 4, VertexShaderLayoutType::Value::TEXT);
+		rs->fontMesh = StaticMesh::Create(nullptr, sizeof(real32) * 6 * 4, VertexLayoutType::Value::TEXT);
 	}
 
 	static void RenderText(const CString& text, real32 x, real32 y, real32 scale, Vec3f color)
@@ -458,11 +458,11 @@ namespace cm
 		rs->irradianceConvolutionShader = ShaderInstance::CreateGraphics(GetAssetFromName(shaders, "irradiance_convolution"));
 
 		ShaderAsset textShader = GetAssetFromName(shaders, "text");
-		textShader.vertexLayout = VertexShaderLayoutType::Value::TEXT;
+		textShader.vertexLayout = VertexLayoutType::Value::TEXT;
 		rs->textShader = ShaderInstance::CreateGraphics(textShader);
 
 		ShaderAsset kennyShader = GetAssetFromName(shaders, "phongKenney");
-		kennyShader.vertexLayout = VertexShaderLayoutType::Value::PNTC;
+		kennyShader.vertexLayout = VertexLayoutType::Value::PNTC;
 		rs->phongKenneyShader = ShaderInstance::CreateGraphics(kennyShader);
 
 		CreateAllStaticMeshes();
@@ -541,7 +541,7 @@ namespace cm
 			StaticMesh* mesh = rs->meshes.Get(entry->modelId);
 			if (mesh)
 			{
-				if (mesh->vertexLayout == VertexShaderLayoutType::Value::PNTC)
+				if (mesh->vertexLayout == VertexLayoutType::Value::PNTC)
 				{
 					RenderCommand::BindShader(rs->phongKenneyShader);
 				}

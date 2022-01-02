@@ -168,7 +168,7 @@ namespace cm
 
 		if (mesh.hasColours)
 		{
-			file->Write((uint32)VertexShaderLayoutType::Value::PNTC);
+			file->Write((uint8)VertexLayoutType::Value::PNTC);
 			file->Write((uint32)mesh.vertices.size());
 			for (const FatVertex& v : mesh.vertices)
 			{
@@ -180,7 +180,7 @@ namespace cm
 		}
 		else
 		{
-			file->Write((uint32)VertexShaderLayoutType::Value::PNT);
+			file->Write((uint8)VertexLayoutType::Value::PNT);
 			file->Write((uint32)mesh.vertices.size());
 			for (const FatVertex& v : mesh.vertices)
 			{
