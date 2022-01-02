@@ -11,7 +11,7 @@ namespace cm
 		int32 width;
 		int32 height;
 		TextureFormat format;
-		TextureUsage usage[4];
+		BindUsage usage[4];
 		ResourceCPUFlags cpuFlags;
 
 		ID3D11Texture2D* texture;

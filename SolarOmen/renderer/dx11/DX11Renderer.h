@@ -199,10 +199,10 @@ namespace cm
 
 	inline D3D11_TEXTURE_ADDRESS_MODE GetTextureWrapModeToD3D(const TextureWrapMode& wrap)
 	{
-		switch (wrap)
+		switch (wrap.Get())
 		{
-		case TextureWrapMode::REPEAT: return D3D11_TEXTURE_ADDRESS_WRAP;
-		case TextureWrapMode::CLAMP_EDGE:return D3D11_TEXTURE_ADDRESS_CLAMP;
+		case TextureWrapMode::Value::REPEAT: return D3D11_TEXTURE_ADDRESS_WRAP;
+		case TextureWrapMode::Value::CLAMP_EDGE:return D3D11_TEXTURE_ADDRESS_CLAMP;
 		default: Assert(0, "TextureWrapModeToD3D ??");
 		}
 
@@ -211,26 +211,26 @@ namespace cm
 
 	inline D3D11_FILTER GetTextureFilterModeToD3D(const TextureFilterMode& mode)
 	{
-		switch (mode)
+		switch (mode.Get())
 		{
-		case TextureFilterMode::POINT:		return D3D11_FILTER_MIN_MAG_MIP_POINT;
-		case TextureFilterMode::BILINEAR:	return D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-		case TextureFilterMode::TRILINEAR:	return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		case TextureFilterMode::Value::POINT:		return D3D11_FILTER_MIN_MAG_MIP_POINT;
+		case TextureFilterMode::Value::BILINEAR:	return D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+		case TextureFilterMode::Value::TRILINEAR:	return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		default: Assert(0, "TextureFilterModeToD3D ??");
 		}
 
 		return D3D11_FILTER_MIN_MAG_MIP_POINT;
 	}
 
-	inline int32 GetTextureUsageToD3DBindFlags(const TextureUsage& usage)
+	inline int32 GetTextureUsageToD3DBindFlags(const BindUsage& usage)
 	{
-		switch (usage)
+		switch (usage.Get())
 		{
-		case TextureUsage::NONE:  return 0;
-		case TextureUsage::SHADER_RESOURCE: return D3D11_BIND_SHADER_RESOURCE;
-		case TextureUsage::RENDER_TARGET: return D3D11_BIND_RENDER_TARGET;
-		case TextureUsage::DEPTH_SCENCIL_BUFFER: return D3D11_BIND_DEPTH_STENCIL;
-		case TextureUsage::COMPUTER_SHADER_RESOURCE: return D3D11_BIND_UNORDERED_ACCESS;
+		case BindUsage::Value::NONE:  return 0;
+		case BindUsage::Value::SHADER_RESOURCE: return D3D11_BIND_SHADER_RESOURCE;
+		case BindUsage::Value::RENDER_TARGET: return D3D11_BIND_RENDER_TARGET;
+		case BindUsage::Value::DEPTH_SCENCIL_BUFFER: return D3D11_BIND_DEPTH_STENCIL;
+		case BindUsage::Value::COMPUTER_SHADER_RESOURCE: return D3D11_BIND_UNORDERED_ACCESS;
 		default: Assert(0, "TextureUsageToD3DBindFlags ??");
 		}
 
@@ -239,12 +239,12 @@ namespace cm
 
 	inline int32 GetCPUFlagsToD3DFlags(const ResourceCPUFlags& flags)
 	{
-		switch (flags)
+		switch (flags.Get())
 		{
-		case ResourceCPUFlags::NONE: return 0;
-		case ResourceCPUFlags::READ: return D3D11_CPU_ACCESS_READ;
-		case ResourceCPUFlags::WRITE: return D3D11_CPU_ACCESS_WRITE;
-		case ResourceCPUFlags::READ_WRITE: return D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+		case ResourceCPUFlags::Value::NONE: return 0;
+		case ResourceCPUFlags::Value::READ: return D3D11_CPU_ACCESS_READ;
+		case ResourceCPUFlags::Value::WRITE: return D3D11_CPU_ACCESS_WRITE;
+		case ResourceCPUFlags::Value::READ_WRITE: return D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
 		}
 		return 0;
 	}

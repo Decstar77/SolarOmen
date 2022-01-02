@@ -14,7 +14,7 @@ namespace cm
 		AssetId id;
 		CString name;
 		TextureFormat format;
-		TextureUsage usage[4];
+		BindUsage usage[4];
 		ResourceCPUFlags cpuFlags;
 		int32 width;
 		int32 height;

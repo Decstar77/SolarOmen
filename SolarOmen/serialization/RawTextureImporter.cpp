@@ -76,7 +76,7 @@ namespace cm
 			texture.height = height;
 			texture.pixels = pixels;
 			texture.format = TextureFormat::Value::R32G32B32A32_FLOAT;
-			texture.usage[0] = TextureUsage::SHADER_RESOURCE;
+			texture.usage[0] = BindUsage::Value::SHADER_RESOURCE;
 
 			return texture;
 		}
@@ -100,7 +100,7 @@ namespace cm
 			texture.height = height;
 			texture.pixels = pixels;
 			texture.format = TextureFormat::Value::R8G8B8A8_UNORM;
-			texture.usage[0] = TextureUsage::SHADER_RESOURCE;
+			texture.usage[0] = BindUsage::Value::SHADER_RESOURCE;
 			// TODO: WE NEED TO CALL THIS 
 			//stbi_image_free(data);
 

@@ -276,9 +276,9 @@ namespace cm
 	{
 		GetRenderState();
 
-		rs->pointRepeat = SamplerInstance::Create(TextureFilterMode::POINT, TextureWrapMode::REPEAT);
-		rs->bilinearRepeat = SamplerInstance::Create(TextureFilterMode::BILINEAR, TextureWrapMode::CLAMP_EDGE);
-		rs->trilinearRepeat = SamplerInstance::Create(TextureFilterMode::TRILINEAR, TextureWrapMode::REPEAT);
+		rs->pointRepeat = SamplerInstance::Create(TextureFilterMode::Value::POINT, TextureWrapMode::Value::REPEAT);
+		rs->bilinearRepeat = SamplerInstance::Create(TextureFilterMode::Value::BILINEAR, TextureWrapMode::Value::CLAMP_EDGE);
+		rs->trilinearRepeat = SamplerInstance::Create(TextureFilterMode::Value::TRILINEAR, TextureWrapMode::Value::REPEAT);
 		rs->shadowPFC = SamplerInstance::CreateShadowPFC();
 
 		RenderCommand::BindSampler(rs->pointRepeat, 0);

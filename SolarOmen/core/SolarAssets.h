@@ -109,39 +109,298 @@ namespace cm
 		};
 	};
 
-	// TODO: Maybe more generic name for other data types too, ResourceCPUFlags?
-	enum class ResourceCPUFlags
+	class ResourceCPUFlags
 	{
-		NONE,
-		READ,
-		WRITE,
-		READ_WRITE
+	public:
+		enum class Value
+		{
+			NONE = 0,
+			READ,
+			WRITE,
+			READ_WRITE,
+			COUNT
+		};
+
+		ResourceCPUFlags()
+		{
+			value = Value::NONE;
+		}
+
+		ResourceCPUFlags(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline Value Get() const { return value; }
+
+		inline static ResourceCPUFlags ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (ResourceCPUFlags::Value)v;
+		}
+
+		inline static ResourceCPUFlags ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::NONE;
+		}
+
+		inline bool operator==(const ResourceCPUFlags& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const ResourceCPUFlags& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+	private:
+		Value value;
+
+		inline static const CString __STRINGS__[] = {
+			"NONE",
+			"READ",
+			"WRITE",
+			"READ_WRITE",
+			"COUNT"
+		};
 	};
 
-	enum class TextureWrapMode
+	class TextureWrapMode
 	{
-		REPEAT,
-		CLAMP_EDGE
+	public:
+		enum class Value
+		{
+			INVALID = 0,
+			REPEAT,
+			CLAMP_EDGE,
+			COUNT
+		};
+
+		TextureWrapMode()
+		{
+			value = Value::INVALID;
+		}
+
+		TextureWrapMode(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline Value Get() const { return value; }
+
+		inline static TextureWrapMode ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (TextureWrapMode::Value)v;
+		}
+
+		inline static TextureWrapMode ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::INVALID;
+		}
+
+		inline bool operator==(const TextureWrapMode& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const TextureWrapMode& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+	private:
+		Value value;
+
+		inline static const CString __STRINGS__[] = {
+			"INVALID",
+			"REPEAT",
+			"CLAMP_EDGE",
+			"COUNT"
+		};
 	};
 
-	enum class TextureFilterMode
+	class TextureFilterMode
 	{
-		POINT,
-		BILINEAR,
-		TRILINEAR,
+	public:
+		enum class Value
+		{
+			INVALID = 0,
+			POINT,
+			BILINEAR,
+			TRILINEAR,
+			COUNT
+		};
+
+		TextureFilterMode()
+		{
+			value = Value::INVALID;
+		}
+
+		TextureFilterMode(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline Value Get() const { return value; }
+
+		inline static TextureFilterMode ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (TextureFilterMode::Value)v;
+		}
+
+		inline static TextureFilterMode ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::INVALID;
+		}
+
+		inline bool operator==(const TextureFilterMode& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const TextureFilterMode& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+	private:
+		Value value;
+
+		inline static const CString __STRINGS__[] = {
+			"INVALID",
+			"POINT",
+			"BILINEAR",
+			"TRILINEAR",
+			"COUNT"
+		};
 	};
 
-	// @TODO: This is a larger scoped thing for bindable techinqallly
-	// @TODO: Bad name !! There is acutaqlly a usage flag in d3d11 but this refers to bindables!!
-	// @TODO: Rename this to views/bindables
-	enum class TextureUsage
+
+	class BindUsage
 	{
-		NONE = 0,
-		SHADER_RESOURCE,
-		RENDER_TARGET,
-		DEPTH_SCENCIL_BUFFER,
-		COMPUTER_SHADER_RESOURCE,
-		//DEPTH_STENCIL = D3D11_BIND_DEPTH_STENCIL
+	public:
+		enum class Value
+		{
+			NONE = 0,
+			SHADER_RESOURCE,
+			RENDER_TARGET,
+			DEPTH_SCENCIL_BUFFER,
+			COMPUTER_SHADER_RESOURCE,
+			COUNT,
+			//DEPTH_STENCIL = D3D11_BIND_DEPTH_STENCIL
+		};
+
+		BindUsage()
+		{
+			value = Value::NONE;
+		}
+
+		BindUsage(Value v)
+		{
+			this->value = v;
+		}
+
+		inline CString ToString() const
+		{
+			CString copy = __STRINGS__[(uint32)value];
+
+			return copy;
+		}
+
+		inline Value Get() const { return value; }
+
+		inline static BindUsage ValueOf(const uint32& v)
+		{
+			Assert(v < (uint32)Value::COUNT, "Invalid model id");
+			return (BindUsage::Value)v;
+		}
+
+		inline static BindUsage ValueOf(const CString& str)
+		{
+			uint32 count = (uint32)Value::COUNT;
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (str == __STRINGS__[i])
+				{
+					return ValueOf(i);
+				}
+			}
+
+			return Value::NONE;
+		}
+
+		inline bool operator==(const BindUsage& rhs) const
+		{
+			return this->value == rhs.value;
+		}
+
+		inline bool operator!=(const BindUsage& rhs) const
+		{
+			return this->value != rhs.value;
+		}
+
+	private:
+		Value value;
+
+		inline static const CString __STRINGS__[] = {
+			"NONE",
+			"SHADER_RESOURCE",
+			"RENDER_TARGET",
+			"DEPTH_SCENCIL_BUFFER",
+			"COMPUTER_SHADER_RESOURCE",
+			"COUNT",
+		};
 	};
 
 	class VertexShaderLayoutType
@@ -316,7 +575,7 @@ namespace cm
 		CString name;
 
 		TextureFormat format;
-		TextureUsage usage[4];
+		BindUsage usage[4];
 		ResourceCPUFlags cpuFlags;
 		int32 width;
 		int32 height;
