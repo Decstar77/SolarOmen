@@ -1,0 +1,72 @@
+#pragma once
+#include "SolarDefines.h"
+
+namespace sol
+{
+	enum class SOL_API MemoryType
+	{
+		INVALID = 0,
+		PERMANENT,
+		TRANSIENT
+	};
+
+	struct MemoryArena
+	{
+		uint8* base;
+		uint64 size;
+		uint64 used;
+
+		inline void Reset()
+		{
+			used = 0;
+		}
+
+		inline void* PushSize_(uint64 size)
+		{
+			Assert((used + size) <= this->size, "Memory ran out of memory, not big enough");
+			void* Result = base + used;
+			used += size;
+
+			return Result;
+		}
+	};
+
+	class SOL_API GameMemory
+	{
+	public:
+		template<typename T>
+		inline static T* PushPermanentCount(uint32 count) { return (T*)instance->PermanentPushSize(sizeof(T) * count); }
+
+		template<typename T>
+		inline static T* PushTransientCount(uint32 count) { return (T*)instance->TransientPushSize(sizeof(T) * count); }
+
+		template<typename T>
+		inline static T* PushPermanentStruct() { return (T*)instance->PermanentPushSize(sizeof(T)); }
+
+		template<typename T>
+		inline static T* PushTransientStruct() { return (T*)instance->TransientPushSize(sizeof(T)); }
+
+		template<typename T>
+		inline static T* PushTransientClass() { void* storage = instance->TransientPushSize(sizeof(T));	return new (storage) T(); }
+
+		inline static uint64 GetTheAmountOfTransientMemoryUsed() { return instance->transientStorage.used; }
+		inline static uint64 GetTheTotalAmountOfTransientMemoryAllocated() { return instance->transientStorage.size; }
+		inline static uint64 GetTheAmountOfPermanentMemoryUsed() { return instance->permanentStorage.used; }
+		inline static uint64 GetTheTotalAmountOfPermanentMemoryAllocated() { return instance->permanentStorage.size; }
+		inline static void ReleaseAllTransientMemory() { instance->transientStorage.used = 0; }
+
+		static bool8 Initialize(uint64 permanentStorageSize, uint64 transientStorageSize);
+		static void Shutdown();
+
+	private:
+		GameMemory(void* permanentStorageData, uint64 permanentStorageSize, void* transientStorageData, uint64 transientStorageSize);
+		inline static GameMemory* instance = nullptr;
+
+		MemoryArena permanentStorage;
+		MemoryArena transientStorage;
+
+		void* TransientPushSize(uint64 size);
+		void* PermanentPushSize(uint64 size);
+	};
+}
+
