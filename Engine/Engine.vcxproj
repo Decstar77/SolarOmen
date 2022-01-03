@@ -91,6 +91,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\core\SolarApplication.h" />
+    <ClInclude Include="src\core\SolarContainers.h" />
     <ClInclude Include="src\platform\SolarPlatform.h" />
     <ClInclude Include="src\SolarDefines.h" />
     <ClInclude Include="SolarEngine.h" />

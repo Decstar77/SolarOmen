@@ -42,6 +42,9 @@
     <ClInclude Include="src\platform\SolarPlatform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\SolarContainers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\SolarString.cpp">

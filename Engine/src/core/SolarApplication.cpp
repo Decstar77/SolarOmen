@@ -9,13 +9,14 @@ namespace sol
 		if (Platform::Intialize(game->appConfig.startPosX, game->appConfig.startPosY,
 			game->appConfig.startWidth, game->appConfig.startHeight))
 		{
-
 			Platform::Shutdown();
 		}
 		else
 		{
 
 		}
+
+		return true;
 	}
 
 	bool8 Application::Run(Game* game)
