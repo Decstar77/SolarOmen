@@ -36,12 +36,15 @@ namespace sol
 		static bool8 Intialize(int32 x, int32 y, int32 width, int32 height);
 		static void Shutdown();
 		static bool8 PumpMessages();
+		static void* GetInternalState();
 
 		static bool8 WriteFile(const String& path, void* data, uint32 sizeBytes);
 		static ManagedArray<String> LoadEntireFolder(const String& path, const String& fileTypes);
 		static PlatformFile LoadEntireFile(const String& path, bool32 metaDataOnly);
 
 		static void Quit();
+		static uint32 GetWindowWidth();
+		static uint32 GetWindowHeight();
 		static void SetWindowPosition(int32 x, int32 y);
 
 		static void DisplayError(String message);

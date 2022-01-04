@@ -19,7 +19,7 @@ namespace sol
 		Input* input = Input::Get();
 		if (IsKeyJustDown(input, escape))
 		{
-			SOLINFO("Es");
+			return 0;
 		}
 
 		return 1;

@@ -1,27 +1,12 @@
 #include "platform/SolarPlatform.h"
 
+#include "Win32State.h"
 #include <core/SolarLogging.h>
 #include <core/SolarInput.h>
-
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <Xinput.h>
-#include <stdlib.h>
 
 #if SOLAR_PLATFORM_WINDOWS
 namespace sol
 {
-	struct Win32State
-	{
-		HWND window;
-		HINSTANCE hinstance;
-		bool8 running;
-		bool8 active;
-
-		real64 clockFrequency;
-		LARGE_INTEGER startTime;
-	};
-
 	static Win32State winState = {};
 
 	void InitializeClock()
@@ -37,6 +22,16 @@ namespace sol
 		winState.running = false;
 	}
 
+	uint32 Platform::GetWindowWidth()
+	{
+		return winState.width;
+	}
+
+	uint32 Platform::GetWindowHeight()
+	{
+		return winState.height;
+	}
+
 	void Platform::ConsoleWrite(String message, uint8 colour)
 	{
 		HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -47,6 +42,18 @@ namespace sol
 		uint64 length = message.GetLength();
 		LPDWORD number_written = 0;
 		WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), message.GetCStr(), (DWORD)length, number_written, 0);
+	}
+
+	real64 Platform::GetAbsoluteTime()
+	{
+		if (!winState.clockFrequency) {
+			InitializeClock();
+		}
+
+		LARGE_INTEGER nowTime = {};
+		QueryPerformanceCounter(&nowTime);
+
+		return (real64)nowTime.QuadPart * winState.clockFrequency;
 	}
 
 	bool8 Platform::PumpMessages()
@@ -65,6 +72,11 @@ namespace sol
 		}
 
 		return winState.running;
+	}
+
+	void* Platform::GetInternalState()
+	{
+		return &winState;
 	}
 
 	LRESULT CALLBACK WindProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
@@ -123,8 +135,12 @@ namespace sol
 
 			if (winState.window)
 			{
+				SOLINFO("Win32 Window created and running");
 				ShowWindow(winState.window, SW_SHOW);
 				winState.running = true;
+				winState.width = windowWidth;
+				winState.height = windowHeight;
+
 				//InitializeRawInput(ps);
 				InitializeClock();
 			}
@@ -180,14 +196,14 @@ namespace sol
 		case WM_KEYUP:
 		{
 			uint32 vkCode = (uint32)wparam;
-			bool32 isDown = ((lparam & (1 << 31)) == 0);
+			bool32 isDown = ((lparam & ((int64)1 << (int64)31)) == 0);
 			ProcessKeyboardInput(vkCode, isDown);
 		}break;
 		default: { result = DefWindowProcA(hwnd, msg, wparam, lparam);	}
 		}
 
 		return result;
-}
+	}
 
 	static void ProcessKeyboardInput(uint16 vkCode, bool32 isDown)
 	{

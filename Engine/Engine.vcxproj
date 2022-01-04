@@ -62,10 +62,12 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>false</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine\src</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>26495 </DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>kernel32.lib;user32.lib;xinput.lib;d3d11.lib;dxguid.lib;DXGI.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -81,20 +83,28 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>false</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine\src</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>26495 </DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>kernel32.lib;user32.lib;xinput.lib;d3d11.lib;dxguid.lib;DXGI.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\core\SolarApplication.h" />
+    <ClInclude Include="src\core\SolarClock.h" />
     <ClInclude Include="src\core\SolarContainers.h" />
     <ClInclude Include="src\core\SolarInput.h" />
     <ClInclude Include="src\core\SolarMath.h" />
     <ClInclude Include="src\platform\SolarPlatform.h" />
+    <ClInclude Include="src\platform\win32\Win32State.h" />
+    <ClInclude Include="src\renderer\dx11\DX11Types.h" />
+    <ClInclude Include="src\renderer\dx11\DX11RenderCommands.h" />
+    <ClInclude Include="src\renderer\RendererFrontEnd.h" />
+    <ClInclude Include="src\renderer\RendererTypes.h" />
     <ClInclude Include="src\SolarDefines.h" />
     <ClInclude Include="SolarEngine.h" />
     <ClInclude Include="src\SolarEntry.h" />
@@ -105,11 +115,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\SolarApplication.cpp" />
+    <ClCompile Include="src\core\SolarClock.cpp" />
     <ClCompile Include="src\core\SolarInput.cpp" />
     <ClCompile Include="src\core\SolarLogging.cpp" />
     <ClCompile Include="src\core\SolarMemory.cpp" />
     <ClCompile Include="src\core\SolarString.cpp" />
     <ClCompile Include="src\platform\win32\Win32Platform.cpp" />
+    <ClCompile Include="src\renderer\dx11\DX11Renderer.cpp" />
+    <ClCompile Include="src\renderer\dx11\DX11RenderCommands.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
