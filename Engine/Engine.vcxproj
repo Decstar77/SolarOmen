@@ -97,6 +97,7 @@
     <ClInclude Include="src\core\SolarApplication.h" />
     <ClInclude Include="src\core\SolarClock.h" />
     <ClInclude Include="src\core\SolarContainers.h" />
+    <ClInclude Include="src\core\SolarEvent.h" />
     <ClInclude Include="src\core\SolarInput.h" />
     <ClInclude Include="src\core\SolarMath.h" />
     <ClInclude Include="src\platform\SolarPlatform.h" />
@@ -116,6 +117,7 @@
   <ItemGroup>
     <ClCompile Include="src\core\SolarApplication.cpp" />
     <ClCompile Include="src\core\SolarClock.cpp" />
+    <ClCompile Include="src\core\SolarEvent.cpp" />
     <ClCompile Include="src\core\SolarInput.cpp" />
     <ClCompile Include="src\core\SolarLogging.cpp" />
     <ClCompile Include="src\core\SolarMemory.cpp" />

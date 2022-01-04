@@ -1,4 +1,5 @@
 #include "renderer/RendererFrontEnd.h"
+#include "core/SolarEvent.h"
 #include "core/SolarLogging.h"
 #if SOLAR_PLATFORM_WINDOWS
 
@@ -201,6 +202,25 @@ namespace sol
 		}
 	}
 
+	bool8 OnWindowResizeCallback(uint16 eventCode, void* sender, void* listener, EventContext context)
+	{
+		EventWindowResize* resizeEvent = (EventWindowResize*)&context;
+
+		RenderCommand::SetRenderTargets(0, 0);
+
+		DXRELEASE(renderState.swapChain.renderView);
+		DXRELEASE(renderState.swapChain.depthView);
+		DXRELEASE(renderState.swapChain.depthShaderView);
+		DXRELEASE(renderState.swapChain.depthTexture);
+
+		DeviceContext dc = renderState.deviceContext;
+		DXCHECK(renderState.swapChain.swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
+
+		CreateSwapChainBuffers();
+
+		return 0;
+	}
+
 	bool8 Renderer::Initialize()
 	{
 #if SOL_DEBUG_RENDERING
@@ -253,6 +273,7 @@ namespace sol
 			CreateAllRasterState();
 			CreateAllDepthStencilState();
 			CreateAllBlendState();
+			EventSystem::Register((uint16)EventCodeEngine::WINDOW_RESIZED, 0, OnWindowResizeCallback);
 
 			return true;
 		}

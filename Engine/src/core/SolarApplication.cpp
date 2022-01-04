@@ -5,20 +5,28 @@
 #include "renderer/RendererFrontEnd.h"
 #include "core/SolarClock.h"
 #include "core/SolarLogging.h"
+#include "core/SolarEvent.h"
 
 namespace sol
 {
 	bool8 Application::Initialize(Game* game)
 	{
-		if (Input::Initailize())
+		if (EventSystemInitialize())
 		{
-			if (Platform::Intialize(
-				game->appConfig.startPosX, game->appConfig.startPosY,
-				game->appConfig.startWidth, game->appConfig.startHeight))
+			if (Input::Initailize())
 			{
-				if (Renderer::Initialize())
+				if (Platform::Intialize(
+					game->appConfig.startPosX, game->appConfig.startPosY,
+					game->appConfig.startWidth, game->appConfig.startHeight))
 				{
-					return true;
+					if (Renderer::Initialize())
+					{
+						return true;
+					}
+					else
+					{
+
+					}
 				}
 				else
 				{
@@ -38,8 +46,11 @@ namespace sol
 		return false;
 	}
 
+
+
 	bool8 Application::Run(Game* game)
 	{
+
 		while (Platform::PumpMessages())
 		{
 			Clock clock = { };
