@@ -1,5 +1,7 @@
 #pragma once
 #include "SolarDefines.h"
+#include "renderer/RendererTypes.h"
+
 #include <d3d11.h>
 #include <dxgi.h>
 #include <dxgidebug.h>
@@ -101,11 +103,28 @@ namespace sol
 		Value value;
 	};
 
+	struct StaticMesh
+	{
+		uint32 strideBytes; // @NOTE: Used for rendering
+		uint32 indexCount;  // @NOTE: Used for rendering
+		VertexLayoutType vertexLayout;
+
+		ID3D11Buffer* vertexBuffer;
+		ID3D11Buffer* indexBuffer;
+
+		//void UpdateVertexBuffer(real32* vertices, uint32 sizeBytes);
+
+		//static StaticMesh Create(const ModelAsset& modelAsset);
+		static StaticMesh Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout);
+		static StaticMesh Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
+		static StaticMesh CreateScreenSpaceQuad();
+		static StaticMesh CreateUnitCube();
+	};
+
 	struct RenderState
 	{
 		DeviceContext deviceContext;
 		SwapChain swapChain;
-
 
 		ID3D11RasterizerState* rasterBackFaceCullingState;
 		ID3D11RasterizerState* rasterFrontFaceCullingState;
@@ -114,6 +133,9 @@ namespace sol
 		ID3D11DepthStencilState* depthLessState;
 		ID3D11DepthStencilState* depthOffState;
 		ID3D11DepthStencilState* depthLessEqualState;
+
+		StaticMesh quad;
+		StaticMesh cube;
 
 		ID3D11BlendState* blendNormal;
 	};

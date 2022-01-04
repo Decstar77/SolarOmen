@@ -53,6 +53,8 @@ STATIC_ASSERT(sizeof(real64) == 8, "Expected real64 to be 8 bytes.");
 
 #define SetABit(x) (1 << x)
 
+#define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
+
 #if SOL_DEBUG
 
 #if _MSC_VER

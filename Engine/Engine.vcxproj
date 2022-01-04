@@ -61,7 +61,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\src\</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>26495 </DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -82,7 +82,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\src\</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>26495 </DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -94,6 +94,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\resources\SolarResources.h" />
+    <ClInclude Include="src\resources\SolarResourceTypes.h" />
     <ClInclude Include="src\core\SolarApplication.h" />
     <ClInclude Include="src\core\SolarClock.h" />
     <ClInclude Include="src\core\SolarContainers.h" />
@@ -125,6 +127,7 @@
     <ClCompile Include="src\platform\win32\Win32Platform.cpp" />
     <ClCompile Include="src\renderer\dx11\DX11Renderer.cpp" />
     <ClCompile Include="src\renderer\dx11\DX11RenderCommands.cpp" />
+    <ClCompile Include="src\renderer\dx11\DX11StaticMesh.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

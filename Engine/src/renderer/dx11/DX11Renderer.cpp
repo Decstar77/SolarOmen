@@ -275,6 +275,9 @@ namespace sol
 			CreateAllBlendState();
 			EventSystem::Register((uint16)EventCodeEngine::WINDOW_RESIZED, 0, OnWindowResizeCallback);
 
+			renderState.quad = StaticMesh::CreateScreenSpaceQuad();
+			renderState.cube = StaticMesh::CreateUnitCube();
+
 			return true;
 		}
 		else
