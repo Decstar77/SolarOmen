@@ -60,7 +60,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -79,7 +79,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -92,6 +92,8 @@
   <ItemGroup>
     <ClInclude Include="src\core\SolarApplication.h" />
     <ClInclude Include="src\core\SolarContainers.h" />
+    <ClInclude Include="src\core\SolarInput.h" />
+    <ClInclude Include="src\core\SolarMath.h" />
     <ClInclude Include="src\platform\SolarPlatform.h" />
     <ClInclude Include="src\SolarDefines.h" />
     <ClInclude Include="SolarEngine.h" />
@@ -103,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\SolarApplication.cpp" />
+    <ClCompile Include="src\core\SolarInput.cpp" />
     <ClCompile Include="src\core\SolarLogging.cpp" />
     <ClCompile Include="src\core\SolarMemory.cpp" />
     <ClCompile Include="src\core\SolarString.cpp" />

@@ -12,6 +12,7 @@
 
 #pragma once
 #include "SolarDefines.h"
+#include "SolarContainers.h"
 
 namespace sol
 {
@@ -53,6 +54,9 @@ namespace sol
 		int32 ToInt32() const;
 		uint64 ToUint64() const;
 		real32 ToReal32() const;
+
+		ManagedArray<String> Split(const char& delim) const;
+		ManagedArray<String> Split(const int32& splitIndex) const;
 
 		String();
 		explicit String(const char& c);

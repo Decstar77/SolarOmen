@@ -27,6 +27,7 @@ namespace sol
 			GameMemory* memory = new GameMemory(permanentStorageData, permanentStorageSize,
 				transientStorageData, transientStorageSize);
 
+			SOLINFO("Memory initialized");
 			return true;
 		}
 
@@ -41,6 +42,8 @@ namespace sol
 		delete instance;
 
 		instance = nullptr;
+
+		SOLINFO("Memory shutdown");
 	}
 
 	GameMemory::GameMemory(void* permanentStorageData, uint64 permanentStorageSize, void* transientStorageData, uint64 transientStorageSize)

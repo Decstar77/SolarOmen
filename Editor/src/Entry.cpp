@@ -1,9 +1,6 @@
 
 #include <SolarEngine.h>
 #include "src/SolarEntry.h"
-#include <iostream>
-
-#define LOG(msg) std::cout  << msg << std::endl;
 
 namespace sol
 {
@@ -19,6 +16,12 @@ namespace sol
 
 	static bool8 GameUpdate(Game* game, real32 dt)
 	{
+		Input* input = Input::Get();
+		if (IsKeyJustDown(input, escape))
+		{
+			SOLINFO("Es");
+		}
+
 		return 1;
 	}
 

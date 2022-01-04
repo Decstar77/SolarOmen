@@ -8,8 +8,6 @@ int main(int argc, const char* argv[])
 {
 	if (sol::GameMemory::Initialize(Gigabytes(1), Gigabytes(2)))
 	{
-		SOLINFO("Memory initialized");
-
 		sol::Game game = {};
 		if (sol::CreateGame(&game))
 		{
@@ -23,6 +21,8 @@ int main(int argc, const char* argv[])
 				{
 					SOLFATAL("Application did not run properly");
 				}
+
+				sol::Application::Shutdown();
 			}
 			else
 			{
@@ -35,7 +35,6 @@ int main(int argc, const char* argv[])
 		}
 
 		sol::GameMemory::Shutdown();
-		SOLINFO("Memory shutdown");
 	}
 	else
 	{

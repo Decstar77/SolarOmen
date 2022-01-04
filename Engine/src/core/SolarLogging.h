@@ -17,7 +17,7 @@ namespace sol
 	enum class LogLevel
 	{
 		FATAL = 0,
-		ERROR = 1,
+		ERR = 1,
 		WARN = 2,
 		INFO = 3,
 		DEBUG = 4,
@@ -35,7 +35,7 @@ namespace sol
 
 #ifndef SOLERROR
 // Logs an error-level message.
-#define SOLERROR(message) sol::LogOutput(sol::LogLevel::ERROR, message);
+#define SOLERROR(message) sol::LogOutput(sol::LogLevel::ERR, message);
 #endif
 
 #if LOG_WARN_ENABLED == 1
@@ -64,7 +64,7 @@ namespace sol
 
 #if LOG_TRACE_ENABLED == 1
 // Logs a trace-level message.
-#define SOLTRACE(message) sol::LogOutput(sol::LogLevel::INFO, message);
+#define SOLTRACE(message) sol::LogOutput(sol::LogLevel::TRACE, message);
 #else
 // Does nothing when LOG_TRACE_ENABLED != 1
 #define SOLTRACE(message)

@@ -287,6 +287,74 @@ namespace sol
 		return result;
 	}
 
+	inline ManagedArray<String> String::Split(const char& delim) const
+	{
+		ManagedArray<String> result = ManagedArray<String>(32, MemoryType::TRANSIENT);
+
+		const int32 len = GetLength();
+
+		int32 start = 0;
+		int32 end = 0;
+		for (; end < len; end++)
+		{
+			if (data[end] == delim)
+			{
+				if (start != end)
+				{
+					result[result.count].CopyFrom(*this, start, end - 1);
+					result.count++;
+					start = end + 1;
+				}
+				else
+				{
+					start++;
+				}
+			}
+		}
+
+		if (end != start)
+		{
+			result[result.count].CopyFrom(*this, start, end - 1);
+			result.count++;
+		}
+
+		return result;
+	}
+
+	inline ManagedArray<String> String::Split(const int32& splitIndex) const
+	{
+		ManagedArray<String> result = ManagedArray<String>(32, MemoryType::TRANSIENT);
+
+		const int32 len = GetLength();
+
+		int32 start = 0;
+		int32 end = 0;
+		for (; end < len; end++)
+		{
+			if (end == splitIndex)
+			{
+				if (start != end)
+				{
+					result[result.count].CopyFrom(*this, start, end - 1);
+					result.count++;
+					start = end + 1;
+				}
+				else
+				{
+					start++;
+				}
+			}
+		}
+
+		if (end != start)
+		{
+			result[result.count].CopyFrom(*this, start, end - 1);
+			result.count++;
+		}
+
+		return result;
+	}
+
 	inline String::String()
 	{
 		Clear();
