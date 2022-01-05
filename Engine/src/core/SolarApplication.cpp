@@ -6,6 +6,7 @@
 #include "core/SolarClock.h"
 #include "core/SolarLogging.h"
 #include "core/SolarEvent.h"
+#include "resources/SolarResources.h"
 
 namespace sol
 {
@@ -19,9 +20,16 @@ namespace sol
 					game->appConfig.startPosX, game->appConfig.startPosY,
 					game->appConfig.startWidth, game->appConfig.startHeight))
 				{
-					if (Renderer::Initialize())
+					if (ResourceSystem::Initialize())
 					{
-						return true;
+						if (Renderer::Initialize())
+						{
+							return true;
+						}
+						else
+						{
+
+						}
 					}
 					else
 					{

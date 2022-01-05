@@ -206,8 +206,6 @@ namespace cm
 	}
 
 
-
-
 	static ShaderConstBuffer2 CreateShaderBuffer(RenderState* rs, int32 sizeBytes)
 	{
 		D3D11_BUFFER_DESC desc = {};

@@ -29,6 +29,6 @@ float4 main(float2 texture_coords : TexCord) : SV_TARGET
 	// gamma correct
 	color = pow(color, float3(1.0 / gamma, 1.0 / gamma, 1.0 / gamma));
 
-	return float4 (color, 1);
-	//return float4(texture_coords.xy, 0.0f, 1.0f);
+	//return float4 (color, 1);
+	return float4(texture_coords.xy, 0.0f, 1.0f);
 }

@@ -2,6 +2,7 @@
 #include "../SolarDefines.h"
 #include "../core/SolarString.h"
 #include "../core/SolarMath.h"
+#include "../renderer/RendererTypes.h"
 
 namespace sol
 {
@@ -11,7 +12,7 @@ namespace sol
 		{
 			uint64 number;
 			char chars[8];
-			static_assert(sizeof(uint64) == sizeof(char[8]));
+			STATIC_ASSERT(sizeof(uint64) == sizeof(char[8]));
 		};
 
 		inline String ToString() const { return String(chars); }
@@ -26,9 +27,23 @@ namespace sol
 		String name;
 	};
 
+	struct SOL_API ProgramResource
+	{
+		ResourceId id;
+		String name;
+		ProgramStagesLayout stageLayout;
+		VertexLayoutType vertexLayout;
+		ManagedArray<char> vertexData;
+		ManagedArray<char> computeData;
+		ManagedArray<char> pixelData;
+	};
+
 	class SOL_API Resources
 	{
 	public:
+		static ProgramResource* GetProgramResource(const ResourceId& name);
+		static ProgramResource* GetProgramResource(const String& name);
+
 		static ModelResource* GetModelResource(const ResourceId& name);
 		static ModelResource* GetModelResource(const String& name);
 	};

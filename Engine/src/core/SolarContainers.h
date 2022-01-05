@@ -7,7 +7,7 @@
 namespace sol
 {
 	template<typename T, uint32 capcity>
-	class FixedArray
+	class SOL_API FixedArray
 	{
 	public:
 		inline uint32 GetCapcity() const
@@ -102,19 +102,17 @@ namespace sol
 			return data[index];
 		}
 
+		FixedArray()
+		{
+			count = 0;
+		}
+
 		T data[capcity];
 		uint32 count;
-		FixedArray();
 	};
 
-	template<typename T, uint32 size>
-	inline FixedArray<T, size>::FixedArray()
-	{
-		count = 0;
-	}
-
 	template<typename T>
-	class ManagedArray
+	class SOL_API ManagedArray
 	{
 	public:
 		inline uint32 GetCount() const { return count; }
@@ -192,32 +190,27 @@ namespace sol
 			return data[index];
 		}
 
+		ManagedArray()
+		{
+			this->count = 0;
+			this->data = 0;
+			this->capcity = 0;
+			this->memoryType = MemoryType::INVALID;
+		}
+
+		ManagedArray(uint32 capcity, MemoryType type)
+		{
+			Allocate(capcity, type);
+		}
+
 		T* data;
 		uint32 count;
 		uint32 capcity;
 		MemoryType memoryType;
-
-		ManagedArray();
-		ManagedArray(uint32 capcity, MemoryType type);
 	};
 
 	template<typename T>
-	inline ManagedArray<T>::ManagedArray()
-	{
-		this->count = 0;
-		this->data = 0;
-		this->capcity = 0;
-		this->memoryType = MemoryType::INVALID;
-	}
-
-	template<typename T>
-	inline ManagedArray<T>::ManagedArray(uint32 capcity, MemoryType type)
-	{
-		Allocate(capcity, type);
-	}
-
-	template<typename T>
-	class Queue
+	class SOL_API Queue
 	{
 	public:
 
@@ -252,24 +245,22 @@ namespace sol
 			return data[index];
 		}
 
+		Queue(T* data, uint32 capcity)
+		{
+			this->count = 0;
+			this->data = data;
+			this->capcity = capcity;
+		}
+
 		T* data;
 		uint32 count;
 		uint32 capcity;
-
-		Queue(T* data, uint32 capcity);
 	};
 
 
-	template<typename T>
-	inline Queue<T>::Queue(T* data, uint32 capcity)
-	{
-		this->count = 0;
-		this->data = data;
-		this->capcity = capcity;
-	}
 
 	template<typename T>
-	class CircularQueue
+	class SOL_API CircularQueue
 	{
 	public:
 		void Push(const T& t)
@@ -294,14 +285,20 @@ namespace sol
 			return data[DecAndWrapValue(end)];
 		}
 
+		CircularQueue(T* data, int32 capcity)
+		{
+			this->start = 0;
+			this->end = 0;
+			this->count = 0;
+			this->capcity = capcity;
+			this->data = data;
+		}
 
 		T* data;
 		int32 start;
 		int32 end;
 		int32 count;
 		int32 capcity;
-
-		CircularQueue(T* data, int32 capcity);
 
 	private:
 		inline void Advance()
@@ -330,18 +327,9 @@ namespace sol
 		}
 	};
 
-	template<typename T>
-	inline CircularQueue<T>::CircularQueue(T* data, int32 capcity)
-	{
-		this->start = 0;
-		this->end = 0;
-		this->count = 0;
-		this->capcity = capcity;
-		this->data = data;
-	}
 
 	template<uint32 size>
-	struct FixedMemoryStream
+	struct SOL_API FixedMemoryStream
 	{
 		uint32 bufferCursor;
 		FixedArray<uint8, size> buffer;
@@ -388,15 +376,79 @@ namespace sol
 		}
 	};
 
-
 	template<typename T>
-	class HashMap
+	class SOL_API HashMap
 	{
 	public:
+		inline void Put(uint64 key, const T& t)
+		{
+			uint64 hash = Hash(key);
+			uint32 index = (uint32)(hash % entries.GetCapcity());
 
-		void Put(uint64 key, const T& t);
-		T* Get(uint64 key);
-		ManagedArray<T> GetValueSet() const;
+			FixedArray<Entry, 25>& bucket = entries[index];
+
+			for (uint32 i = 0; i < bucket.GetCapcity(); i++)
+			{
+				Entry& entry = bucket[i];
+				if (!entry.valid)
+				{
+					entry.key = key;
+					entry.valid = true;
+					entry.t = t;
+					count++;
+					return;
+				}
+			}
+
+			Assert(0, "Could not place item in hashmap, it's full");
+		}
+
+		inline T* Get(uint64 key)
+		{
+			uint64 hash = Hash(key);
+			uint32 index = (uint32)(hash % entries.GetCapcity());
+
+			FixedArray<Entry, 25>& bucket = entries[index];
+
+			for (uint32 i = 0; i < bucket.GetCapcity(); i++)
+			{
+				Entry* entry = bucket.Get(i);
+				if (entry->valid && entry->key == key)
+				{
+					return &entry->t;
+				}
+			}
+
+			return nullptr;
+		}
+
+		inline ManagedArray<T> GetValueSet() const
+		{
+			ManagedArray<T> result = ManagedArray<T>(count, MemoryType::TRANSIENT);
+
+			for (uint32 buckedIndex = 0; buckedIndex < entries.GetCapcity(); buckedIndex++)
+			{
+				const FixedArray<Entry, 25>& bucket = entries[buckedIndex];
+
+				for (uint32 entryIndex = 0; entryIndex < bucket.GetCapcity(); entryIndex++)
+				{
+					Entry entry = bucket[entryIndex];
+
+					if (entry.valid)
+					{
+						result.Add(entry.t);
+					}
+				}
+			}
+
+			return result;
+		}
+
+		inline void Clear()
+		{
+			GameMemory::ZeroStruct(&entries);
+			count = 0;
+		}
 
 	private:
 		struct Entry
@@ -406,87 +458,24 @@ namespace sol
 			T t;
 		};
 
-		uint64 Hash(uint64 x);
+		inline uint64 Hash(uint64 x)
+		{
+			// @NOTE: Source https://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
+			x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+			x = (x ^ (x >> 27)) * UINT64_C(0x94d049bb133111eb);
+			x = x ^ (x >> 31);
+			return x;
+		}
+
 		uint32 count;
 		FixedArray<FixedArray<Entry, 25>, 250> entries;
 	};
 
-	template<typename T>
-	inline void HashMap<T>::Put(uint64 key, const T& t)
-	{
-		uint64 hash = Hash(key);
-		uint32 index = (uint32)(hash % entries.GetCapcity());
 
-		FixedArray<Entry, 25>& bucket = entries[index];
 
-		for (uint32 i = 0; i < bucket.GetCapcity(); i++)
-		{
-			Entry& entry = bucket[i];
-			if (!entry.valid)
-			{
-				entry.key = key;
-				entry.valid = true;
-				entry.t = t;
-				count++;
-				return;
-			}
-		}
 
-		Assert(0, "Could not place item in hashmap, it's full");
-	}
 
-	template<typename T>
-	inline T* HashMap<T>::Get(uint64 key)
-	{
-		uint64 hash = Hash(key);
-		uint32 index = (uint32)(hash % entries.GetCapcity());
 
-		FixedArray<Entry, 25>& bucket = entries[index];
-
-		for (uint32 i = 0; i < bucket.GetCapcity(); i++)
-		{
-			Entry* entry = bucket.Get(i);
-			if (entry->valid && entry->key == key)
-			{
-				return &entry->t;
-			}
-		}
-
-		return nullptr;
-	}
-
-	template<typename T>
-	inline ManagedArray<T> HashMap<T>::GetValueSet() const
-	{
-		ManagedArray<T> result = ManagedArray<T>(count, MemoryType::TRANSIENT);
-
-		for (uint32 buckedIndex = 0; buckedIndex < entries.GetCapcity(); buckedIndex++)
-		{
-			const FixedArray<Entry, 25>& bucket = entries[buckedIndex];
-
-			for (uint32 entryIndex = 0; entryIndex < bucket.GetCapcity(); entryIndex++)
-			{
-				Entry entry = bucket[entryIndex];
-
-				if (entry.valid)
-				{
-					result.Add(entry.t);
-				}
-			}
-		}
-
-		return result;
-	}
-
-	template<typename T>
-	inline uint64 HashMap<T>::Hash(uint64 x)
-	{
-		// @NOTE: Source https://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
-		x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
-		x = (x ^ (x >> 27)) * UINT64_C(0x94d049bb133111eb);
-		x = x ^ (x >> 31);
-		return x;
-	}
 
 	//template<typename T, uint32 CAPCITY>
 	//class FreeList

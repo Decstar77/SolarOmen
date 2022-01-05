@@ -4,11 +4,86 @@
 #include "Win32State.h"
 #include <core/SolarLogging.h>
 #include <core/SolarInput.h>
+#include "core/SolarMath.h"
 
 #if SOLAR_PLATFORM_WINDOWS
 namespace sol
 {
 	static Win32State winState = {};
+
+	PlatformFile Platform::LoadEntireFile(const String& path, bool32 metaDataOnly)
+	{
+		PlatformFile result = {};
+		result.path = path;
+
+		HANDLE FileHandle = CreateFileA(path.GetCStr(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+		if (FileHandle != INVALID_HANDLE_VALUE)
+		{
+			LARGE_INTEGER FileSize;
+			if (GetFileSizeEx(FileHandle, &FileSize))
+			{
+				uint32 FileSize32 = SafeTruncateUint64(FileSize.QuadPart);
+				result.data = GameMemory::PushTransientCount<char>(FileSize32);
+				if (result.data)
+				{
+					if (!metaDataOnly)
+					{
+						DWORD BytesRead;
+
+						if (ReadFile(FileHandle, result.data, FileSize32, &BytesRead, 0) &&
+							(FileSize32 == BytesRead))
+						{
+							result.sizeBytes = FileSize32;
+						}
+						else
+						{
+							// TODO: Logging
+						}
+					}
+
+					FILETIME creationTime;
+					FILETIME lastAcessTime;
+					FILETIME lastWriteTime;
+					if (GetFileTime(FileHandle, &creationTime, &lastAcessTime, &lastWriteTime))
+					{
+						ULARGE_INTEGER large = {};
+
+						large.LowPart = creationTime.dwLowDateTime;
+						large.HighPart = creationTime.dwHighDateTime;
+						result.creationTime = large.QuadPart;
+
+						large.LowPart = lastAcessTime.dwLowDateTime;
+						large.HighPart = lastAcessTime.dwHighDateTime;
+						result.lastAcessTime = large.QuadPart;
+
+						large.LowPart = lastWriteTime.dwLowDateTime;
+						large.HighPart = lastWriteTime.dwHighDateTime;
+						result.lastWriteTime = large.QuadPart;
+					}
+					else
+					{
+						SOLWARN(String("Could not get meta data for file: ").Add(path).GetCStr());
+					}
+				}
+				else
+				{
+					SOLERROR(String("Could not get allocate for file: ").Add(path).GetCStr());
+				}
+			}
+			else
+			{
+				SOLERROR(String("Could not get size for file: ").Add(path).GetCStr());
+			}
+
+			CloseHandle(FileHandle);
+		}
+		else
+		{
+			SOLERROR(String("Could not open file: ").Add(path).GetCStr());
+		}
+
+		return result;
+	}
 
 	void InitializeClock()
 	{

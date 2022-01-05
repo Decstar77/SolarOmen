@@ -1,5 +1,5 @@
 #pragma once
-#include "SolarDefines.h"
+#include "../SolarDefines.h"
 #include "../core/SolarString.h"
 #include "../core/SolarMath.h"
 

@@ -79,6 +79,14 @@ namespace sol
 	//	return result;
 	//}
 
+	void StaticMesh::Release(StaticMesh* mesh)
+	{
+		DXRELEASE(mesh->indexBuffer);
+		DXRELEASE(mesh->vertexBuffer);
+
+		GameMemory::ZeroStruct(mesh);
+	}
+
 	StaticMesh StaticMesh::Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout)
 	{
 		D3D11_BUFFER_DESC vertexDesc = {};
@@ -139,7 +147,7 @@ namespace sol
 		DXCHECK(dc.device->CreateBuffer(&vertex_desc, &vertex_res, &result.vertexBuffer));
 		DXCHECK(dc.device->CreateBuffer(&index_desc, &index_res, &result.indexBuffer));
 
-		SOLTRACE(String("Created static mesh, ").Add(vertexCount * sizeof(real32) + indexCount * sizeof(uint32)).Add(" bytes").GetCStr());
+		SOLTRACE(String("Created static mesh: ").Add(vertexCount * sizeof(real32) + indexCount * sizeof(uint32)).Add(" bytes").GetCStr());
 
 		//SOLFATAL(String("Unsupported mesh format").Add(layout.ToString()).GetCStr());
 		return result;

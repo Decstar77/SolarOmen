@@ -213,9 +213,10 @@ namespace sol
 		DXRELEASE(renderState.swapChain.depthShaderView);
 		DXRELEASE(renderState.swapChain.depthTexture);
 
+		SOLINFO(String("Recreating swap chain").Add(resizeEvent->width).Add(":").Add(resizeEvent->height).GetCStr());
+
 		DeviceContext dc = renderState.deviceContext;
 		DXCHECK(renderState.swapChain.swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
-
 		CreateSwapChainBuffers();
 
 		return 0;
@@ -275,6 +276,24 @@ namespace sol
 			CreateAllBlendState();
 			EventSystem::Register((uint16)EventCodeEngine::WINDOW_RESIZED, 0, OnWindowResizeCallback);
 
+			ProgramResource* programResource = Resources::GetProgramResource("post_processing");
+			renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*programResource);
+
+			renderState.modelConstBuffer = ShaderConstBuffer<ShaderConstBufferModel>::Create();
+			renderState.viewConstBuffer = ShaderConstBuffer<ShaderConstBufferView>::Create();
+			renderState.lightingConstBuffer = ShaderConstBuffer<ShaderConstBufferLightingInfo>::Create();
+			renderState.uiConstBuffer = ShaderConstBuffer<ShaderConstBufferUIData>::Create();
+
+			RenderCommand::SetShaderConstBuffer(&renderState.modelConstBuffer, ShaderStage::VERTEX, 0);
+			RenderCommand::SetShaderConstBuffer(&renderState.viewConstBuffer, ShaderStage::VERTEX, 1);
+			RenderCommand::SetShaderConstBuffer(&renderState.lightingConstBuffer, ShaderStage::PIXEL, 0);
+			RenderCommand::SetShaderConstBuffer(&renderState.uiConstBuffer, ShaderStage::PIXEL, 4);
+
+			RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
+			RenderCommand::UploadShaderConstBuffer(&renderState.viewConstBuffer);
+			RenderCommand::UploadShaderConstBuffer(&renderState.lightingConstBuffer);
+			RenderCommand::UploadShaderConstBuffer(&renderState.uiConstBuffer);
+
 			renderState.quad = StaticMesh::CreateScreenSpaceQuad();
 			renderState.cube = StaticMesh::CreateUnitCube();
 
@@ -302,12 +321,31 @@ namespace sol
 		RenderCommand::SetDepthState(renderState.depthOffState);
 		RenderCommand::SetRasterState(renderState.rasterNoFaceCullState);
 
+		RenderCommand::SetProgram(renderState.postProcessingProgram);
+		RenderCommand::DrawStaticMesh(renderState.quad);
+
 		DeviceContext dc = renderState.deviceContext;
 		DXCHECK(renderState.swapChain.swapChain->Present(1, 0));
 	}
 
 	void Renderer::Shutdown()
 	{
+		RenderCommand::SetStaticMesh({});
+
+		StaticMesh::Release(&renderState.quad);
+		StaticMesh::Release(&renderState.cube);
+
+		ShaderConstBuffer<ShaderConstBufferModel>::Release(&renderState.modelConstBuffer);
+		ShaderConstBuffer<ShaderConstBufferView>::Release(&renderState.viewConstBuffer);
+		ShaderConstBuffer<ShaderConstBufferLightingInfo>::Release(&renderState.lightingConstBuffer);
+		ShaderConstBuffer<ShaderConstBufferUIData>::Release(&renderState.uiConstBuffer);
+
+		for (uint32 i = 0; i < ArrayCount(renderState.allRastersStates); i++) { DXRELEASE(renderState.allRastersStates[i]); }
+		for (uint32 i = 0; i < ArrayCount(renderState.allDepthStates); i++) { DXRELEASE(renderState.allDepthStates[i]); }
+		for (uint32 i = 0; i < ArrayCount(renderState.programs); i++) { ProgramInstance::Release(&renderState.programs[i]); }
+
+		DXRELEASE(renderState.blendNormal);
+
 		DXRELEASE(renderState.swapChain.depthView);
 		DXRELEASE(renderState.swapChain.depthShaderView);
 		DXRELEASE(renderState.swapChain.renderView);

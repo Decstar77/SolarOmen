@@ -1,6 +1,7 @@
 #pragma once
 #include "SolarDefines.h"
 #include "renderer/RendererTypes.h"
+#include "resources/SolarResourceTypes.h"
 
 #include <d3d11.h>
 #include <dxgi.h>
@@ -115,10 +116,115 @@ namespace sol
 		//void UpdateVertexBuffer(real32* vertices, uint32 sizeBytes);
 
 		//static StaticMesh Create(const ModelAsset& modelAsset);
+		static void Release(StaticMesh* mesh);
 		static StaticMesh Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout);
 		static StaticMesh Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
 		static StaticMesh CreateScreenSpaceQuad();
 		static StaticMesh CreateUnitCube();
+	};
+
+	struct ProgramInstance
+	{
+		ResourceId id;
+		ID3D11VertexShader* vs;
+		ID3D11PixelShader* ps;
+		ID3D11ComputeShader* cs;
+		ID3D11InputLayout* layout;
+
+		static void Release(ProgramInstance* program);
+		static ProgramInstance CreateGraphics(const ProgramResource& programResource);
+	};
+
+	template<typename T>
+	struct ShaderConstBuffer
+	{
+		T data;
+		ID3D11Buffer* buffer;
+
+		inline static void Release(ShaderConstBuffer<T>* constBuffer)
+		{
+			DeviceContext dc = GetDeviceContext();
+			DXRELEASE(constBuffer->buffer);
+			GameMemory::ZeroStruct(constBuffer);
+		}
+
+		inline static ShaderConstBuffer<T> Create()
+		{
+			DeviceContext dc = GetDeviceContext();
+			D3D11_BUFFER_DESC desc = {};
+			desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			desc.Usage = D3D11_USAGE_DEFAULT; //D3D11_USAGE_DYNAMIC;
+			desc.CPUAccessFlags = 0;
+			desc.MiscFlags = 0;
+			desc.ByteWidth = sizeof(T);
+			desc.StructureByteStride = 0;
+
+			ID3D11Buffer* buffer = nullptr;
+			DXCHECK(dc.device->CreateBuffer(&desc, NULL, &buffer));
+
+			ShaderConstBuffer<T> result = {};
+			result.buffer = buffer;
+			result.data = {};
+
+			return result;
+		}
+	};
+
+#define Float4Align __declspec(align(16))
+	struct ShaderConstBufferModel
+	{
+		Float4Align Mat4f mvp;
+		Float4Align Mat4f model;
+		Float4Align Mat4f invM;
+
+		inline void Prepare()
+		{
+			mvp = Transpose(mvp);
+			model = Transpose(model);
+			invM = Transpose(invM);
+		}
+	};
+
+	struct ShaderConstBufferView
+	{
+		Float4Align Mat4f persp;
+		Float4Align Mat4f view;
+		Float4Align Mat4f screeenProjection;
+
+		inline void Prepare()
+		{
+			persp = Transpose(persp);
+			view = Transpose(view);
+			screeenProjection = Transpose(screeenProjection);
+		}
+	};
+
+	struct ShaderConstBufferLightingInfo
+	{
+		Float4Align Vec4f viewPos;
+		Float4Align struct {
+			int32 dirLightCount;
+			int32 spotLightCount;
+			int32 pointLightCount;
+			int32 pad;
+		};
+
+		inline void Prepare()
+		{
+
+		}
+	};
+
+	struct ShaderConstBufferUIData
+	{
+		Float4Align Vec4f colour;
+		Float4Align Vec4f sizePos;
+		Float4Align Vec4i uiUses;
+
+		inline void Prepare()
+		{
+
+		}
 	};
 
 	struct RenderState
@@ -126,13 +232,41 @@ namespace sol
 		DeviceContext deviceContext;
 		SwapChain swapChain;
 
-		ID3D11RasterizerState* rasterBackFaceCullingState;
-		ID3D11RasterizerState* rasterFrontFaceCullingState;
-		ID3D11RasterizerState* rasterNoFaceCullState;
+		union
+		{
+			ID3D11RasterizerState* allRastersStates[8];
+			struct
+			{
+				ID3D11RasterizerState* rasterBackFaceCullingState;
+				ID3D11RasterizerState* rasterFrontFaceCullingState;
+				ID3D11RasterizerState* rasterNoFaceCullState;
+			};
+		};
 
-		ID3D11DepthStencilState* depthLessState;
-		ID3D11DepthStencilState* depthOffState;
-		ID3D11DepthStencilState* depthLessEqualState;
+		union
+		{
+			ID3D11RasterizerState* allDepthStates[8];
+			struct
+			{
+				ID3D11DepthStencilState* depthLessState;
+				ID3D11DepthStencilState* depthOffState;
+				ID3D11DepthStencilState* depthLessEqualState;
+			};
+		};
+
+		union
+		{
+			ProgramInstance programs[64];
+			struct
+			{
+				ProgramInstance postProcessingProgram;
+			};
+		};
+
+		ShaderConstBuffer<ShaderConstBufferModel> modelConstBuffer;
+		ShaderConstBuffer<ShaderConstBufferView> viewConstBuffer;
+		ShaderConstBuffer<ShaderConstBufferLightingInfo> lightingConstBuffer;
+		ShaderConstBuffer<ShaderConstBufferUIData> uiConstBuffer;
 
 		StaticMesh quad;
 		StaticMesh cube;

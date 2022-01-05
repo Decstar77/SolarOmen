@@ -16,14 +16,47 @@ namespace sol
 		static void SetRasterState(ID3D11RasterizerState* rasterState);
 		static void SetDepthState(ID3D11DepthStencilState* depthState);
 
-		//void BindShader(const ShaderInstance& shader);
-		//void BindAndDrawMesh(const StaticMesh& mesh);
+		static void SetProgram(const ProgramInstance& progam);
+		static void SetStaticMesh(const StaticMesh& mesh);
+		static void DrawStaticMesh(const StaticMesh& mesh);
 
 		//void BindSampler(const SamplerInstance& sampler, int32 slot);
 		//void BindTexture(const TextureInstance& texture, int32 slot);
 		//void BindCubeMap(const CubeMapInstance& cubeMap, int32 slot);
 
-		//void BindShaderConstBuffer(ID3D11Buffer* buffer, ShaderStage stage, int32 slot);
-		//void UpdateConstBuffer(ID3D11Buffer* buffer, void* data);
+		template<typename T>
+		inline static void SetShaderConstBuffer(ShaderConstBuffer<T>* buffer, ShaderStage stage, int32 slot)
+		{
+			DeviceContext dc = GetDeviceContext();
+
+			switch (stage)
+			{
+			case ShaderStage::VERTEX:
+			{
+				DXINFO(dc.context->VSSetConstantBuffers(slot, 1, &buffer->buffer));
+			} break;
+			case ShaderStage::PIXEL:
+			{
+				DXINFO(dc.context->PSSetConstantBuffers(slot, 1, &buffer->buffer));
+			} break;
+			case ShaderStage::COMPUTE:
+			{
+				DXINFO(dc.context->CSSetConstantBuffers(slot, 1, &buffer->buffer));
+			} break;
+			default:
+			{
+				Assert(0, "SetShaderConstBuffer invalid shader stage");
+			} break;
+			}
+		}
+
+		template<typename T>
+		inline static void UploadShaderConstBuffer(ShaderConstBuffer<T>* buffer)
+		{
+			DeviceContext dc = GetDeviceContext();
+			buffer->data.Prepare();
+			DXINFO(dc.context->UpdateSubresource(buffer->buffer, 0, nullptr, (void*)&buffer->data, 0, 0));
+		}
+
 	};
 }

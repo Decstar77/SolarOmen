@@ -58,6 +58,9 @@ namespace sol
 		static bool8 Initialize(uint64 permanentStorageSize, uint64 transientStorageSize);
 		static void Shutdown();
 
+		template<typename T>
+		inline static void ZeroStruct(T* t) { ZeroOut(t, sizeof(T)); }
+
 	private:
 		GameMemory(void* permanentStorageData, uint64 permanentStorageSize, void* transientStorageData, uint64 transientStorageSize);
 		inline static GameMemory* instance = nullptr;
@@ -67,6 +70,8 @@ namespace sol
 
 		void* TransientPushSize(uint64 size);
 		void* PermanentPushSize(uint64 size);
+
+		static void ZeroOut(void* dst, uint64 size);
 	};
 }
 

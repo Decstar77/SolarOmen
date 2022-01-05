@@ -92,4 +92,9 @@ namespace sol
 
 		return result;
 	}
+
+	void GameMemory::ZeroOut(void* dst, uint64 size)
+	{
+		memset(dst, 0, size);
+	}
 }

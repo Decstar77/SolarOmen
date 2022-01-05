@@ -66,32 +66,39 @@ namespace sol
 		DXINFO(dc.context->OMSetDepthStencilState(depthState, 1));
 	}
 
-	//void BindShader(const ShaderInstance& shader)
-	//{
-	//	GetRenderState();
-	//	if (shader.vs)
-	//	{
-	//		DXINFO(rs->context->VSSetShader(shader.vs, nullptr, 0));
-	//		DXINFO(rs->context->IASetInputLayout(shader.layout));
-	//	}
-	//	if (shader.ps)
-	//	{
-	//		DXINFO(rs->context->PSSetShader(shader.ps, nullptr, 0));
-	//	}
-	//	if (shader.cs)
-	//	{
-	//		DXINFO(rs->context->CSSetShader(shader.cs, nullptr, 0));
-	//	}
-	//}
+	void RenderCommand::SetProgram(const ProgramInstance& progam)
+	{
+		DeviceContext dc = GetDeviceContext();
+		if (progam.vs)
+		{
+			DXINFO(dc.context->VSSetShader(progam.vs, nullptr, 0));
+			DXINFO(dc.context->IASetInputLayout(progam.layout));
+		}
+		if (progam.ps)
+		{
+			DXINFO(dc.context->PSSetShader(progam.ps, nullptr, 0));
+		}
+		if (progam.cs)
+		{
+			DXINFO(dc.context->CSSetShader(progam.cs, nullptr, 0));
+		}
+	}
 
-	//void BindAndDrawMesh(const StaticMesh& mesh)
-	//{
-	//	GetRenderState();
-	//	uint32 offset = 0;
-	//	DXINFO(rs->context->IASetVertexBuffers(0, 1, &mesh.vertexBuffer, &mesh.strideBytes, &offset));
-	//	DXINFO(rs->context->IASetIndexBuffer(mesh.indexBuffer, DXGI_FORMAT_R32_UINT, 0));
-	//	DXINFO(rs->context->DrawIndexed(mesh.indexCount, 0, 0));
-	//}
+	void RenderCommand::SetStaticMesh(const StaticMesh& mesh)
+	{
+		uint32 offset = 0;
+		DeviceContext dc = GetDeviceContext();
+		DXINFO(dc.context->IASetVertexBuffers(0, 1, &mesh.vertexBuffer, &mesh.strideBytes, &offset));
+		DXINFO(dc.context->IASetIndexBuffer(mesh.indexBuffer, DXGI_FORMAT_R32_UINT, 0));
+	}
+
+	void RenderCommand::DrawStaticMesh(const StaticMesh& mesh)
+	{
+		SetStaticMesh(mesh);
+		DeviceContext dc = GetDeviceContext();
+		DXINFO(dc.context->DrawIndexed(mesh.indexCount, 0, 0));
+	}
+
 
 	//void BindSampler(const SamplerInstance& sampler, int32 slot)
 	//{
