@@ -1,9 +1,9 @@
 #pragma once
-#include "SolarDefines.h"
+#include "../SolarDefines.h"
 
 namespace sol
 {
-	enum class EventCodeEngine
+	enum class SOL_API EventCodeEngine
 	{
 		INVALID = 0,
 		APPLICATION_QUIT = 1,
@@ -14,6 +14,7 @@ namespace sol
 		MOUSE_MOVED = 6,
 		MOUSE_WHEEL = 7,
 		WINDOW_RESIZED = 8,
+		WINDOW_PUMP_MESSAGES = 9,
 		DEBUG0 = 10,
 		DEBUG1 = 11,
 		DEBUG2 = 12,

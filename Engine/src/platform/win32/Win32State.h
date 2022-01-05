@@ -20,4 +20,13 @@ namespace sol
 		real64 clockFrequency;
 		LARGE_INTEGER startTime;
 	};
+
+	struct Win32EventPumpMessageContext
+	{
+		HWND hwnd;
+		UINT msg;
+		WPARAM wparam;
+		LPARAM lparam;
+	};
+
 }

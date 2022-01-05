@@ -1,10 +1,10 @@
 #pragma once
-#include "SolarDefines.h"
+#include "../SolarDefines.h"
 #include "SolarString.h"
 
 namespace sol
 {
-	struct ApplicationConfigs
+	struct SOL_API ApplicationConfigs
 	{
 		int16 startPosY;
 		int16 startPosX;

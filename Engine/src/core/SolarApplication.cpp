@@ -1,8 +1,8 @@
 #include "SolarApplication.h"
 #include "SolarInput.h"
-#include "SolarGameTypes.h"
+#include "game/SolarGameTypes.h"
 #include "platform/SolarPlatform.h"
-#include "renderer/RendererFrontEnd.h"
+#include "renderer/SolarRenderer.h"
 #include "core/SolarClock.h"
 #include "core/SolarLogging.h"
 #include "core/SolarEvent.h"
@@ -24,7 +24,14 @@ namespace sol
 					{
 						if (Renderer::Initialize())
 						{
-							return true;
+							if (game->Initialize(game))
+							{
+								return true;
+							}
+							else
+							{
+
+							}
 						}
 						else
 						{
@@ -75,6 +82,7 @@ namespace sol
 			}
 
 			clock.Update();
+			GameMemory::ReleaseAllTransientMemory();
 			//SOLTRACE(String("Dt: ").Add((real32)clock.elapsed).GetCStr())
 		}
 

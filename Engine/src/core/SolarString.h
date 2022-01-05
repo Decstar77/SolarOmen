@@ -11,7 +11,7 @@
 //===============================================================//
 
 #pragma once
-#include "SolarDefines.h"
+#include "../SolarDefines.h"
 #include "SolarContainers.h"
 
 namespace sol

@@ -106,12 +106,12 @@
     <ClInclude Include="src\platform\win32\Win32State.h" />
     <ClInclude Include="src\renderer\dx11\DX11Types.h" />
     <ClInclude Include="src\renderer\dx11\DX11RenderCommands.h" />
-    <ClInclude Include="src\renderer\RendererFrontEnd.h" />
+    <ClInclude Include="src\renderer\SolarRenderer.h" />
     <ClInclude Include="src\renderer\RendererTypes.h" />
     <ClInclude Include="src\SolarDefines.h" />
     <ClInclude Include="SolarEngine.h" />
     <ClInclude Include="src\SolarEntry.h" />
-    <ClInclude Include="src\SolarGameTypes.h" />
+    <ClInclude Include="src\game\SolarGameTypes.h" />
     <ClInclude Include="src\core\SolarLogging.h" />
     <ClInclude Include="src\core\SolarMemory.h" />
     <ClInclude Include="src\core\SolarString.h" />

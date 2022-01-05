@@ -36,7 +36,7 @@
     <ClInclude Include="src\core\SolarMemory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\SolarGameTypes.h">
+    <ClInclude Include="src\game\SolarGameTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\SolarPlatform.h">
@@ -54,7 +54,7 @@
     <ClInclude Include="src\renderer\RendererTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\RendererFrontEnd.h">
+    <ClInclude Include="src\renderer\SolarRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\win32\Win32State.h">

@@ -1,12 +1,12 @@
 #pragma once
-#include <SolarDefines.h>
-#include <core/SolarMemory.h>
-#include <core/SolarString.h>
-#include <core/SolarContainers.h>
+#include "../SolarDefines.h"
+#include "../core/SolarMemory.h"
+#include "../core/SolarString.h"
+#include "../core/SolarContainers.h"
 
 namespace sol
 {
-	struct PlatformFile
+	struct SOL_API PlatformFile
 	{
 		String path;
 		uint64 creationTime;
@@ -16,14 +16,14 @@ namespace sol
 		void* data;
 	};
 
-	struct PlatformNetworkAddress
+	struct SOL_API PlatformNetworkAddress
 	{
 		uint16 port;
 		uint32 ipAddress;
 		String stringIP;
 	};
 
-	class Platform
+	class SOL_API Platform
 	{
 	public:
 		// @NOTE: These memory functions must work before and after platform intialization.
@@ -36,7 +36,7 @@ namespace sol
 		static bool8 Intialize(int32 x, int32 y, int32 width, int32 height);
 		static void Shutdown();
 		static bool8 PumpMessages();
-		static void* GetInternalState();
+		static void* GetNativeState();
 
 		static bool8 WriteFile(const String& path, void* data, uint32 sizeBytes);
 		static ManagedArray<String> LoadEntireFolder(const String& path, const String& fileTypes);

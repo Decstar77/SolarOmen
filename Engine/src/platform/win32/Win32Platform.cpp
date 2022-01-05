@@ -150,7 +150,7 @@ namespace sol
 		return winState.running;
 	}
 
-	void* Platform::GetInternalState()
+	void* Platform::GetNativeState()
 	{
 		return &winState;
 	}
@@ -247,11 +247,18 @@ namespace sol
 	{
 		LRESULT result = {};
 
-#if EDITOR
-		result = ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
-		if (result)
-			return result;
-#endif
+		Win32EventPumpMessageContext eventContext = {};
+		eventContext.hwnd = hwnd;
+		eventContext.msg = msg;
+		eventContext.wparam = wparam;
+		eventContext.lparam = lparam;
+		if (EventSystem::Fire((uint16)EventCodeEngine::WINDOW_PUMP_MESSAGES, &result, eventContext))
+		{
+			if (result)
+			{
+				return result;
+			}
+		}
 
 		switch (msg)
 		{
@@ -259,7 +266,7 @@ namespace sol
 		{
 			winState.running = false;
 			PostQuitMessage(0);
-		} break;
+	} break;
 		case WM_CLOSE:
 		{
 			winState.running = false;
@@ -287,7 +294,7 @@ namespace sol
 			ProcessKeyboardInput(vkCode, isDown);
 		}break;
 		default: { result = DefWindowProcA(hwnd, msg, wparam, lparam);	}
-		}
+}
 
 		return result;
 	}

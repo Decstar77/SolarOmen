@@ -2,7 +2,7 @@
 #include "core/SolarMemory.h"
 #include "core/SolarApplication.h"
 #include "core/SolarLogging.h"
-#include "SolarGameTypes.h"
+#include "game/SolarGameTypes.h"
 
 int main(int argc, const char* argv[])
 {

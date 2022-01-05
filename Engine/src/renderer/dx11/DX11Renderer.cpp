@@ -1,4 +1,4 @@
-#include "renderer/RendererFrontEnd.h"
+#include "../SolarRenderer.h"
 #include "core/SolarEvent.h"
 #include "core/SolarLogging.h"
 #if SOLAR_PLATFORM_WINDOWS
@@ -16,6 +16,11 @@ namespace sol
 	DeviceContext GetDeviceContext()
 	{
 		return renderState.deviceContext;
+	}
+
+	void* sol::Renderer::GetNativeDeviceContext()
+	{
+		return &renderState.deviceContext;
 	}
 
 	static void InitializeDirectXDebugLogging()
@@ -64,7 +69,7 @@ namespace sol
 	static void CreateSwapChainBuffers()
 	{
 		DeviceContext dc = renderState.deviceContext;
-		Win32State* win32State = (Win32State*)Platform::GetInternalState();
+		Win32State* win32State = (Win32State*)Platform::GetNativeState();
 
 		// @NOTE: Get back buffer
 		ID3D11Resource* backBuffer = nullptr;
@@ -227,7 +232,7 @@ namespace sol
 #if SOL_DEBUG_RENDERING
 		InitializeDirectXDebugLogging();
 #endif
-		Win32State* win32State = (Win32State*)Platform::GetInternalState();
+		Win32State* win32State = (Win32State*)Platform::GetNativeState();
 
 		D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 
