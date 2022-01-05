@@ -99,6 +99,7 @@ namespace sol
 
 		StaticMesh result = {};
 		result.vertexLayout = layout;
+		result.vertexCount = vertexCount / layout.GetStride();
 		result.strideBytes = layout.GetStride() * sizeof(real32);
 
 		DeviceContext dc = GetDeviceContext();
@@ -139,6 +140,7 @@ namespace sol
 
 		StaticMesh result = {};
 		result.strideBytes = vertexStrideBytes;
+		result.vertexCount = vertexCount / layout.GetStride();
 		result.indexCount = indexCount;
 		result.vertexLayout = layout;
 

@@ -823,7 +823,7 @@ namespace cm
 		case RoomType::MULTIPLAYER: InitializeMultiplayerRoom(); break;
 		case RoomType::LEVEL_1:
 		{
-			twoPlayerGame = 0;
+			twoPlayerGame = 1;
 			if (!twoPlayerGame)
 			{
 				multiplayerState->playerNumber = PlayerNumber::ONE;

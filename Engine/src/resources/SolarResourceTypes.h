@@ -25,6 +25,10 @@ namespace sol
 	struct SOL_API ModelResource
 	{
 		String name;
+		ResourceId id;
+		VertexLayoutType layout;
+		ManagedArray<real32> packedVertices;
+		ManagedArray<uint32> indices;
 	};
 
 	struct SOL_API ProgramResource
@@ -44,6 +48,7 @@ namespace sol
 		static ProgramResource* GetProgramResource(const ResourceId& name);
 		static ProgramResource* GetProgramResource(const String& name);
 
+		static ManagedArray<ModelResource> GetAllModelResources();
 		static ModelResource* GetModelResource(const ResourceId& name);
 		static ModelResource* GetModelResource(const String& name);
 	};

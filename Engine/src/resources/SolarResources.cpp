@@ -5,6 +5,7 @@
 namespace sol
 {
 	static HashMap<ProgramResource> programs = {};
+	static HashMap<ModelResource> models = {};
 
 	template<typename T>
 	inline T* GetResourcesFromName(ManagedArray<T> assetArray, const String& name)
@@ -24,11 +25,16 @@ namespace sol
 		return GetResourcesFromName<ProgramResource>(programs.GetValueSet(), name);
 	}
 
+	ManagedArray<ModelResource> Resources::GetAllModelResources()
+	{
+		return  models.GetValueSet();
+	}
+
 	static String PACKED_ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Packed/";
 	bool8 ResourceSystem::Initialize()
 	{
 		LoadAllShaderPrograms();
-
+		LoadAllModels();
 		return true;
 	}
 
@@ -105,5 +111,37 @@ namespace sol
 		}
 
 		SOLINFO("Shader loading complete");
+	}
+
+	void ResourceSystem::LoadAllModels()
+	{
+		BinaryAssetFile file = {};
+		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("models.bin"), false);
+
+		uint32 modelCount = file.Read<uint32>();
+		for (uint32 modelIndex = 0; modelIndex < modelCount; modelIndex++)
+		{
+			ModelResource model = {};
+			model.id = file.Read<ResourceId>();
+			model.name = file.Read<String>();
+			model.layout = file.Read<VertexLayoutType::Value>();
+
+			model.packedVertices.Allocate(file.Read<uint32>() * model.layout.GetStride(), MemoryType::PERMANENT);
+			for (uint32 i = 0; i < model.packedVertices.GetCapcity(); i++)
+			{
+				model.packedVertices.Add(file.Read<real32>());
+			}
+
+			model.indices.Allocate(file.Read<uint32>(), MemoryType::PERMANENT);
+			for (uint32 i = 0; i < model.indices.GetCapcity(); i++)
+			{
+				model.indices.Add(file.Read<uint32>());
+			}
+
+			SOLTRACE(String("Loaded model resource: ").Add(model.name).GetCStr());
+			models.Put(model.id.number, model);
+		}
+
+		SOLINFO("Model loading complete");
 	}
 }

@@ -96,7 +96,14 @@ namespace sol
 	{
 		SetStaticMesh(mesh);
 		DeviceContext dc = GetDeviceContext();
-		DXINFO(dc.context->DrawIndexed(mesh.indexCount, 0, 0));
+		if (mesh.indexBuffer)
+		{
+			DXINFO(dc.context->DrawIndexed(mesh.indexCount, 0, 0));
+		}
+		else
+		{
+			DXINFO(dc.context->Draw(mesh.vertexCount, 0))
+		}
 	}
 
 

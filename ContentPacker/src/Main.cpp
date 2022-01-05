@@ -6,9 +6,9 @@
 #include "TextureProcessor.h"
 #include "ProgramProcessor.h"
 
-#define PROCESS_MODELS 1
-#define PROCESS_MATERIALS 1
-#define PROCESS_TEXTURES 1
+#define PROCESS_MODELS 0
+#define PROCESS_MATERIALS 0
+#define PROCESS_TEXTURES 0
 
 using namespace cm;
 

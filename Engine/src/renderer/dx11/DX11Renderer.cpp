@@ -276,8 +276,8 @@ namespace sol
 			CreateAllBlendState();
 			EventSystem::Register((uint16)EventCodeEngine::WINDOW_RESIZED, 0, OnWindowResizeCallback);
 
-			ProgramResource* programResource = Resources::GetProgramResource("post_processing");
-			renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*programResource);
+			renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("post_processing"));
+			renderState.phongProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("phong"));
 
 			renderState.modelConstBuffer = ShaderConstBuffer<ShaderConstBufferModel>::Create();
 			renderState.viewConstBuffer = ShaderConstBuffer<ShaderConstBufferView>::Create();
@@ -296,6 +296,12 @@ namespace sol
 
 			renderState.quad = StaticMesh::CreateScreenSpaceQuad();
 			renderState.cube = StaticMesh::CreateUnitCube();
+
+			ManagedArray<ModelResource> models = Resources::GetAllModelResources();
+			for (uint32 i = 0; i < models.count; i++)
+			{
+
+			}
 
 			return true;
 		}
@@ -321,8 +327,24 @@ namespace sol
 		RenderCommand::SetDepthState(renderState.depthOffState);
 		RenderCommand::SetRasterState(renderState.rasterNoFaceCullState);
 
-		RenderCommand::SetProgram(renderState.postProcessingProgram);
+		Mat4f view = Inverse(Transform(Vec3f(0, 0, -3)).CalculateTransformMatrix());
+		Mat4f proj = PerspectiveLH(DegToRad(45.0f), windowWidth / windowHeight, 0.03f, 100.0f);
+
+		renderState.viewConstBuffer.data.view = view;
+		renderState.viewConstBuffer.data.persp = proj;
+		renderState.viewConstBuffer.data.screeenProjection = Mat4f(1);
+		RenderCommand::UploadShaderConstBuffer(&renderState.viewConstBuffer);
+
+		renderState.modelConstBuffer.data.mvp = Mat4f(1) * view * proj;
+		renderState.modelConstBuffer.data.invM = Mat4f(1);
+		renderState.modelConstBuffer.data.model = Mat4f(1);
+		RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
+
+		RenderCommand::SetProgram(renderState.phongProgram);
 		RenderCommand::DrawStaticMesh(renderState.quad);
+
+		//RenderCommand::SetProgram(renderState.postProcessingProgram);
+		//RenderCommand::DrawStaticMesh(renderState.quad);
 
 		DeviceContext dc = renderState.deviceContext;
 		DXCHECK(renderState.swapChain.swapChain->Present(1, 0));

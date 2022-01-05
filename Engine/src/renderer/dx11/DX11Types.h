@@ -108,6 +108,7 @@ namespace sol
 	{
 		uint32 strideBytes; // @NOTE: Used for rendering
 		uint32 indexCount;  // @NOTE: Used for rendering
+		uint32 vertexCount;  // @NOTE: Used for rendering
 		VertexLayoutType vertexLayout;
 
 		ID3D11Buffer* vertexBuffer;
@@ -259,17 +260,20 @@ namespace sol
 			ProgramInstance programs[64];
 			struct
 			{
+				ProgramInstance phongProgram;
 				ProgramInstance postProcessingProgram;
 			};
 		};
+
+		StaticMesh quad;
+		StaticMesh cube;
+		ManagedArray<StaticMesh> staticMeshes;
+
 
 		ShaderConstBuffer<ShaderConstBufferModel> modelConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferView> viewConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferLightingInfo> lightingConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferUIData> uiConstBuffer;
-
-		StaticMesh quad;
-		StaticMesh cube;
 
 		ID3D11BlendState* blendNormal;
 	};
