@@ -74,6 +74,9 @@
     <ClInclude Include="src\ImGuiLayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\EditorTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\imgui\LICENSE" />

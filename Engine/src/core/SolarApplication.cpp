@@ -65,15 +65,14 @@ namespace sol
 
 	bool8 Application::Run(Game* game)
 	{
-
+		real32 dt = 0.016f;
 		while (Platform::PumpMessages())
 		{
 			Clock clock = { };
 			clock.Start();
 
-			if (game->Update(game, 0))
+			if (game->Update(game, dt))
 			{
-				game->Render(game, 0);
 				Renderer::Render(nullptr);
 			}
 			else
@@ -81,8 +80,9 @@ namespace sol
 				Platform::Quit();
 			}
 
-			clock.Update();
 			GameMemory::ReleaseAllTransientMemory();
+			clock.Update();
+			dt = (real32)clock.elapsed;
 			//SOLTRACE(String("Dt: ").Add((real32)clock.elapsed).GetCStr())
 		}
 

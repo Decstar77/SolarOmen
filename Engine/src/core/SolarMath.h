@@ -362,11 +362,8 @@ namespace sol
 	// Math structures
 	//************************************
 
-	// @TODO: Remove these
-	template <typename T>
-	struct Vec3;
-	typedef Vec3<real32> Vec3f;
-	typedef Vec3<int32> Vec3i;
+
+
 
 	template <typename T>
 	struct Vec4;
@@ -440,13 +437,6 @@ namespace sol
 			this->x = all;
 			this->y = all;
 		}
-
-		Vec2(const Vec3<T>& v3)
-		{
-			this->x = v3.x;
-			this->y = v3.y;
-		}
-
 
 		explicit Vec2(String str)
 		{
@@ -780,6 +770,9 @@ namespace sol
 		}
 	};
 
+	typedef Vec3<real32> Vec3f;
+	typedef Vec3<int32> Vec3i;
+
 	template <typename T>
 	inline T Dot(const Vec3<T>& a, const Vec3<T>& b)
 	{
@@ -1043,7 +1036,7 @@ namespace sol
 	{
 		//Assert(a.x != 0 && a.y != 0 && a.z != 0);
 		return Vec3<T>(a.x / b, a.y / b, a.z / b);
-	}
+}
 
 	template <typename T>
 	inline constexpr Vec3<T> operator/(const T& b, const Vec3<T>& a)
@@ -3114,7 +3107,7 @@ namespace sol
 	// Transform
 	//************************************
 
-	class Transform
+	class SOL_API Transform
 	{
 	public:
 		Vec3f position = Vec3f(0, 0, 0);

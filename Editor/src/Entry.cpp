@@ -4,12 +4,7 @@
 
 namespace sol
 {
-	struct GameState
-	{
-
-	};
-
-
+	static EditorState* es = nullptr;
 	static bool8 GameInitialze(Game* game)
 	{
 		if (InitialzieImGui())
@@ -22,18 +17,15 @@ namespace sol
 
 	static bool8 GameUpdate(Game* game, real32 dt)
 	{
-		UpdateImGui();
+		UpdateImGui(es, dt);
+
+		Input* input = Input::Get();
+		if (IsKeyJustDown(input, escape))
+		{
+			return false;
+		}
+
 		return true;
-	}
-
-	static bool8 GameRender(Game* game, real32 dt)
-	{
-		return 1;
-	}
-
-	static void GameOnResize(Game* game, uint32 width, uint32 height)
-	{
-
 	}
 
 	bool8 CreateGame(Game* game)
@@ -45,10 +37,9 @@ namespace sol
 		game->appConfig.name = "Engine Editor";
 		game->Initialize = GameInitialze;
 		game->Update = GameUpdate;
-		game->Render = GameRender;
-		game->OnResize = GameOnResize;
 
-		game->gameState = GameMemory::PushPermanentStruct<GameState>();
+		es = GameMemory::PushPermanentStruct<EditorState>();
+
 
 		return true;
 	}

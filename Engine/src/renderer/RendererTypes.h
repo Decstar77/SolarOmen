@@ -582,6 +582,7 @@ namespace sol
 
 	struct SOL_API RenderPacket
 	{
-
+		Mat4f viewMatrix;
+		Mat4f projectionMatrix;
 	};
 }
