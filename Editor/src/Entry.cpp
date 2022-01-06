@@ -5,6 +5,16 @@
 namespace sol
 {
 	static EditorState* es = nullptr;
+
+	bool8 OnWindowResizeCallback(uint16 eventCode, void* sender, void* listener, EventContext context)
+	{
+		uint32 w = Platform::GetWindowWidth();
+		uint32 h = Platform::GetWindowHeight();
+		es->camera.aspect = (real32)w / (real32)h;
+
+		return 0;
+	}
+
 	static bool8 GameInitialze(Game* game)
 	{
 		if (InitialzieImGui())
@@ -19,6 +29,8 @@ namespace sol
 			es->camera.near_ = 0.3f;
 			es->camera.yfov = 45.0f;
 			es->camera.aspect = (real32)w / (real32)h;
+
+			EventSystem::Register((uint32)EventCodeEngine::WINDOW_RESIZED, nullptr, OnWindowResizeCallback);
 
 			return true;
 		}
@@ -91,6 +103,7 @@ namespace sol
 
 		RenderEntry entry = {};
 		entry.worldTransform = Transform();
+		entry.material.modelId = Resources::GetModelResource("cube")->id;
 		renderPacket->renderEntries.Add(entry);
 
 		renderPacket->viewMatrix = es->camera.GetViewMatrix();

@@ -3,6 +3,17 @@
 
 namespace sol
 {
+	void TextureInstance::Release(TextureInstance* texture)
+	{
+		DXRELEASE(texture->shaderView);
+		DXRELEASE(texture->uavView);
+		DXRELEASE(texture->depthView);
+		DXRELEASE(texture->renderView);
+		DXRELEASE(texture->texture);
+
+		GameMemory::ZeroStruct(texture);
+	}
+
 	TextureInstance TextureInstance::Create(int32 width, int32 height, TextureFormat format, void* pixels, bool8 mips, BindUsage* usage, ResourceCPUFlags cpuFlags)
 	{
 		TextureInstance result = {};
@@ -121,6 +132,12 @@ namespace sol
 		);
 
 		return texture;
+	}
+
+	void SamplerState::Release(SamplerState* sampler)
+	{
+		DXRELEASE(sampler->sampler);
+		GameMemory::ZeroStruct(sampler);
 	}
 
 	SamplerState SamplerState::Create(TextureFilterMode filter, TextureWrapMode wrap)

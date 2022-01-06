@@ -43,11 +43,19 @@ namespace sol
 		return false;
 	}
 
+	static bool8 ImguiShutdownMessageCallback(uint16 eventCode, void* sender, void* listener, EventContext data)
+	{
+		ImGui_ImplDX11_Shutdown();
+		ImGui_ImplWin32_Shutdown();
+		ImGui::DestroyContext();
+
+		return 0;
+	}
+
 	bool8 InitialzieImGui()
 	{
 		if (ImGui::CreateContext())
 		{
-			//ImNodes::CreateContext();
 			ImGui::StyleColorsDark();
 
 			if (ImGui_ImplWin32_Init(Platform::GetNativeState()))
@@ -65,7 +73,15 @@ namespace sol
 					{
 						if (EventSystem::Register((uint16)EventCodeEngine::ON_RENDER_END, nullptr, ImguiDrawMessageCallback))
 						{
-							return true;
+							if (EventSystem::Register((uint16)EventCodeEngine::ON_RENDERER_SHUTDOWN, nullptr, ImguiShutdownMessageCallback))
+							{
+
+								return true;
+							}
+							else
+							{
+
+							}
 						}
 						else
 						{
@@ -86,6 +102,10 @@ namespace sol
 			{
 				SOLFATAL("Could not start win32 imgui -> make sure the window handle is the first thing in the struct");
 			}
+		}
+		else
+		{
+
 		}
 
 		return false;

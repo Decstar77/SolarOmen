@@ -352,7 +352,7 @@ namespace sol
 		RenderCommand::SetRenderTargets(renderState.swapChain.renderView, renderState.swapChain.depthView);
 		RenderCommand::SetTopology(Topology::Value::TRIANGLE_LIST);
 		RenderCommand::SetViewportState(windowWidth, windowHeight);
-		RenderCommand::SetDepthState(renderState.depthOffState);
+		RenderCommand::SetDepthState(renderState.depthLessEqualState);
 		RenderCommand::SetRasterState(renderState.rasterNoFaceCullState);
 
 		Mat4f view = renderPacket->viewMatrix;
@@ -375,7 +375,12 @@ namespace sol
 
 			RenderCommand::SetProgram(renderState.phongProgram);
 			RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
-			RenderCommand::DrawStaticMesh(renderState.quad);
+			if (entry->material.modelId.IsValid())
+			{
+				StaticMesh* mesh = renderState.staticMeshes.Get(entry->material.modelId);
+				RenderCommand::DrawStaticMesh(*mesh);
+			}
+
 		}
 		//renderState.modelConstBuffer.data.mvp = Mat4f(1) * view * proj;
 		//renderState.modelConstBuffer.data.invM = Mat4f(1);
@@ -394,16 +399,28 @@ namespace sol
 
 	void Renderer::Shutdown()
 	{
+		EventSystem::Fire((uint16)EventCodeEngine::ON_RENDERER_SHUTDOWN, nullptr, {});
+
 		RenderCommand::SetStaticMesh({});
+		for (int32 i = 0; i < 10; i++) { RenderCommand::SetTexture({}, i); }
 
 		StaticMesh::Release(&renderState.quad);
 		StaticMesh::Release(&renderState.cube);
+
+		ManagedArray<StaticMesh> meshes = renderState.staticMeshes.GetValueSet();
+		for (uint32 i = 0; i < meshes.count; i++) { StaticMesh::Release(&meshes[i]); }
+		meshes.Clear();
+
+		ManagedArray<TextureInstance> textures = renderState.textures.GetValueSet();
+		for (uint32 i = 0; i < textures.count; i++) { TextureInstance::Release(&textures[i]); }
+		textures.Clear();
 
 		ShaderConstBuffer<ShaderConstBufferModel>::Release(&renderState.modelConstBuffer);
 		ShaderConstBuffer<ShaderConstBufferView>::Release(&renderState.viewConstBuffer);
 		ShaderConstBuffer<ShaderConstBufferLightingInfo>::Release(&renderState.lightingConstBuffer);
 		ShaderConstBuffer<ShaderConstBufferUIData>::Release(&renderState.uiConstBuffer);
 
+		for (uint32 i = 0; i < ArrayCount(renderState.allSampleStates); i++) { SamplerState::Release(&renderState.allSampleStates[i]); }
 		for (uint32 i = 0; i < ArrayCount(renderState.allRastersStates); i++) { DXRELEASE(renderState.allRastersStates[i]); }
 		for (uint32 i = 0; i < ArrayCount(renderState.allDepthStates); i++) { DXRELEASE(renderState.allDepthStates[i]); }
 		for (uint32 i = 0; i < ArrayCount(renderState.programs); i++) { ProgramInstance::Release(&renderState.programs[i]); }

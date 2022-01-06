@@ -43,12 +43,14 @@ namespace sol
 	{
 	public:
 		static ManagedArray<ModelResource> GetAllModelResources();
-		static ModelResource* GetModelResource(const ResourceId& name);
+		static ModelResource* GetModelResource(const ResourceId& id);
 		static ModelResource* GetModelResource(const String& name);
 
 		static ManagedArray<TextureResource> GetAllTextureResources();
+		static TextureResource* GetTextureResource(const ResourceId& id);
+		static TextureResource* GetTextureResource(const String& name);
 
-		static ProgramResource* GetProgramResource(const ResourceId& name);
+		static ProgramResource* GetProgramResource(const ResourceId& id);
 		static ProgramResource* GetProgramResource(const String& name);
 	};
 }

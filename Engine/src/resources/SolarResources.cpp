@@ -31,9 +31,29 @@ namespace sol
 		return models.GetValueSet();
 	}
 
+	ModelResource* Resources::GetModelResource(const ResourceId& id)
+	{
+		return models.Get(id);
+	}
+
+	ModelResource* Resources::GetModelResource(const String& name)
+	{
+		return GetResourcesFromName<ModelResource>(models.GetValueSet(), name);
+	}
+
 	ManagedArray<TextureResource> Resources::GetAllTextureResources()
 	{
 		return textures.GetValueSet();
+	}
+
+	TextureResource* Resources::GetTextureResource(const String& name)
+	{
+		return GetResourcesFromName<TextureResource>(textures.GetValueSet(), name);
+	}
+
+	TextureResource* Resources::GetTextureResource(const ResourceId& id)
+	{
+		return textures.Get(id);
 	}
 
 	static String PACKED_ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Packed/";

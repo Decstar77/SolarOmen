@@ -140,6 +140,7 @@ namespace sol
 		ID3D11DepthStencilView* depthView;
 		ID3D11RenderTargetView* renderView;
 
+		static void Release(TextureInstance* texture);
 		static TextureInstance Create(int32 width, int32 height, TextureFormat format, void* pixels, bool8 mips, BindUsage* usage, ResourceCPUFlags cpuFlags);
 		static TextureInstance Create(TextureResource* textureResource);
 
@@ -167,6 +168,7 @@ namespace sol
 
 		ID3D11SamplerState* sampler;
 
+		static void Release(SamplerState* sampler);
 		static SamplerState Create(TextureFilterMode filter, TextureWrapMode wrap);
 		static SamplerState CreateShadowPFC();
 	};
@@ -304,7 +306,7 @@ namespace sol
 
 		union
 		{
-			SamplerState samplers[8];
+			SamplerState allSampleStates[8];
 			struct
 			{
 				SamplerState pointRepeat;
@@ -328,7 +330,6 @@ namespace sol
 		StaticMesh quad;
 		StaticMesh cube;
 		HashMap<StaticMesh> staticMeshes;
-
 		HashMap<TextureInstance> textures;
 
 		ShaderConstBuffer<ShaderConstBufferModel> modelConstBuffer;

@@ -327,10 +327,11 @@ namespace sol
 			EventWindowResize eventResize = {};
 			eventResize.width = r.right - r.left;
 			eventResize.height = r.bottom - r.top;
-			EventSystem::Fire<EventWindowResize>((uint16)EventCodeEngine::WINDOW_RESIZED, 0, eventResize);
-
 			winState.width = eventResize.width;
 			winState.height = eventResize.height;
+
+			EventSystem::Fire<EventWindowResize>((uint16)EventCodeEngine::WINDOW_RESIZED, 0, eventResize);
+
 		} break;
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
