@@ -69,7 +69,7 @@ namespace sol
 	static void CreateSwapChainBuffers()
 	{
 		DeviceContext dc = renderState.deviceContext;
-		Win32State* win32State = (Win32State*)Platform::GetNativeState();
+		HWND window = (HWND)Platform::GetNativeState();
 
 		// @NOTE: Get back buffer
 		ID3D11Resource* backBuffer = nullptr;
@@ -78,7 +78,7 @@ namespace sol
 		backBuffer->Release();
 
 		RECT windowRect = {};
-		GetClientRect(win32State->window, &windowRect);
+		GetClientRect(window, &windowRect);
 
 		D3D11_TEXTURE2D_DESC depthDesc = {};
 		depthDesc.Width = (uint32)(windowRect.right - windowRect.left);
@@ -232,7 +232,7 @@ namespace sol
 #if SOL_DEBUG_RENDERING
 		InitializeDirectXDebugLogging();
 #endif
-		Win32State* win32State = (Win32State*)Platform::GetNativeState();
+		HWND window = (HWND)Platform::GetNativeState();
 
 		D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 
@@ -250,7 +250,7 @@ namespace sol
 
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.BufferCount = 2; // @NOTE This implies just the back buffer, ie we have two buffers
-		swapChainDesc.OutputWindow = win32State->window;
+		swapChainDesc.OutputWindow = window;
 		swapChainDesc.Windowed = TRUE;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 		swapChainDesc.Flags = 0;
@@ -350,6 +350,8 @@ namespace sol
 
 		//RenderCommand::SetProgram(renderState.postProcessingProgram);
 		//RenderCommand::DrawStaticMesh(renderState.quad);
+
+		EventSystem::Fire((uint16)EventCodeEngine::ON_RENDER_END, nullptr, {});
 
 		DeviceContext dc = renderState.deviceContext;
 		DXCHECK(renderState.swapChain.swapChain->Present(1, 0));

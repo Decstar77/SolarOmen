@@ -73,8 +73,8 @@ namespace sol
 
 			if (game->Update(game, 0))
 			{
-				Renderer::Render(nullptr);
 				game->Render(game, 0);
+				Renderer::Render(nullptr);
 			}
 			else
 			{

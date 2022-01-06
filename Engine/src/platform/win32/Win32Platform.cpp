@@ -152,7 +152,7 @@ namespace sol
 
 	void* Platform::GetNativeState()
 	{
-		return &winState;
+		return winState.window;
 	}
 
 	LRESULT CALLBACK WindProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
@@ -266,7 +266,7 @@ namespace sol
 		{
 			winState.running = false;
 			PostQuitMessage(0);
-	} break;
+		} break;
 		case WM_CLOSE:
 		{
 			winState.running = false;
@@ -294,7 +294,7 @@ namespace sol
 			ProcessKeyboardInput(vkCode, isDown);
 		}break;
 		default: { result = DefWindowProcA(hwnd, msg, wparam, lparam);	}
-}
+		}
 
 		return result;
 	}
