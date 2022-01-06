@@ -20,9 +20,9 @@ namespace sol
 		static void SetStaticMesh(const StaticMesh& mesh);
 		static void DrawStaticMesh(const StaticMesh& mesh);
 
-		//void BindSampler(const SamplerInstance& sampler, int32 slot);
-		//void BindTexture(const TextureInstance& texture, int32 slot);
-		//void BindCubeMap(const CubeMapInstance& cubeMap, int32 slot);
+		static void SetSampler(const SamplerState& sampler, int32 slot);
+		static void SetTexture(const TextureInstance& texture, int32 slot);
+		static void SetCubeMap(const CubeMapInstance& cubeMap, int32 slot);
 
 		template<typename T>
 		inline static void SetShaderConstBuffer(ShaderConstBuffer<T>* buffer, ShaderStage stage, int32 slot)

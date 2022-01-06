@@ -66,14 +66,17 @@ namespace sol
 	bool8 Application::Run(Game* game)
 	{
 		real32 dt = 0.016f;
+
+		RenderPacket* packet = GameMemory::PushPermanentStruct<RenderPacket>();
 		while (Platform::PumpMessages())
 		{
 			Clock clock = { };
 			clock.Start();
 
-			if (game->Update(game, dt))
+			GameMemory::ZeroStruct(packet);
+			if (game->Update(game, packet, dt))
 			{
-				Renderer::Render(nullptr);
+				Renderer::Render(packet);
 			}
 			else
 			{
@@ -83,7 +86,7 @@ namespace sol
 			GameMemory::ReleaseAllTransientMemory();
 			clock.Update();
 			dt = (real32)clock.elapsed;
-			//SOLTRACE(String("Dt: ").Add((real32)clock.elapsed).GetCStr())
+			//SOLTRACE(String("Dt: ").Add((real32)clock.elapsed).GetCStr());
 		}
 
 		return 1;

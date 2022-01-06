@@ -62,11 +62,12 @@ float4 main(VSInput vsInput) : SV_TARGET
 {
 	float4 fragColour = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
-	float3 colour = float3(0.3, 0.3, 0.8);
-	//float3 colour = pow(texture0.Sample(linearSampler, vsInput.uvs).rgb, float3(2.2, 2.2, 2.2));
-
+	//float3 colour = float3(0.3, 0.3, 0.8);
+	float3 colour = pow(texture0.Sample(linearSampler, vsInput.uvs).rgb, float3(2.2, 2.2, 2.2));
+	fragColour = float4(colour, 1.0f);
 	//if (lightCounts.z > 0)
 	//for (int pointLightIndex = 0; pointLightIndex < lightCounts.pointLightCount; pointLightIndex++)
+	if (0)
 	{
 		//float3 lightPos = pointLights[pointLightIndex].position;
 		//float3 lightColour = pointLights[pointLightIndex].colour;

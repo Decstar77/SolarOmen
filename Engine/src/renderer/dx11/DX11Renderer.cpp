@@ -187,6 +187,19 @@ namespace sol
 		}
 	}
 
+	static void CreateAllSamplerState()
+	{
+		renderState.pointRepeat = SamplerState::Create(TextureFilterMode::Value::POINT, TextureWrapMode::Value::REPEAT);
+		renderState.bilinearRepeat = SamplerState::Create(TextureFilterMode::Value::BILINEAR, TextureWrapMode::Value::CLAMP_EDGE);
+		renderState.trilinearRepeat = SamplerState::Create(TextureFilterMode::Value::TRILINEAR, TextureWrapMode::Value::REPEAT);
+		renderState.shadowPFC = SamplerState::CreateShadowPFC();
+
+		RenderCommand::SetSampler(renderState.pointRepeat, 0);
+		RenderCommand::SetSampler(renderState.bilinearRepeat, 1);
+		RenderCommand::SetSampler(renderState.trilinearRepeat, 2);
+		RenderCommand::SetSampler(renderState.shadowPFC, 3);
+	}
+
 	static void CreateAllBlendState()
 	{
 		DeviceContext dc = renderState.deviceContext;
@@ -252,7 +265,7 @@ namespace sol
 		swapChainDesc.BufferCount = 2; // @NOTE This implies just the back buffer, ie we have two buffers
 		swapChainDesc.OutputWindow = window;
 		swapChainDesc.Windowed = TRUE;
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.Flags = 0;
 
 		uint32 debug = 0;
@@ -279,6 +292,8 @@ namespace sol
 			CreateAllRasterState();
 			CreateAllDepthStencilState();
 			CreateAllBlendState();
+			CreateAllSamplerState();
+
 			EventSystem::Register((uint16)EventCodeEngine::WINDOW_RESIZED, 0, OnWindowResizeCallback);
 
 			renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("post_processing"));
@@ -305,7 +320,15 @@ namespace sol
 			ManagedArray<ModelResource> models = Resources::GetAllModelResources();
 			for (uint32 i = 0; i < models.count; i++)
 			{
+				StaticMesh mesh = StaticMesh::Create(&models[i]);
+				renderState.staticMeshes.Put(models[i].id, mesh);
+			}
 
+			ManagedArray<TextureResource> textures = Resources::GetAllTextureResources();
+			for (uint32 i = 0; i < textures.count; i++)
+			{
+				TextureInstance texture = TextureInstance::Create(&textures[i]);
+				renderState.textures.Put(textures[i].id, texture);
 			}
 
 			return true;
@@ -332,8 +355,8 @@ namespace sol
 		RenderCommand::SetDepthState(renderState.depthOffState);
 		RenderCommand::SetRasterState(renderState.rasterNoFaceCullState);
 
-		Mat4f view = Inverse(Transform(Vec3f(0, 0, -3)).CalculateTransformMatrix());
-		Mat4f proj = PerspectiveLH(DegToRad(45.0f), windowWidth / windowHeight, 0.03f, 100.0f);
+		Mat4f view = renderPacket->viewMatrix;
+		Mat4f proj = renderPacket->projectionMatrix;
 
 		renderState.viewConstBuffer.data.view = view;
 		renderState.viewConstBuffer.data.persp = proj;
@@ -346,6 +369,7 @@ namespace sol
 		RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
 
 		RenderCommand::SetProgram(renderState.phongProgram);
+		RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
 		RenderCommand::DrawStaticMesh(renderState.quad);
 
 		//RenderCommand::SetProgram(renderState.postProcessingProgram);
@@ -354,7 +378,7 @@ namespace sol
 		EventSystem::Fire((uint16)EventCodeEngine::ON_RENDER_END, nullptr, {});
 
 		DeviceContext dc = renderState.deviceContext;
-		DXCHECK(renderState.swapChain.swapChain->Present(1, 0));
+		DXCHECK(renderState.swapChain.swapChain->Present(0, 0));
 	}
 
 	void Renderer::Shutdown()

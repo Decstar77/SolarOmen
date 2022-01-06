@@ -48,7 +48,7 @@ namespace sol
 		static void SetWindowPosition(int32 x, int32 y);
 
 		static void DisplayError(String message);
-		static void ConsoleWrite(String message, uint8 colour);
+		static void ConsoleWrite(const char* mssage, uint8 colour);
 
 		static real64 GetAbsoluteTime();
 		static void Sleep(real64 ms);

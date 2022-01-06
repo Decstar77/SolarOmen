@@ -6,22 +6,6 @@
 
 namespace sol
 {
-	struct SOL_API ResourceId
-	{
-		union
-		{
-			uint64 number;
-			char chars[8];
-			STATIC_ASSERT(sizeof(uint64) == sizeof(char[8]));
-		};
-
-		inline String ToString() const { return String(chars); }
-		inline bool operator==(const ResourceId& rhs) const { return this->number == rhs.number; }
-		inline bool operator!=(const ResourceId& rhs) const { return this->number != rhs.number; }
-		inline bool IsValid() const { return number != 0; }
-		inline operator uint64() const { return number; }
-	};
-
 	struct SOL_API ModelResource
 	{
 		String name;
@@ -29,6 +13,19 @@ namespace sol
 		VertexLayoutType layout;
 		ManagedArray<real32> packedVertices;
 		ManagedArray<uint32> indices;
+	};
+
+	struct SOL_API TextureResource
+	{
+		String name;
+		ResourceId id;
+		int32 width;
+		int32 height;
+		TextureFormat format;
+		ManagedArray<char> pixels;
+		bool32 mips;
+		BindUsage usage[4];
+		ResourceCPUFlags cpuFlags;
 	};
 
 	struct SOL_API ProgramResource
@@ -45,11 +42,13 @@ namespace sol
 	class SOL_API Resources
 	{
 	public:
-		static ProgramResource* GetProgramResource(const ResourceId& name);
-		static ProgramResource* GetProgramResource(const String& name);
-
 		static ManagedArray<ModelResource> GetAllModelResources();
 		static ModelResource* GetModelResource(const ResourceId& name);
 		static ModelResource* GetModelResource(const String& name);
+
+		static ManagedArray<TextureResource> GetAllTextureResources();
+
+		static ProgramResource* GetProgramResource(const ResourceId& name);
+		static ProgramResource* GetProgramResource(const String& name);
 	};
 }

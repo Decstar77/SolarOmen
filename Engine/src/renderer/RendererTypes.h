@@ -580,9 +580,42 @@ namespace sol
 	//	real32 boneWeights[MAX_BONE_INFLUENCE] = {};
 	//};
 
+	struct SOL_API ResourceId
+	{
+		union
+		{
+			uint64 number;
+			char chars[8];
+			STATIC_ASSERT(sizeof(uint64) == sizeof(char[8]));
+		};
+
+		inline String ToString() const { return String(chars); }
+		inline bool operator==(const ResourceId& rhs) const { return this->number == rhs.number; }
+		inline bool operator!=(const ResourceId& rhs) const { return this->number != rhs.number; }
+		inline bool IsValid() const { return number != 0; }
+		inline operator uint64() const { return number; }
+	};
+
+	struct SOL_API Material
+	{
+		ResourceId modelId;
+		ResourceId albedoId;
+		ResourceId shaderId;
+	};
+
+	struct SOL_API RenderEntry
+	{
+		Transform worldTransform;
+		Material material;
+	};
+
 	struct SOL_API RenderPacket
 	{
 		Mat4f viewMatrix;
 		Mat4f projectionMatrix;
+
+		ResourceId skyboxId;
+
+		FixedArray<RenderEntry, 2048> renderEntries;
 	};
 }

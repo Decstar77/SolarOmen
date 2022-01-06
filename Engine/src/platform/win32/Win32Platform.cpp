@@ -108,16 +108,16 @@ namespace sol
 		return winState.height;
 	}
 
-	void Platform::ConsoleWrite(String message, uint8 colour)
+	void Platform::ConsoleWrite(const char* message, uint8 colour)
 	{
 		HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 		// @NOTE: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 		static uint8 levels[6] = { 64, 4, 6, 2, 1, 8 };
 		SetConsoleTextAttribute(console_handle, levels[colour]);
-		OutputDebugStringA(message.GetCStr());
-		uint64 length = message.GetLength();
+		OutputDebugStringA(message);
+		uint64 length = strlen(message);
 		LPDWORD number_written = 0;
-		WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), message.GetCStr(), (DWORD)length, number_written, 0);
+		WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), message, (DWORD)length, number_written, 0);
 	}
 
 	real64 Platform::GetAbsoluteTime()
@@ -130,6 +130,52 @@ namespace sol
 		QueryPerformanceCounter(&nowTime);
 
 		return (real64)nowTime.QuadPart * winState.clockFrequency;
+	}
+
+	static void ProcessMouseInput()
+	{
+		Input* input = Input::Get();
+
+		POINT mousep = {};
+		GetCursorPos(&mousep);
+		ScreenToClient((HWND)winState.window, &mousep);
+		real32 mx = (real32)mousep.x;
+		real32 my = (real32)mousep.y;
+
+		mx = Clamp<real32>(mx, 0.0f, (real32)winState.width);
+		my = Clamp<real32>(my, 0.0f, (real32)winState.height);
+
+		input->mousePositionPixelCoords.x = mx;
+		input->mousePositionPixelCoords.y = my;
+
+		if (input->mouse_locked && winState.active)
+		{
+			SetCursor(FALSE);
+
+			input->oldInput->mousePositionPixelCoords = Vec2f((real32)(winState.width / 2),
+				(real32)(winState.height / 2));
+
+			POINT p = {};
+			p.x = winState.width / 2;
+			p.y = winState.height / 2;
+
+			ClientToScreen((HWND)winState.window, &p);
+
+			SetCursorPos(p.x, p.y);
+		}
+
+		input->mouseNorm.x = mx / (real32)winState.width;
+		input->mouseNorm.y = my / (real32)winState.height;
+
+		input->shift = (GetKeyState(VK_SHIFT) & (1 << 15));
+		input->alt = (GetKeyState(VK_MENU) & (1 << 15));
+		input->ctrl = (GetKeyState(VK_CONTROL) & (1 << 15));
+
+		input->mb1 = GetKeyState(VK_LBUTTON) & (1 << 15);
+		input->mb2 = GetKeyState(VK_RBUTTON) & (1 << 15);
+		input->mb3 = GetKeyState(VK_MBUTTON) & (1 << 15);
+
+		input->mouseDelta = input->mousePositionPixelCoords - input->oldInput->mousePositionPixelCoords;
 	}
 
 	bool8 Platform::PumpMessages()
@@ -145,6 +191,8 @@ namespace sol
 				TranslateMessage(&message);
 				DispatchMessageA(&message);
 			}
+
+			ProcessMouseInput();
 		}
 
 		return winState.running;

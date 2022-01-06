@@ -6,6 +6,7 @@ namespace sol
 {
 	static HashMap<ProgramResource> programs = {};
 	static HashMap<ModelResource> models = {};
+	static HashMap<TextureResource> textures = {};
 
 	template<typename T>
 	inline T* GetResourcesFromName(ManagedArray<T> assetArray, const String& name)
@@ -27,14 +28,20 @@ namespace sol
 
 	ManagedArray<ModelResource> Resources::GetAllModelResources()
 	{
-		return  models.GetValueSet();
+		return models.GetValueSet();
+	}
+
+	ManagedArray<TextureResource> Resources::GetAllTextureResources()
+	{
+		return textures.GetValueSet();
 	}
 
 	static String PACKED_ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Packed/";
 	bool8 ResourceSystem::Initialize()
 	{
-		LoadAllShaderPrograms();
 		LoadAllModels();
+		LoadAllTextures();
+		LoadAllShaderPrograms();
 		return true;
 	}
 
@@ -74,6 +81,71 @@ namespace sol
 		}
 	};
 
+	void ResourceSystem::LoadAllModels()
+	{
+		BinaryAssetFile file = {};
+		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("models.bin"), false);
+
+		uint32 modelCount = file.Read<uint32>();
+		for (uint32 modelIndex = 0; modelIndex < modelCount; modelIndex++)
+		{
+			ModelResource model = {};
+			model.id = file.Read<ResourceId>();
+			model.name = file.Read<String>();
+			model.layout = file.Read<VertexLayoutType::Value>();
+
+			model.packedVertices.Allocate(file.Read<uint32>() * model.layout.GetStride(), MemoryType::PERMANENT);
+			for (uint32 i = 0; i < model.packedVertices.GetCapcity(); i++)
+			{
+				model.packedVertices.Add(file.Read<real32>());
+			}
+
+			model.indices.Allocate(file.Read<uint32>(), MemoryType::PERMANENT);
+			for (uint32 i = 0; i < model.indices.GetCapcity(); i++)
+			{
+				model.indices.Add(file.Read<uint32>());
+			}
+
+			SOLTRACE(String("Loaded model resource: ").Add(model.name).GetCStr());
+			models.Put(model.id.number, model);
+		}
+
+		SOLINFO("Model loading complete");
+	}
+
+	void ResourceSystem::LoadAllTextures()
+	{
+		BinaryAssetFile file = {};
+		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("textures.bin"), false);
+
+		uint32 textureCount = file.Read<uint32>();
+		for (uint32 textureIndex = 0; textureIndex < textureCount; textureIndex++)
+		{
+			TextureResource texture = {};
+			texture.id = file.Read<ResourceId>();
+			texture.name = file.Read<String>();
+			texture.mips = (bool32)file.Read<uint8>();
+			texture.width = file.Read<uint32>();
+			texture.height = file.Read<uint32>();
+			texture.format = file.Read<TextureFormat::Value>();
+			texture.usage[0] = file.Read<BindUsage::Value>();
+			texture.usage[1] = file.Read<BindUsage::Value>();
+			texture.usage[2] = file.Read<BindUsage::Value>();
+			texture.usage[3] = file.Read<BindUsage::Value>();
+			texture.cpuFlags = file.Read<ResourceCPUFlags::Value>();
+
+			uint32 pixelCount = file.Read<uint32>();
+			texture.pixels.Allocate(pixelCount, MemoryType::PERMANENT);
+			for (uint32 i = 0; i < pixelCount; i++) { texture.pixels.Add(file.Read<uint8>()); }
+
+			SOLTRACE(String("Loaded texture resource: ").Add(texture.name).GetCStr());
+
+			textures.Put(texture.id.number, texture);
+		}
+
+		SOLINFO("Texture loading complete");
+	}
+
 	void ResourceSystem::LoadAllShaderPrograms()
 	{
 		BinaryAssetFile file = {};
@@ -111,37 +183,5 @@ namespace sol
 		}
 
 		SOLINFO("Shader loading complete");
-	}
-
-	void ResourceSystem::LoadAllModels()
-	{
-		BinaryAssetFile file = {};
-		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("models.bin"), false);
-
-		uint32 modelCount = file.Read<uint32>();
-		for (uint32 modelIndex = 0; modelIndex < modelCount; modelIndex++)
-		{
-			ModelResource model = {};
-			model.id = file.Read<ResourceId>();
-			model.name = file.Read<String>();
-			model.layout = file.Read<VertexLayoutType::Value>();
-
-			model.packedVertices.Allocate(file.Read<uint32>() * model.layout.GetStride(), MemoryType::PERMANENT);
-			for (uint32 i = 0; i < model.packedVertices.GetCapcity(); i++)
-			{
-				model.packedVertices.Add(file.Read<real32>());
-			}
-
-			model.indices.Allocate(file.Read<uint32>(), MemoryType::PERMANENT);
-			for (uint32 i = 0; i < model.indices.GetCapcity(); i++)
-			{
-				model.indices.Add(file.Read<uint32>());
-			}
-
-			SOLTRACE(String("Loaded model resource: ").Add(model.name).GetCStr());
-			models.Put(model.id.number, model);
-		}
-
-		SOLINFO("Model loading complete");
 	}
 }

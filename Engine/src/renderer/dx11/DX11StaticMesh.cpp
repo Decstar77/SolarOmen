@@ -155,6 +155,16 @@ namespace sol
 		return result;
 	}
 
+	StaticMesh StaticMesh::Create(ModelResource* modelResouce)
+	{
+		StaticMesh mesh = StaticMesh::Create(
+			modelResouce->packedVertices.data, modelResouce->packedVertices.count,
+			modelResouce->indices.data, modelResouce->indices.count,
+			modelResouce->layout);
+
+		return mesh;
+	}
+
 	StaticMesh StaticMesh::CreateScreenSpaceQuad()
 	{
 		real32 vertexData[] = {

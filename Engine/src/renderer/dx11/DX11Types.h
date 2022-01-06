@@ -120,8 +120,55 @@ namespace sol
 		static void Release(StaticMesh* mesh);
 		static StaticMesh Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout);
 		static StaticMesh Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
+		static StaticMesh Create(ModelResource* modelResouce);
 		static StaticMesh CreateScreenSpaceQuad();
 		static StaticMesh CreateUnitCube();
+	};
+
+	struct TextureInstance
+	{
+		int32 width;
+		int32 height;
+		TextureFormat format;
+		BindUsage usage[4];
+		ResourceCPUFlags cpuFlags;
+
+		ID3D11Texture2D* texture;
+
+		ID3D11ShaderResourceView* shaderView;
+		ID3D11UnorderedAccessView* uavView;
+		ID3D11DepthStencilView* depthView;
+		ID3D11RenderTargetView* renderView;
+
+		static TextureInstance Create(int32 width, int32 height, TextureFormat format, void* pixels, bool8 mips, BindUsage* usage, ResourceCPUFlags cpuFlags);
+		static TextureInstance Create(TextureResource* textureResource);
+
+		//static TextureInstance Create(const FontCharacter& fontChar);
+		//static TextureInstance Create(const TextureAsset& textureAsset);
+	};
+
+	struct CubeMapInstance
+	{
+		ID3D11Texture2D* texture = nullptr;
+		ID3D11ShaderResourceView* shaderView = nullptr;
+
+		FixedArray<ID3D11RenderTargetView*, 6> renderFaces;
+
+		static CubeMapInstance Create(uint32 resolution);
+
+		//void Bind(RenderState* rs, ShaderStage shaderStage, int32 register_);
+		//void Unbind(RenderState* rs);
+	};
+
+	struct SamplerState
+	{
+		TextureFilterMode filter;
+		TextureWrapMode wrap;
+
+		ID3D11SamplerState* sampler;
+
+		static SamplerState Create(TextureFilterMode filter, TextureWrapMode wrap);
+		static SamplerState CreateShadowPFC();
 	};
 
 	struct ProgramInstance
@@ -257,6 +304,18 @@ namespace sol
 
 		union
 		{
+			SamplerState samplers[8];
+			struct
+			{
+				SamplerState pointRepeat;
+				SamplerState bilinearRepeat;
+				SamplerState trilinearRepeat;
+				SamplerState shadowPFC;
+			};
+		};
+
+		union
+		{
 			ProgramInstance programs[64];
 			struct
 			{
@@ -265,10 +324,12 @@ namespace sol
 			};
 		};
 
+
 		StaticMesh quad;
 		StaticMesh cube;
-		ManagedArray<StaticMesh> staticMeshes;
+		HashMap<StaticMesh> staticMeshes;
 
+		HashMap<TextureInstance> textures;
 
 		ShaderConstBuffer<ShaderConstBufferModel> modelConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferView> viewConstBuffer;
@@ -277,5 +338,127 @@ namespace sol
 
 		ID3D11BlendState* blendNormal;
 	};
+
+
+	inline DXGI_FORMAT GetTextureFormatToD3D(const TextureFormat& format)
+	{
+		switch (format.Get())
+		{
+		case TextureFormat::Value::R8G8B8A8_UNORM: return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case TextureFormat::Value::R16G16_UNORM: return DXGI_FORMAT_R16G16_UNORM;
+		case TextureFormat::Value::R8_BYTE: return DXGI_FORMAT_R8_UINT;
+		case TextureFormat::Value::R32_FLOAT: return DXGI_FORMAT_R32_FLOAT;
+		case TextureFormat::Value::D32_FLOAT: return DXGI_FORMAT_D32_FLOAT;
+		case TextureFormat::Value::R32_TYPELESS: return DXGI_FORMAT_R32_TYPELESS;
+		case TextureFormat::Value::R16_UNORM: return DXGI_FORMAT_R16_UNORM;
+		case TextureFormat::Value::D16_UNORM: return DXGI_FORMAT_D16_UNORM;
+		case TextureFormat::Value::R16_TYPELESS: return DXGI_FORMAT_R16_TYPELESS;
+		case TextureFormat::Value::R32G32_FLOAT: return DXGI_FORMAT_R32G32_FLOAT;
+		case TextureFormat::Value::R32G32B32_FLOAT: return DXGI_FORMAT_R32G32B32_FLOAT;
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		default: Assert(0, "TextureFormatToD3D ??");
+		}
+
+		return DXGI_FORMAT_UNKNOWN;
+	}
+
+	inline uint32 GetTextureFormatElementSizeBytes(const TextureFormat& format)
+	{
+		switch (format.Get())
+		{
+		case TextureFormat::Value::R8G8B8A8_UNORM: return sizeof(uint8);
+		case TextureFormat::Value::R16G16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::R8_BYTE: return sizeof(uint8);
+		case TextureFormat::Value::R32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::D32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32_TYPELESS: return sizeof(real32);
+		case TextureFormat::Value::R16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::D16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::R16_TYPELESS: return sizeof(uint16);
+		case TextureFormat::Value::R32G32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32G32B32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return sizeof(uint16);
+		default: Assert(0, "TextureFormatToD3D ??");
+		}
+
+		return 0;
+	}
+
+	inline uint32 GetTextureFormatElementCount(const TextureFormat& format)
+	{
+		switch (format.Get())
+		{
+		case TextureFormat::Value::R8G8B8A8_UNORM: return 4;
+		case TextureFormat::Value::R16G16_UNORM: return 2;
+		case TextureFormat::Value::R8_BYTE: return 1;
+		case TextureFormat::Value::R32_FLOAT: return 1;
+		case TextureFormat::Value::D32_FLOAT: return 1;
+		case TextureFormat::Value::R32_TYPELESS: return 1;
+		case TextureFormat::Value::R16_UNORM: return 1;
+		case TextureFormat::Value::D16_UNORM: return 1;
+		case TextureFormat::Value::R16_TYPELESS: return 1;
+		case TextureFormat::Value::R32G32_FLOAT: return 2;
+		case TextureFormat::Value::R32G32B32_FLOAT: return 3;
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return 4;
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return 4;
+		default: Assert(0, "TextureFormatToD3D ??");
+		}
+
+		return 0;
+	}
+
+	inline D3D11_TEXTURE_ADDRESS_MODE GetTextureWrapModeToD3D(const TextureWrapMode& wrap)
+	{
+		switch (wrap.Get())
+		{
+		case TextureWrapMode::Value::REPEAT: return D3D11_TEXTURE_ADDRESS_WRAP;
+		case TextureWrapMode::Value::CLAMP_EDGE:return D3D11_TEXTURE_ADDRESS_CLAMP;
+		default: Assert(0, "TextureWrapModeToD3D ??");
+		}
+
+		return D3D11_TEXTURE_ADDRESS_WRAP;
+	}
+
+	inline D3D11_FILTER GetTextureFilterModeToD3D(const TextureFilterMode& mode)
+	{
+		switch (mode.Get())
+		{
+		case TextureFilterMode::Value::POINT:		return D3D11_FILTER_MIN_MAG_MIP_POINT;
+		case TextureFilterMode::Value::BILINEAR:	return D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+		case TextureFilterMode::Value::TRILINEAR:	return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		default: Assert(0, "TextureFilterModeToD3D ??");
+		}
+
+		return D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
+
+	inline int32 GetTextureUsageToD3DBindFlags(const BindUsage& usage)
+	{
+		switch (usage.Get())
+		{
+		case BindUsage::Value::NONE:  return 0;
+		case BindUsage::Value::SHADER_RESOURCE: return D3D11_BIND_SHADER_RESOURCE;
+		case BindUsage::Value::RENDER_TARGET: return D3D11_BIND_RENDER_TARGET;
+		case BindUsage::Value::DEPTH_SCENCIL_BUFFER: return D3D11_BIND_DEPTH_STENCIL;
+		case BindUsage::Value::COMPUTER_SHADER_RESOURCE: return D3D11_BIND_UNORDERED_ACCESS;
+		default: Assert(0, "TextureUsageToD3DBindFlags ??");
+		}
+
+		return 0;
+	}
+
+	inline int32 GetCPUFlagsToD3DFlags(const ResourceCPUFlags& flags)
+	{
+		switch (flags.Get())
+		{
+		case ResourceCPUFlags::Value::NONE: return 0;
+		case ResourceCPUFlags::Value::READ: return D3D11_CPU_ACCESS_READ;
+		case ResourceCPUFlags::Value::WRITE: return D3D11_CPU_ACCESS_WRITE;
+		case ResourceCPUFlags::Value::READ_WRITE: return D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+		}
+		return 0;
+	}
 
 }

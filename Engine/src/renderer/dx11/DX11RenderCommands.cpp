@@ -107,34 +107,29 @@ namespace sol
 	}
 
 
-	//void BindSampler(const SamplerInstance& sampler, int32 slot)
-	//{
-	//	Assert(slot >= 0, "Shader register invalid");
-	//	GetRenderState();
+	void RenderCommand::SetSampler(const SamplerState& sampler, int32 slot)
+	{
+		Assert(slot >= 0, "Invalid sampler register");
+		DeviceContext dc = GetDeviceContext();
+		DXINFO(dc.context->PSSetSamplers(slot, 1, &sampler.sampler));
+		DXINFO(dc.context->CSSetSamplers(slot, 1, &sampler.sampler));
+	}
 
-	//	Assert(slot >= 0, "Invalid sampler register");
-	//	DXINFO(rs->context->PSSetSamplers(slot, 1, &sampler.sampler));
-	//	DXINFO(rs->context->CSSetSamplers(slot, 1, &sampler.sampler));
-	//}
+	void RenderCommand::SetTexture(const TextureInstance& texture, int32 slot)
+	{
+		Assert(slot >= 0, "Shader register invalid");
+		DeviceContext dc = GetDeviceContext();
+		DXINFO(dc.context->PSSetShaderResources(slot, 1, &texture.shaderView));
+		DXINFO(dc.context->CSSetShaderResources(slot, 1, &texture.shaderView));
+	}
 
-	//void BindTexture(const TextureInstance& texture, int32 slot)
-	//{
-	//	Assert(slot >= 0, "Shader register invalid");
-	//	GetRenderState();
-
-	//	Assert(slot >= 0, "Shader register invalid");
-	//	DXINFO(rs->context->PSSetShaderResources(slot, 1, &texture.shaderView));
-	//	DXINFO(rs->context->CSSetShaderResources(slot, 1, &texture.shaderView));
-	//}
-
-	//void BindCubeMap(const CubeMapInstance& cubeMap, int32 slot)
-	//{
-	//	Assert(slot >= 0, "Shader register invalid");
-	//	GetRenderState();
-
-	//	DXINFO(rs->context->PSSetShaderResources(slot, 1, &cubeMap.shaderView));
-	//	DXINFO(rs->context->CSSetShaderResources(slot, 1, &cubeMap.shaderView));
-	//}
+	void RenderCommand::SetCubeMap(const CubeMapInstance& cubeMap, int32 slot)
+	{
+		Assert(slot >= 0, "Shader register invalid");
+		DeviceContext dc = GetDeviceContext();
+		DXINFO(dc.context->PSSetShaderResources(slot, 1, &cubeMap.shaderView));
+		DXINFO(dc.context->CSSetShaderResources(slot, 1, &cubeMap.shaderView));
+	}
 
 	//void BindShaderConstBuffer(ID3D11Buffer* buffer, ShaderStage stage, int32 slot)
 	//{
@@ -143,15 +138,15 @@ namespace sol
 	//	{
 	//	case ShaderStage::VERTEX:
 	//	{
-	//		DXINFO(rs->context->VSSetConstantBuffers(slot, 1, &buffer));
+	//		DXINFO(dc.context->VSSetConstantBuffers(slot, 1, &buffer));
 	//	}break;
 	//	case ShaderStage::PIXEL:
 	//	{
-	//		DXINFO(rs->context->PSSetConstantBuffers(slot, 1, &buffer));
+	//		DXINFO(dc.context->PSSetConstantBuffers(slot, 1, &buffer));
 	//	}break;
 	//	case ShaderStage::COMPUTE:
 	//	{
-	//		DXINFO(rs->context->CSSetConstantBuffers(slot, 1, &buffer));
+	//		DXINFO(dc.context->CSSetConstantBuffers(slot, 1, &buffer));
 	//	}break;
 	//	default:
 	//	{
@@ -163,7 +158,7 @@ namespace sol
 	//void UpdateConstBuffer(ID3D11Buffer* buffer, void* data)
 	//{
 	//	GetRenderState();
-	//	DXINFO(rs->context->UpdateSubresource(buffer, 0, nullptr, data, 0, 0));
+	//	DXINFO(dc.context->UpdateSubresource(buffer, 0, nullptr, data, 0, 0));
 	//}
 
 }

@@ -96,7 +96,7 @@ namespace sol
 	{
 		ApplicationConfigs appConfig;
 		bool8(*Initialize)(Game* game);
-		bool8(*Update)(Game* game, real32 dt);
+		bool8(*Update)(Game* game, RenderPacket* renderPacket, real32 dt);
 		void(*Shutdown)(Game* game);
 	};
 

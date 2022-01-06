@@ -16,5 +16,7 @@ namespace sol
 		real32 frameTimes[256] = {};
 		real32 minTime = REAL_MAX;
 		real32 maxTime = REAL_MIN;
+
+		Camera camera;
 	};
 }

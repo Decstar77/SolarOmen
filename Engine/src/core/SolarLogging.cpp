@@ -1,5 +1,6 @@
 #include "SolarLogging.h"
 #include "platform/SolarPlatform.h"
+#include <string>
 
 namespace sol
 {
@@ -16,8 +17,15 @@ namespace sol
 	void LogOutput(LogLevel level, const char* message)
 	{
 		const char* levelStrings[6] = { "[FATAL]: ", "[ERROR]: ", "[WARN]:  ", "[INFO]:  ", "[DEBUG]: ", "[TRACE]: " };
-		String msg = levelStrings[(uint32)level];
-		msg.Add(message).Add('\n');
+		const char* header = levelStrings[(uint32)level];
+
+		uint32 length = (uint32)strlen(message);
+		char* msg = GameMemory::PushTransientCount<char>(length + 12);
+
+		strcat_s(msg, length + 12, header);
+		strcat_s(msg, length + 12, message);
+		strcat_s(msg, length + 12, "\n");
+
 		Platform::ConsoleWrite(msg, (uint8)level);
 	}
 }

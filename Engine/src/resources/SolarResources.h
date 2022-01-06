@@ -9,7 +9,8 @@ namespace sol
 	public:
 		static bool8 Initialize();
 		static void Shutdown();
-		static void LoadAllShaderPrograms();
 		static void LoadAllModels();
+		static void LoadAllTextures();
+		static void LoadAllShaderPrograms();
 	};
 }

@@ -685,14 +685,6 @@ namespace sol
 			this->z = all;
 		}
 
-		//TODO: Template this for type
-		Vec3(const Vec2<T>& xy, const T& z)
-		{
-			this->x = xy.x;
-			this->y = xy.y;
-			this->z = z;
-		}
-
 		explicit Vec3(String s)
 		{
 			s.RemoveCharacter(0);
@@ -3278,4 +3270,4 @@ namespace sol
 		return result;
 	}
 
-	} // namespace cm
+} // namespace cm

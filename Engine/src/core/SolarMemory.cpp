@@ -42,8 +42,6 @@ namespace sol
 		delete instance;
 
 		instance = nullptr;
-
-		SOLINFO("Memory shutdown");
 	}
 
 	GameMemory::GameMemory(void* permanentStorageData, uint64 permanentStorageSize, void* transientStorageData, uint64 transientStorageSize)
