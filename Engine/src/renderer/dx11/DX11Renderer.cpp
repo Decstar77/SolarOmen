@@ -363,16 +363,27 @@ namespace sol
 		renderState.viewConstBuffer.data.screeenProjection = Mat4f(1);
 		RenderCommand::UploadShaderConstBuffer(&renderState.viewConstBuffer);
 
-		renderState.modelConstBuffer.data.mvp = Mat4f(1) * view * proj;
-		renderState.modelConstBuffer.data.invM = Mat4f(1);
-		renderState.modelConstBuffer.data.model = Mat4f(1);
-		RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
 
-		RenderCommand::SetProgram(renderState.phongProgram);
-		RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
-		RenderCommand::DrawStaticMesh(renderState.quad);
+		for (uint32 i = 0; i < renderPacket->renderEntries.count; i++)
+		{
+			RenderEntry* entry = &renderPacket->renderEntries[i];
+			Mat4f m = entry->worldTransform.CalculateTransformMatrix();
+			renderState.modelConstBuffer.data.model = m;
+			renderState.modelConstBuffer.data.invM = Inverse(m);
+			renderState.modelConstBuffer.data.mvp = m * view * proj;
+			RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
 
-		//RenderCommand::SetProgram(renderState.postProcessingProgram);
+			RenderCommand::SetProgram(renderState.phongProgram);
+			RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
+			RenderCommand::DrawStaticMesh(renderState.quad);
+		}
+		//renderState.modelConstBuffer.data.mvp = Mat4f(1) * view * proj;
+		//renderState.modelConstBuffer.data.invM = Mat4f(1);
+		//renderState.modelConstBuffer.data.model = Mat4f(1);
+		//RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
+
+		//RenderCommand::SetProgram(renderState.phongProgram);
+		//RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
 		//RenderCommand::DrawStaticMesh(renderState.quad);
 
 		EventSystem::Fire((uint16)EventCodeEngine::ON_RENDER_END, nullptr, {});

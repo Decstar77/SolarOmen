@@ -106,7 +106,6 @@ namespace sol
 		}
 	}
 
-
 	void RenderCommand::SetSampler(const SamplerState& sampler, int32 slot)
 	{
 		Assert(slot >= 0, "Invalid sampler register");

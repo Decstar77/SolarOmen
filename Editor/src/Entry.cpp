@@ -89,6 +89,10 @@ namespace sol
 
 		OperateCamera(&es->camera, dt);
 
+		RenderEntry entry = {};
+		entry.worldTransform = Transform();
+		renderPacket->renderEntries.Add(entry);
+
 		renderPacket->viewMatrix = es->camera.GetViewMatrix();
 		renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
 

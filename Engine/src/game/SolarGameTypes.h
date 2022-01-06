@@ -6,7 +6,7 @@
 
 namespace sol
 {
-	struct SOL_API EntityId
+	struct EntityId
 	{
 		int32 index;
 		int32 generation;
@@ -18,7 +18,7 @@ namespace sol
 		inline bool operator!=(const EntityId& rhs) const { return this->index != rhs.index || this->generation != rhs.generation; }
 	};
 
-	class SOL_API Entity
+	class Entity
 	{
 	public:
 		String GetName();
@@ -42,7 +42,7 @@ namespace sol
 		friend class Room;
 	};
 
-	class SOL_API Room
+	class Room
 	{
 	public:
 		static constexpr uint32 ENTITY_STORAGE_COUNT = 1000;
@@ -59,12 +59,12 @@ namespace sol
 		FixedArray<EntityId, ENTITY_STORAGE_COUNT - 1> entityFreeList;
 
 	public:
-		Entity CreateEntity();
-		Entity CreateEntity(const String& name);
-		void DestoryEntity(Entity* entity);
+		SOL_API Entity CreateEntity();
+		SOL_API Entity CreateEntity(const String& name);
+		SOL_API void DestoryEntity(Entity* entity);
 
-		void BeginEntityLoop();
-		Entity GetNextEntity();
+		SOL_API void BeginEntityLoop();
+		SOL_API Entity GetNextEntity();
 
 	private:
 		uint32 entityLoopIndex;
@@ -75,7 +75,8 @@ namespace sol
 		void RemoveEntityChildParentRelationship(Entity* entity);
 	};
 
-	struct SOL_API Camera
+
+	struct Camera
 	{
 		Transform transform;
 
@@ -92,7 +93,7 @@ namespace sol
 		inline Mat4f GetProjectionMatrix() const { return PerspectiveLH(DegToRad(yfov), aspect, near_, far_); }
 	};
 
-	struct SOL_API Game
+	struct Game
 	{
 		ApplicationConfigs appConfig;
 		bool8(*Initialize)(Game* game);

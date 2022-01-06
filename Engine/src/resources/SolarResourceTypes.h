@@ -6,7 +6,7 @@
 
 namespace sol
 {
-	struct SOL_API ModelResource
+	struct ModelResource
 	{
 		String name;
 		ResourceId id;
@@ -15,7 +15,7 @@ namespace sol
 		ManagedArray<uint32> indices;
 	};
 
-	struct SOL_API TextureResource
+	struct TextureResource
 	{
 		String name;
 		ResourceId id;
@@ -28,7 +28,7 @@ namespace sol
 		ResourceCPUFlags cpuFlags;
 	};
 
-	struct SOL_API ProgramResource
+	struct ProgramResource
 	{
 		ResourceId id;
 		String name;

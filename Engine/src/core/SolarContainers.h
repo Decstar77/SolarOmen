@@ -4,10 +4,11 @@
 
 #include <type_traits>
 
+
 namespace sol
 {
 	template<typename T, uint32 capcity>
-	class SOL_API FixedArray
+	class FixedArray
 	{
 	public:
 		inline uint32 GetCapcity() const
@@ -112,7 +113,7 @@ namespace sol
 	};
 
 	template<typename T>
-	class SOL_API ManagedArray
+	class ManagedArray
 	{
 	public:
 		inline uint32 GetCount() const { return count; }
@@ -210,7 +211,7 @@ namespace sol
 	};
 
 	template<typename T>
-	class SOL_API Queue
+	class Queue
 	{
 	public:
 
@@ -260,7 +261,7 @@ namespace sol
 
 
 	template<typename T>
-	class SOL_API CircularQueue
+	class CircularQueue
 	{
 	public:
 		void Push(const T& t)
@@ -329,7 +330,7 @@ namespace sol
 
 
 	template<uint32 size>
-	struct SOL_API FixedMemoryStream
+	struct FixedMemoryStream
 	{
 		uint32 bufferCursor;
 		FixedArray<uint8, size> buffer;
@@ -377,7 +378,7 @@ namespace sol
 	};
 
 	template<typename T>
-	class SOL_API HashMap
+	class HashMap
 	{
 	public:
 		inline void Put(uint64 key, const T& t)
@@ -540,3 +541,4 @@ namespace sol
 	//	//	~FreeList() {}
 	//};
 }
+

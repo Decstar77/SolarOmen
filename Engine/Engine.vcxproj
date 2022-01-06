@@ -62,7 +62,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>false</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine\src\</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>26495 </DisableSpecificWarnings>
+      <DisableSpecificWarnings>26495</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -83,7 +83,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>false</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine\src\</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>26495 </DisableSpecificWarnings>
+      <DisableSpecificWarnings>26495</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,6 +124,7 @@
     <ClCompile Include="src\core\SolarLogging.cpp" />
     <ClCompile Include="src\core\SolarMemory.cpp" />
     <ClCompile Include="src\core\SolarString.cpp" />
+    <ClCompile Include="src\game\SolarRoom.cpp" />
     <ClCompile Include="src\platform\win32\Win32Platform.cpp" />
     <ClCompile Include="src\renderer\dx11\DX11Program.cpp" />
     <ClCompile Include="src\renderer\dx11\DX11Renderer.cpp" />

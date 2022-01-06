@@ -5,14 +5,14 @@
 
 namespace sol
 {
-	enum class SOL_API ShaderStage
+	enum class ShaderStage
 	{
 		VERTEX,
 		PIXEL,
 		COMPUTE,
 	};
 
-	class SOL_API TextureFormat
+	class TextureFormat
 	{
 	public:
 		enum class Value : uint8
@@ -105,7 +105,7 @@ namespace sol
 		};
 	};
 
-	class SOL_API ProgramStagesLayout
+	class ProgramStagesLayout
 	{
 	public:
 		enum class Value : uint8
@@ -178,7 +178,7 @@ namespace sol
 		};
 	};
 
-	class SOL_API ResourceCPUFlags
+	class ResourceCPUFlags
 	{
 	public:
 		enum class Value : uint8
@@ -251,7 +251,7 @@ namespace sol
 		};
 	};
 
-	class SOL_API TextureWrapMode
+	class TextureWrapMode
 	{
 	public:
 		enum class Value : uint8
@@ -322,7 +322,7 @@ namespace sol
 		};
 	};
 
-	class SOL_API TextureFilterMode
+	class TextureFilterMode
 	{
 	public:
 		enum class Value : uint8
@@ -395,7 +395,7 @@ namespace sol
 		};
 	};
 
-	class SOL_API BindUsage
+	class BindUsage
 	{
 	public:
 		enum class Value : uint8
@@ -471,7 +471,7 @@ namespace sol
 		};
 	};
 
-	class SOL_API VertexLayoutType
+	class VertexLayoutType
 	{
 	public:
 		enum class Value : uint8
@@ -566,7 +566,7 @@ namespace sol
 		};
 	};
 
-	//struct SOL_API FatVertex
+	//struct  FatVertex
 	//{
 	//	inline static constexpr uint32 MAX_BONE_INFLUENCE = 4;
 
@@ -580,7 +580,7 @@ namespace sol
 	//	real32 boneWeights[MAX_BONE_INFLUENCE] = {};
 	//};
 
-	struct SOL_API ResourceId
+	struct ResourceId
 	{
 		union
 		{
@@ -596,20 +596,20 @@ namespace sol
 		inline operator uint64() const { return number; }
 	};
 
-	struct SOL_API Material
+	struct  Material
 	{
 		ResourceId modelId;
 		ResourceId albedoId;
 		ResourceId shaderId;
 	};
 
-	struct SOL_API RenderEntry
+	struct  RenderEntry
 	{
 		Transform worldTransform;
 		Material material;
 	};
 
-	struct SOL_API RenderPacket
+	struct RenderPacket
 	{
 		Mat4f viewMatrix;
 		Mat4f projectionMatrix;
