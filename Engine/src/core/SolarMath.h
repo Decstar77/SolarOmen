@@ -357,39 +357,6 @@ namespace sol
 		return result;
 	}
 
-
-	//************************************
-	// Math structures
-	//************************************
-
-
-
-
-	template <typename T>
-	struct Vec4;
-	typedef Vec4<real32> Vec4f;
-	typedef Vec4<int32> Vec4i;
-
-	template <typename T>
-	struct Quat;
-	typedef Quat<real32> Quatf;
-
-	template <typename T>
-	struct Mat2;
-	typedef Mat2<real32> Mat2f;
-
-	template <typename T>
-	struct Mat3;
-	typedef Mat3<real32> Mat3f;
-
-	template <typename T>
-	struct Mat4;
-	typedef Mat4<real32> Mat4f;
-
-	template <typename T>
-	struct Basis;
-	typedef Basis<real32> Basisf;
-
 	//************************************
 	// Polar Coord
 	//************************************
@@ -726,14 +693,6 @@ namespace sol
 			this->z = z;
 		}
 
-		//TODO: Template this for type
-		explicit Vec3(const Vec4<T>& a)
-		{
-			this->x = a.x;
-			this->y = a.y;
-			this->z = a.z;
-		}
-
 		explicit Vec3(String s)
 		{
 			s.RemoveCharacter(0);
@@ -1036,7 +995,7 @@ namespace sol
 	{
 		//Assert(a.x != 0 && a.y != 0 && a.z != 0);
 		return Vec3<T>(a.x / b, a.y / b, a.z / b);
-}
+	}
 
 	template <typename T>
 	inline constexpr Vec3<T> operator/(const T& b, const Vec3<T>& a)
@@ -1153,6 +1112,20 @@ namespace sol
 		}
 	};
 
+	typedef Vec4<real32> Vec4f;
+	typedef Vec4<int32> Vec4i;
+
+	template<typename T>
+	Vec3<T> Vec4ToVec3(const Vec4<T>& a)
+	{
+		Vec3<T> r = {};
+		r.x = a.x;
+		r.y = a.y;
+		r.z = a.z;
+
+		return r;
+	}
+
 	template <typename T>
 	inline T Mag(const Vec4<T>& a)
 	{
@@ -1252,7 +1225,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct Quat
+	struct SOL_API Quat
 	{
 		union
 		{
@@ -1325,6 +1298,8 @@ namespace sol
 			return (&x)[index];
 		}
 	};
+
+	typedef Quat<real32> Quatf;
 
 	template<typename T>
 	inline Quat<T> Conjugate(const Quat<T>& a)
@@ -1642,66 +1617,6 @@ namespace sol
 	}
 
 	template <typename T>
-	Mat3<T> QuatToMat3(const Quat<T>& q)
-	{
-		Mat3<T> result(1);
-
-		T qxx = (q.x * q.x);
-		T qyy = (q.y * q.y);
-		T qzz = (q.z * q.z);
-		T qxz = (q.x * q.z);
-		T qxy = (q.x * q.y);
-		T qyz = (q.y * q.z);
-		T qwx = (q.w * q.x);
-		T qwy = (q.w * q.y);
-		T qwz = (q.w * q.z);
-
-		result.row0.x = 1 - (2) * (qyy + qzz);
-		result.row0.y = (2) * (qxy + qwz);
-		result.row0.z = (2) * (qxz - qwy);
-
-		result.row1.x = (2) * (qxy - qwz);
-		result.row1.y = (1) - (2) * (qxx + qzz);
-		result.row1.z = (2) * (qyz + qwx);
-
-		result.row2.x = (2) * (qxz + qwy);
-		result.row2.y = (2) * (qyz - qwx);
-		result.row2.z = (1) - (2) * (qxx + qyy);
-
-		return result;
-	}
-
-	template <typename T>
-	Mat4<T> QuatToMat4(const Quat<T>& q)
-	{
-		Mat4<T> result(1);
-
-		T qxx = (q.x * q.x);
-		T qyy = (q.y * q.y);
-		T qzz = (q.z * q.z);
-		T qxz = (q.x * q.z);
-		T qxy = (q.x * q.y);
-		T qyz = (q.y * q.z);
-		T qwx = (q.w * q.x);
-		T qwy = (q.w * q.y);
-		T qwz = (q.w * q.z);
-
-		result.row0.x = 1 - (2) * (qyy + qzz);
-		result.row0.y = (2) * (qxy + qwz);
-		result.row0.z = (2) * (qxz - qwy);
-
-		result.row1.x = (2) * (qxy - qwz);
-		result.row1.y = (1) - (2) * (qxx + qzz);
-		result.row1.z = (2) * (qyz + qwx);
-
-		result.row2.x = (2) * (qxz + qwy);
-		result.row2.y = (2) * (qyz - qwx);
-		result.row2.z = (1) - (2) * (qxx + qyy);
-
-		return result;
-	}
-
-	template <typename T>
 	inline constexpr Quat<T> operator*(const Quat<T>& lhs, const Quat<T>& rhs)
 	{
 		Quat<T> temp;
@@ -1759,6 +1674,8 @@ namespace sol
 			return (&row0)[index];
 		}
 	};
+
+	typedef Mat2<real32> Mat2f;
 
 	template <typename T>
 	inline constexpr T Det(const Mat2<T>& a)
@@ -1858,13 +1775,6 @@ namespace sol
 			this->row2 = Vec3<T>(translation, 1);
 		}
 
-		Mat3(const Mat4<T>& a)
-		{
-			this->row0 = Vec3<T>(a.row0);
-			this->row1 = Vec3<T>(a.row1);
-			this->row2 = Vec3<T>(a.row2);
-		}
-
 		Vec3<T>& operator[](const int32& index)
 		{
 			Assert(index >= 0 && index < 3, "Vec3f [] operator, invalid index");
@@ -1877,6 +1787,38 @@ namespace sol
 			return (&row0)[index];
 		}
 	};
+
+	typedef Mat3<real32> Mat3f;
+
+	template <typename T>
+	Mat3<T> QuatToMat3(const Quat<T>& q)
+	{
+		Mat3<T> result(1);
+
+		T qxx = (q.x * q.x);
+		T qyy = (q.y * q.y);
+		T qzz = (q.z * q.z);
+		T qxz = (q.x * q.z);
+		T qxy = (q.x * q.y);
+		T qyz = (q.y * q.z);
+		T qwx = (q.w * q.x);
+		T qwy = (q.w * q.y);
+		T qwz = (q.w * q.z);
+
+		result.row0.x = 1 - (2) * (qyy + qzz);
+		result.row0.y = (2) * (qxy + qwz);
+		result.row0.z = (2) * (qxz - qwy);
+
+		result.row1.x = (2) * (qxy - qwz);
+		result.row1.y = (1) - (2) * (qxx + qzz);
+		result.row1.z = (2) * (qyz + qwx);
+
+		result.row2.x = (2) * (qxz + qwy);
+		result.row2.y = (2) * (qyz - qwx);
+		result.row2.z = (1) - (2) * (qxx + qyy);
+
+		return result;
+	}
 
 	template <typename T>
 	T GetMatrixElement(const Mat3<T>& a, const int32& row, const int32& col)
@@ -1902,18 +1844,6 @@ namespace sol
 		T x = Mag(a.row0);
 		T y = Mag(a.row1);
 		T z = Mag(a.row2);
-
-		Vec3<T> result = Vec3<T>(x, y, z);
-
-		return result;
-	}
-
-	template <typename T>
-	Vec3<T> ScaleOfMatrix(const Mat4<T>& a)
-	{
-		T x = Mag(Vec3<T>(a.row0));
-		T y = Mag(Vec3<T>(a.row1));
-		T z = Mag(Vec3<T>(a.row2));
 
 		Vec3<T> result = Vec3<T>(x, y, z);
 
@@ -2333,6 +2263,61 @@ namespace sol
 			return (&row0)[index];
 		}
 	};
+
+	typedef Mat4<real32> Mat4f;
+
+	template <typename T>
+	inline Mat3<T> Mat4ToMat3(const Mat4<T>& a)
+	{
+		Mat3<T> r = {};
+		r.row0 = Vec4ToVec3(a.row0);
+		r.row1 = Vec4ToVec3(a.row1);
+		r.row2 = Vec4ToVec3(a.row2);
+
+		return r;
+	}
+
+	template <typename T>
+	Vec3<T> ScaleOfMatrix(const Mat4<T>& a)
+	{
+		T x = Mag(Vec4ToVec3(a.row0));
+		T y = Mag(Vec4ToVec3(a.row1));
+		T z = Mag(Vec4ToVec3(a.row2));
+
+		Vec3<T> result = Vec3<T>(x, y, z);
+
+		return result;
+	}
+
+	template <typename T>
+	Mat4<T> QuatToMat4(const Quat<T>& q)
+	{
+		Mat4<T> result(1);
+
+		T qxx = (q.x * q.x);
+		T qyy = (q.y * q.y);
+		T qzz = (q.z * q.z);
+		T qxz = (q.x * q.z);
+		T qxy = (q.x * q.y);
+		T qyz = (q.y * q.z);
+		T qwx = (q.w * q.x);
+		T qwy = (q.w * q.y);
+		T qwz = (q.w * q.z);
+
+		result.row0.x = 1 - (2) * (qyy + qzz);
+		result.row0.y = (2) * (qxy + qwz);
+		result.row0.z = (2) * (qxz - qwy);
+
+		result.row1.x = (2) * (qxy - qwz);
+		result.row1.y = (1) - (2) * (qxx + qzz);
+		result.row1.z = (2) * (qyz + qwx);
+
+		result.row2.x = (2) * (qxz + qwy);
+		result.row2.y = (2) * (qyz - qwx);
+		result.row2.z = (1) - (2) * (qxx + qyy);
+
+		return result;
+	}
 
 	template <typename T>
 	inline constexpr bool32 Equal(const Mat4<T>& a, const Mat4<T>& b, const T& epsilon = FLOATING_POINT_ERROR_PRESCION)
@@ -3052,7 +3037,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct Basis
+	struct SOL_API Basis
 	{
 		union
 		{
@@ -3082,6 +3067,8 @@ namespace sol
 			this->forward = forward;
 		}
 	};
+
+	typedef Basis<real32> Basisf;
 
 	template <typename T>
 	inline Basis<T> Mat3ToBasis(const Mat3<T>& rotation_matrix) // @NOTE: Assumes it's a rotation matrix, ie orthgonal
@@ -3248,7 +3235,7 @@ namespace sol
 			this->scale = ScaleOfMatrix(m);
 
 			// @NOTE: Is the same as calling RemoveScaleFromRotationMatrix, but we have scale so this is faster
-			Mat3f rotationMatrix = Mat3f(m);
+			Mat3f rotationMatrix = Mat4ToMat3(m);
 			for (int32 i = 0; i < 3; i++)
 			{
 				rotationMatrix[i] = rotationMatrix[i] / scale[i];
@@ -3291,4 +3278,4 @@ namespace sol
 		return result;
 	}
 
-} // namespace cm
+	} // namespace cm
