@@ -300,7 +300,7 @@ namespace sol
 		eventContext.msg = msg;
 		eventContext.wparam = wparam;
 		eventContext.lparam = lparam;
-		if (EventSystem::Fire((uint16)EventCodeEngine::WINDOW_PUMP_MESSAGES, &result, eventContext))
+		if (EventSystem::Fire((uint16)EngineEvent::Value::WINDOW_PUMP_MESSAGES, &result, eventContext))
 		{
 			if (result)
 			{
@@ -330,7 +330,7 @@ namespace sol
 			winState.width = eventResize.width;
 			winState.height = eventResize.height;
 
-			EventSystem::Fire<EventWindowResize>((uint16)EventCodeEngine::WINDOW_RESIZED, 0, eventResize);
+			EventSystem::Fire<EventWindowResize>((uint16)EngineEvent::Value::WINDOW_RESIZED, 0, eventResize);
 
 		} break;
 		case WM_SYSKEYDOWN:

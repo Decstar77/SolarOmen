@@ -30,7 +30,7 @@ namespace sol
 			es->camera.yfov = 45.0f;
 			es->camera.aspect = (real32)w / (real32)h;
 
-			EventSystem::Register((uint32)EventCodeEngine::WINDOW_RESIZED, nullptr, OnWindowResizeCallback);
+			EventSystem::Register((uint16)EngineEvent::Value::WINDOW_RESIZED, nullptr, OnWindowResizeCallback);
 
 			return true;
 		}

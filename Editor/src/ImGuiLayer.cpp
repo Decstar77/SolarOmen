@@ -69,11 +69,11 @@ namespace sol
 				DC* dc = (DC*)Renderer::GetNativeDeviceContext();
 				if (ImGui_ImplDX11_Init(dc->device, dc->context))
 				{
-					if (EventSystem::Register((uint16)EventCodeEngine::WINDOW_PUMP_MESSAGES, nullptr, ImguiWin32MessageCallback))
+					if (EventSystem::Register((uint16)EngineEvent::Value::WINDOW_PUMP_MESSAGES, nullptr, ImguiWin32MessageCallback))
 					{
-						if (EventSystem::Register((uint16)EventCodeEngine::ON_RENDER_END, nullptr, ImguiDrawMessageCallback))
+						if (EventSystem::Register((uint16)EngineEvent::Value::ON_RENDER_END, nullptr, ImguiDrawMessageCallback))
 						{
-							if (EventSystem::Register((uint16)EventCodeEngine::ON_RENDERER_SHUTDOWN, nullptr, ImguiShutdownMessageCallback))
+							if (EventSystem::Register((uint16)EngineEvent::Value::ON_RENDERER_SHUTDOWN, nullptr, ImguiShutdownMessageCallback))
 							{
 
 								return true;

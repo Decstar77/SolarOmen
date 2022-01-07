@@ -124,6 +124,7 @@
     <ClCompile Include="src\core\SolarLogging.cpp" />
     <ClCompile Include="src\core\SolarMemory.cpp" />
     <ClCompile Include="src\core\SolarString.cpp" />
+    <ClCompile Include="src\game\SolarEntity.cpp" />
     <ClCompile Include="src\game\SolarRoom.cpp" />
     <ClCompile Include="src\platform\win32\Win32Platform.cpp" />
     <ClCompile Include="src\renderer\dx11\DX11Program.cpp" />

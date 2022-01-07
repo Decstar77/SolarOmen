@@ -19,5 +19,9 @@ namespace sol
 		static bool8 Initialize(struct Game* game);
 		static bool8 Run(struct Game* game);
 		static void Shutdown();
+
+		static uint32 GetSurfaceWidth();
+		static uint32 GetSurfaceHeight();
+		static real32 GetSurfaceAspectRatio();
 	};
 }

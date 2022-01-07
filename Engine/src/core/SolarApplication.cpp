@@ -61,8 +61,6 @@ namespace sol
 		return false;
 	}
 
-
-
 	bool8 Application::Run(Game* game)
 	{
 		real32 dt = 0.016f;
@@ -97,5 +95,24 @@ namespace sol
 		Renderer::Shutdown();
 		Platform::Shutdown();
 		Input::Shutdown();
+	}
+
+	uint32 Application::GetSurfaceWidth()
+	{
+		return Platform::GetWindowWidth();
+	}
+
+	uint32 Application::GetSurfaceHeight()
+	{
+		return Platform::GetWindowHeight();
+	}
+
+	real32 Application::GetSurfaceAspectRatio()
+	{
+		real32 w = (real32)Platform::GetWindowWidth();
+		real32 h = (real32)Platform::GetWindowHeight();
+		real32 aspect = w / h;
+
+		return aspect;
 	}
 }

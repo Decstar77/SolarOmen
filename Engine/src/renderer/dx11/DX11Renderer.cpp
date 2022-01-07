@@ -294,7 +294,7 @@ namespace sol
 			CreateAllBlendState();
 			CreateAllSamplerState();
 
-			EventSystem::Register((uint16)EventCodeEngine::WINDOW_RESIZED, 0, OnWindowResizeCallback);
+			EventSystem::Register((uint16)EngineEvent::Value::WINDOW_RESIZED, 0, OnWindowResizeCallback);
 
 			renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("post_processing"));
 			renderState.phongProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("phong"));
@@ -391,7 +391,7 @@ namespace sol
 		//RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
 		//RenderCommand::DrawStaticMesh(renderState.quad);
 
-		EventSystem::Fire((uint16)EventCodeEngine::ON_RENDER_END, nullptr, {});
+		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDER_END, nullptr, {});
 
 		DeviceContext dc = renderState.deviceContext;
 		DXCHECK(renderState.swapChain.swapChain->Present(0, 0));
@@ -399,7 +399,7 @@ namespace sol
 
 	void Renderer::Shutdown()
 	{
-		EventSystem::Fire((uint16)EventCodeEngine::ON_RENDERER_SHUTDOWN, nullptr, {});
+		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDERER_SHUTDOWN, nullptr, {});
 
 		RenderCommand::SetStaticMesh({});
 		for (int32 i = 0; i < 10; i++) { RenderCommand::SetTexture({}, i); }

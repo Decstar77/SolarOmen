@@ -18,15 +18,52 @@ namespace sol
 		inline bool operator!=(const EntityId& rhs) const { return this->index != rhs.index || this->generation != rhs.generation; }
 	};
 
+
+	struct TransformComponent
+	{
+		Transform transform;
+	};
+
+	struct NameComponent
+	{
+		String name;
+	};
+
+	struct TagComponent
+	{
+		uint32 tag;
+	};
+
+	struct MaterailComponent
+	{
+		Material material;
+	};
+
 	class Entity
 	{
 	public:
-		String GetName();
-		void SetName(const String& name);
+		SOL_API String GetName() const;
+		SOL_API void SetName(const String& name);
+		SOL_API EntityId GetId() const;
+		SOL_API bool IsValid() const;
 
-		operator bool() const;
-		bool operator==(const Entity& rhs) const;
-		bool operator!=(const Entity& rhs) const;
+		SOL_API void SetParent(Entity* entity);
+		SOL_API Entity* GetParent();
+		SOL_API Entity* GetFirstChild();
+		SOL_API Entity* GetSiblingAhead();
+		SOL_API Entity* GetSiblingBehind();
+		SOL_API ManagedArray<Entity*> GetChildren();
+
+		SOL_API void SetLocalTransform(const Transform& transform);
+		SOL_API Transform GetLocalTransform() const;
+		SOL_API Transform GetWorldTransform() const;
+
+		SOL_API MaterailComponent* GetMaterialomponent();
+		SOL_API void SetMaterial(const String& modelName, const String& textureName);
+
+		SOL_API operator bool() const;
+		SOL_API bool operator==(const Entity& rhs) const;
+		SOL_API bool operator!=(const Entity& rhs) const;
 
 	private:
 		EntityId id;
@@ -41,40 +78,6 @@ namespace sol
 		friend struct EntityId;
 		friend class Room;
 	};
-
-	class Room
-	{
-	public:
-		static constexpr uint32 ENTITY_STORAGE_COUNT = 1000;
-		static constexpr uint32 INVALID_ENTITY_INDEX = 0;
-
-		ResourceId id;
-		String name;
-
-		bool8 twoPlayerGame;
-		bool8 initialized;
-		bool8 isPaused;
-
-		FixedArray<Entity, ENTITY_STORAGE_COUNT> entities;
-		FixedArray<EntityId, ENTITY_STORAGE_COUNT - 1> entityFreeList;
-
-	public:
-		SOL_API Entity CreateEntity();
-		SOL_API Entity CreateEntity(const String& name);
-		SOL_API void DestoryEntity(Entity* entity);
-
-		SOL_API void BeginEntityLoop();
-		SOL_API Entity GetNextEntity();
-
-	private:
-		uint32 entityLoopIndex;
-
-		void CreateEntityFreeList();
-		EntityId GetNextFreeEntityId();
-		void PushFreeEntityId(EntityId id);
-		void RemoveEntityChildParentRelationship(Entity* entity);
-	};
-
 
 	struct Camera
 	{
@@ -91,6 +94,52 @@ namespace sol
 
 		inline Mat4f GetViewMatrix() const { return Inverse(transform.CalculateTransformMatrix()); }
 		inline Mat4f GetProjectionMatrix() const { return PerspectiveLH(DegToRad(yfov), aspect, near_, far_); }
+	};
+
+	class Room
+	{
+	public:
+		static constexpr uint32 ENTITY_STORAGE_COUNT = 1000;
+		static constexpr uint32 INVALID_ENTITY_INDEX = 0;
+
+		ResourceId id;
+		String name;
+
+		bool8 twoPlayerGame;
+		bool8 initialized;
+		bool8 isPaused;
+
+		Camera camera;
+
+		FixedArray<Entity, ENTITY_STORAGE_COUNT>				entities;
+		FixedArray<EntityId, ENTITY_STORAGE_COUNT - 1>			entityFreeList;
+
+		FixedArray<TransformComponent, ENTITY_STORAGE_COUNT>	transformComponents;
+		FixedArray<NameComponent, ENTITY_STORAGE_COUNT>			nameComponents;
+		FixedArray<TagComponent, ENTITY_STORAGE_COUNT>			tagComponents;
+		FixedArray<MaterailComponent, ENTITY_STORAGE_COUNT>		materialComponets;
+
+		//FixedArray<ColliderComponent, ENTITY_STORAGE_COUNT> colliderComponents;
+		//FixedArray<BrainComponent, ENTITY_STORAGE_COUNT> brainComponents;
+		//FixedArray<NetworkComponent, ENTITY_STORAGE_COUNT> networkComponents;
+	public:
+		SOL_API bool8 Initliaze();
+
+		SOL_API Entity CreateEntity();
+		SOL_API Entity CreateEntity(const String& name);
+		SOL_API void DestoryEntity(Entity* entity);
+
+		SOL_API void BeginEntityLoop();
+		SOL_API Entity GetNextEntity();
+
+		SOL_API void ContructRenderPacket(RenderPacket* renderPacket);
+	private:
+		uint32 entityLoopIndex;
+
+		void CreateEntityFreeList();
+		EntityId GetNextFreeEntityId();
+		void PushFreeEntityId(EntityId id);
+		void RemoveEntityChildParentRelationship(Entity* entity);
 	};
 
 	struct Game

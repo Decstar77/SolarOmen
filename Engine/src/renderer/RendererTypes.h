@@ -596,7 +596,7 @@ namespace sol
 		inline operator uint64() const { return number; }
 	};
 
-	struct  Material
+	struct Material
 	{
 		ResourceId modelId;
 		ResourceId albedoId;
