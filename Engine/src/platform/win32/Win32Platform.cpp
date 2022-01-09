@@ -217,7 +217,7 @@ namespace sol
 		windowClass.hInstance = 0;
 		windowClass.hIcon = LoadIcon(winState.hinstance, IDI_APPLICATION);
 		windowClass.hIconSm = nullptr;
-		windowClass.hCursor = nullptr;
+		windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 		windowClass.hbrBackground = nullptr;
 		windowClass.lpszClassName = "GaMe eNgInE";
 		if (RegisterClassExA(&windowClass))

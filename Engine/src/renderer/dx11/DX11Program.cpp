@@ -19,6 +19,9 @@ namespace sol
 	{
 		DeviceContext dc = GetDeviceContext();
 
+		ProgramInstance program = {};
+		program.id = programResource.id;
+
 		switch (programResource.vertexLayout.Get())
 		{
 		case VertexLayoutType::Value::P:
@@ -33,9 +36,6 @@ namespace sol
 			pos_desc.InstanceDataStepRate = 0;
 
 			D3D11_INPUT_ELEMENT_DESC layouts[] = { pos_desc };
-
-			ProgramInstance program = {};
-			program.id = programResource.id;
 
 			DXCHECK(dc.device->CreateInputLayout(layouts, ArrayCount(layouts), programResource.vertexData.data,
 				programResource.vertexData.GetCount(), &program.layout));
@@ -80,9 +80,6 @@ namespace sol
 			txc_desc.InstanceDataStepRate = 0;
 
 			D3D11_INPUT_ELEMENT_DESC layouts[] = { pos_desc, nrm_desc, txc_desc };
-
-			ProgramInstance program = {};
-			program.id = programResource.id;
 
 			DXCHECK(dc.device->CreateInputLayout(layouts, ArrayCount(layouts), programResource.vertexData.data,
 				programResource.vertexData.GetCount(), &program.layout));
@@ -135,9 +132,6 @@ namespace sol
 			col_desc.InstanceDataStepRate = 0;
 
 			D3D11_INPUT_ELEMENT_DESC layouts[] = { pos_desc, nrm_desc, txc_desc, col_desc };
-
-			ProgramInstance program = {};
-			program.id = programResource.id;
 
 			DXCHECK(dc.device->CreateInputLayout(layouts, ArrayCount(layouts), programResource.vertexData.data,
 				programResource.vertexData.GetCount(), &program.layout));

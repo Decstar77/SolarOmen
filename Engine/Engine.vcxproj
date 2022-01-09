@@ -94,6 +94,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\SolarPrimitives.h" />
     <ClInclude Include="src\resources\SolarResources.h" />
     <ClInclude Include="src\resources\SolarResourceTypes.h" />
     <ClInclude Include="src\core\SolarApplication.h" />
@@ -123,6 +124,7 @@
     <ClCompile Include="src\core\SolarInput.cpp" />
     <ClCompile Include="src\core\SolarLogging.cpp" />
     <ClCompile Include="src\core\SolarMemory.cpp" />
+    <ClCompile Include="src\core\SolarPrimitives.cpp" />
     <ClCompile Include="src\core\SolarString.cpp" />
     <ClCompile Include="src\game\SolarEntity.cpp" />
     <ClCompile Include="src\game\SolarRoom.cpp" />

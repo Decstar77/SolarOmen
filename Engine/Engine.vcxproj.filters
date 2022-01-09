@@ -78,6 +78,9 @@
     <ClInclude Include="src\resources\SolarResources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\SolarPrimitives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\SolarString.cpp">
@@ -126,6 +129,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\game\SolarEntity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\SolarPrimitives.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

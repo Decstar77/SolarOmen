@@ -298,6 +298,11 @@ namespace sol
 
 			renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("post_processing"));
 			renderState.phongProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("phong"));
+			{
+				ProgramResource* res = Resources::GetProgramResource("phongKenney");
+				res->vertexLayout = VertexLayoutType::Value::PNTC;
+				renderState.phongKenneyProgram = ProgramInstance::CreateGraphics(*res);
+			}
 
 			renderState.modelConstBuffer = ShaderConstBuffer<ShaderConstBufferModel>::Create();
 			renderState.viewConstBuffer = ShaderConstBuffer<ShaderConstBufferView>::Create();
@@ -373,11 +378,18 @@ namespace sol
 			renderState.modelConstBuffer.data.mvp = m * view * proj;
 			RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
 
-			RenderCommand::SetProgram(renderState.phongProgram);
 			RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
 			if (entry->material.modelId.IsValid())
 			{
 				StaticMesh* mesh = renderState.staticMeshes.Get(entry->material.modelId);
+				if (mesh->vertexLayout == VertexLayoutType::Value::PNT)
+				{
+					RenderCommand::SetProgram(renderState.phongProgram);
+				}
+				else if (mesh->vertexLayout == VertexLayoutType::Value::PNTC)
+				{
+					RenderCommand::SetProgram(renderState.phongKenneyProgram);
+				}
 				RenderCommand::DrawStaticMesh(*mesh);
 			}
 

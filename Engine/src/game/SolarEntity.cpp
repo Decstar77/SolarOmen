@@ -1,8 +1,36 @@
 #include "SolarGameTypes.h"
 #include "core/SolarLogging.h"
+#include "core/SolarInput.h"
 
 namespace sol
 {
+	SOL_API Ray Camera::ShootRayAtMouse() const
+	{
+		real32 width = (real32)Application::GetSurfaceWidth();
+		real32 height = (real32)Application::GetSurfaceHeight();
+		real32 aspect = Application::GetSurfaceAspectRatio();
+
+		Vec2f pixelPoint = Input::Get()->mousePositionPixelCoords;
+
+		Mat4f proj = PerspectiveLH(DegToRad(yfov), aspect, near_, far_);
+		Mat4f view = Inverse(transform.CalculateTransformMatrix());
+
+		Vec4f normal_coords = GetNormalisedDeviceCoordinates(width,
+			height, pixelPoint.x, pixelPoint.y);
+
+		Vec4f view_coords = ToViewCoords(proj, normal_coords);
+
+		// @NOTE: This 1 ensure we a have something pointing in to the screen
+		view_coords = Vec4f(view_coords.x, view_coords.y, 1, 0);
+		Vec3f world_coords = ToWorldCoords(view, view_coords);
+
+		Ray ray = {};
+		ray.origin = transform.position;
+		ray.direction = Normalize(Vec3f(world_coords.x, world_coords.y, world_coords.z));
+
+		return ray;
+	}
+
 	String Entity::GetName() const
 	{
 		return "";

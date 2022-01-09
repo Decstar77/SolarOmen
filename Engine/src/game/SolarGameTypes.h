@@ -3,6 +3,7 @@
 #include "../core/SolarApplication.h"
 #include "../renderer/RendererTypes.h"
 #include "../resources/SolarResourceTypes.h"
+#include "../core/SolarPrimitives.h"
 
 namespace sol
 {
@@ -91,6 +92,8 @@ namespace sol
 		real32 near_;
 		real32 yfov;
 		real32 aspect;
+
+		SOL_API Ray ShootRayAtMouse()const;
 
 		inline Mat4f GetViewMatrix() const { return Inverse(transform.CalculateTransformMatrix()); }
 		inline Mat4f GetProjectionMatrix() const { return PerspectiveLH(DegToRad(yfov), aspect, near_, far_); }

@@ -322,6 +322,7 @@ namespace sol
 			struct
 			{
 				ProgramInstance phongProgram;
+				ProgramInstance phongKenneyProgram;
 				ProgramInstance postProcessingProgram;
 			};
 		};
