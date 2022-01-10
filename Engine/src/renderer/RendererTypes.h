@@ -483,6 +483,7 @@ namespace sol
 			PNTC,   // @NOTE: Postions, normal, texture coords(uv), vertex colour
 			PNTM,	// @NOTE: Postions, normal, texture coords(uv), and an instanced model transform matrix
 			TEXT,	// @NOTE: Layout for text rendering
+			PC,		// @NOTE: Postion and Colour
 			COUNT,
 		};
 

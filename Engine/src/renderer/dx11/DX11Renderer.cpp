@@ -1,7 +1,7 @@
 #include "../SolarRenderer.h"
 #include "core/SolarEvent.h"
 #include "core/SolarLogging.h"
-#if SOLAR_PLATFORM_WINDOWS
+#if SOLAR_PLATFORM_WINDOWS && USE_DIRECX11
 
 #include "platform/SolarPlatform.h"
 #include "platform/win32/Win32State.h"
@@ -253,8 +253,8 @@ namespace sol
 		swapChainDesc.BufferDesc.Width = 0;
 		swapChainDesc.BufferDesc.Height = 0;
 		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;// DXGI_FORMAT_B8G8R8A8_UNORM;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1000;
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 60000;
+		swapChainDesc.BufferDesc.RefreshRate.Denominator = 0;
+		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
 		swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 		swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 
@@ -265,7 +265,7 @@ namespace sol
 		swapChainDesc.BufferCount = 2; // @NOTE This implies just the back buffer, ie we have two buffers
 		swapChainDesc.OutputWindow = window;
 		swapChainDesc.Windowed = TRUE;
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 		swapChainDesc.Flags = 0;
 
 		uint32 debug = 0;

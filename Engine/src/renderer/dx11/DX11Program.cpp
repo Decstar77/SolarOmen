@@ -1,6 +1,6 @@
 #include "DX11Types.h"
 #include "core/SolarLogging.h"
-
+#if SOLAR_PLATFORM_WINDOWS && USE_DIRECX11
 
 namespace sol
 {
@@ -181,3 +181,5 @@ namespace sol
 		return {};
 	}
 }
+
+#endif

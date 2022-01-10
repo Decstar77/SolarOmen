@@ -1,6 +1,6 @@
 #include "DX11Types.h"
 #include "core/SolarLogging.h"
-
+#if SOLAR_PLATFORM_WINDOWS && USE_DIRECX11
 namespace sol
 {
 	//void StaticMesh::UpdateVertexBuffer(real32* vertices, uint32 sizeBytes)
@@ -231,3 +231,4 @@ namespace sol
 		return StaticMesh::Create(vertices, ArrayCount(vertices), VertexLayoutType::Value::PNT);
 	}
 }
+#endif

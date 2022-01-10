@@ -4,8 +4,16 @@
 
 namespace sol
 {
+	struct PlayerState
+	{
+		Vec3f velocity;
+		real32 drag;
+		real32 mass;
+	};
+
 	struct GameState
 	{
+		PlayerState playerState;
 		Entity hostPlayer;
 		Entity peerPlayer;
 
@@ -22,7 +30,8 @@ namespace sol
 
 		room->Initliaze();
 		gameState->hostPlayer = room->CreateEntity("cube");
-		gameState->hostPlayer.SetMaterial("alien", "");
+		gameState->hostPlayer.SetMaterial("craft_speederD", "");
+		gameState->hostPlayer.SetLocalTransform(Transform(Vec3f(), Quatf(), Vec3f(0.5f)));
 		gameState->cameraOffset = room->camera.transform.position - gameState->hostPlayer.GetLocalTransform().position;
 
 		Entity terrian = room->CreateEntity(String("terrain"));
@@ -72,17 +81,48 @@ namespace sol
 
 	static void UpdatePlayer(real32 dt)
 	{
+		real32 forwardForceStrength = 20.0f;
+		real32 strafeForceStrength = 10.0f;
+		real32 rocketImpuseStrength = 2.0f;
+		real32 maxSpeed = 15.0f;
+
 		Input* input = Input::Get();
 		Room* room = &gameState->room;
+		PlayerState* player = &gameState->playerState;
 
-		Vec3f dir = Vec3f(0);
-		dir.x = (real32)(input->d - input->a);
-		dir.z = (real32)(input->w - input->s);
-		dir = Normalize(dir);
-		dir = dir * 3.0f * dt;
+		player->drag = 0.97f;
+		player->mass = 2.0f;
+
+		real32 forwardDir = (real32)(input->w - input->s);
+		real32 strafeDir = (real32)(input->d - input->a);
 
 		Transform transform = gameState->hostPlayer.GetLocalTransform();
-		transform.position += dir;
+		Basis basis = transform.GetBasis();
+		basis.forward.y = 0;
+		basis.right.y = 0;
+		basis.forward = Normalize(basis.forward);
+		basis.right = Normalize(basis.right);
+
+		Vec3f appliedAcceleration = Vec3f(0);
+		appliedAcceleration += (basis.forward * forwardDir * forwardForceStrength) / player->mass;
+		appliedAcceleration += (basis.right * strafeDir * strafeForceStrength) / player->mass;
+
+		player->velocity += appliedAcceleration * dt;
+
+		if (input->space)
+		{
+			player->velocity += basis.forward * rocketImpuseStrength;
+		}
+
+		if (MagSqrd(player->velocity) > maxSpeed * maxSpeed)
+		{
+			player->velocity = Normalize(player->velocity);
+			player->velocity = player->velocity * maxSpeed;
+		}
+
+		transform.position += player->velocity * dt;
+		transform.position.y = 0.25f;
+		player->velocity = player->velocity * player->drag;
 
 		Plane plane = Plane::Create(Vec3f(0), Vec3f(0, 1, 0));
 		Ray ray = room->camera.ShootRayAtMouse();
@@ -92,6 +132,10 @@ namespace sol
 		{
 			transform.LookAtLH(info.closePoint);
 		}
+
+
+		transform.GlobalRotateX(-1.0f * DegToRad(7.0f) * forwardDir);
+		transform.GlobalRotateZ(-1.0f * DegToRad(10.0f) * strafeDir);
 
 		gameState->hostPlayer.SetLocalTransform(transform);
 		Vec3f cameraPos = transform.position + gameState->cameraOffset;

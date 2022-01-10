@@ -9,7 +9,7 @@
 #include <d3dcompiler.h>
 
 #define DirectXDebugMessageCount 10
-
+#if SOL_DEBUG_RENDERING
 #define DXCHECK(call)                                                                                                   \
     {                                                                                                                   \
         dc.debug.next = dc.debug.info_queue->GetNumStoredMessages(DXGI_DEBUG_ALL);                    \
@@ -32,7 +32,10 @@
 		(call);                                              \
         LogDirectXDebugGetMessages(&dc.debug);		 \
     }
-
+#else 
+#define DXCHECK(call) {(call);}
+#define DXINFO(call) {(call);}
+#endif
 
 //@NOTE: This is not a debug thing, it will be used in release !!!
 #define DXRELEASE(object)  \
@@ -463,4 +466,4 @@ namespace sol
 		return 0;
 	}
 
-}
+	}

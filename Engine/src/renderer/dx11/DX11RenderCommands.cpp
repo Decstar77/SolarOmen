@@ -1,5 +1,5 @@
 #include "DX11RenderCommands.h"
-
+#if SOLAR_PLATFORM_WINDOWS && USE_DIRECX11
 namespace sol
 {
 	void RenderCommand::ClearRenderTarget(ID3D11RenderTargetView* target, const Vec4f& colour)
@@ -161,3 +161,4 @@ namespace sol
 	//}
 
 }
+#endif
