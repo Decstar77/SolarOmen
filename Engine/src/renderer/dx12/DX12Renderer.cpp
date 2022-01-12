@@ -273,21 +273,18 @@ namespace sol
 				"F:/codes/SolarOmen/SolarOmen-2/Engine/src/renderer/shaders/FirstShader.hlsl",
 				VertexLayoutType::Value::PC);
 
-			D3D12_DESCRIPTOR_RANGE  descriptorTableRanges[1] = {};
-			descriptorTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-			descriptorTableRanges[0].NumDescriptors = 1;
-			descriptorTableRanges[0].BaseShaderRegister = 0;
-			descriptorTableRanges[0].RegisterSpace = 0;
-			descriptorTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-			D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable = {};
-			descriptorTable.NumDescriptorRanges = ArrayCount(descriptorTableRanges);
-			descriptorTable.pDescriptorRanges = &descriptorTableRanges[0];
-
-			D3D12_ROOT_PARAMETER  rootParameters[1] = {};
-			rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rootParameters[0].DescriptorTable = descriptorTable;
+			D3D12_ROOT_PARAMETER  rootParameters[2] = {};
+			rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+			rootParameters[0].Descriptor.RegisterSpace = 0;
+			rootParameters[0].Descriptor.ShaderRegister = 0;
 			rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+			rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+			rootParameters[1].Constants.RegisterSpace = 0;
+			rootParameters[1].Constants.ShaderRegister = 1;
+			rootParameters[1].Constants.Num32BitValues = 4;
+			rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
 			rs.rootSignature = CreateRootSignature(
 				rootParameters, ArrayCount(rootParameters),
@@ -297,15 +294,6 @@ namespace sol
 				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 				D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
 				D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
-
-			for (uint32 i = 0; i < rs.swapChainBufferCount; i++)
-			{
-				D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-				heapDesc.NumDescriptors = 1;
-				heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-				heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-				DXCHECK(rs.device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&rs.mainDescriptorHeap[i])));
-			}
 
 			for (uint32 i = 0; i < rs.swapChainBufferCount; i++)
 			{
@@ -319,14 +307,14 @@ namespace sol
 					nullptr,
 					IID_PPV_ARGS(&rs.constantBufferUploadHeap[i])));
 
-				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-				cbvDesc.BufferLocation = rs.constantBufferUploadHeap[i]->GetGPUVirtualAddress();
-				cbvDesc.SizeInBytes = (sizeof(Vec4f) + 255) & ~255;
-				DXINFO(rs.device->CreateConstantBufferView(&cbvDesc, rs.mainDescriptorHeap[i]->GetCPUDescriptorHandleForHeapStart()));
-
 				CD3DX12_RANGE readRange(0, 0);
 				DXCHECK(rs.constantBufferUploadHeap[i]->Map(0, &readRange, reinterpret_cast<void**>(&rs.cbColorMultiplierGPUAddress[i])));
-				memcpy(rs.cbColorMultiplierGPUAddress[i], &rs.cbColour.ptr, sizeof(rs.cbColour));
+
+				rs.mvp1 = Mat4f(1);
+				rs.mvp2 = Mat4f(1);
+
+				memcpy(rs.cbColorMultiplierGPUAddress[i], &rs.mvp1.ptr, sizeof(rs.mvp1));
+				memcpy(rs.cbColorMultiplierGPUAddress[i] + ConstantBufferPerObjectAlignedSize, &rs.mvp2.ptr, sizeof(rs.mvp2));
 			}
 
 
@@ -399,13 +387,16 @@ namespace sol
 	{
 		rs.currentSwapChainBufferIndex = rs.swapChain->GetCurrentBackBufferIndex();
 
-		rs.cbColour = Vec4f(1, 1, 1, 1);
-		// copy our ConstantBuffer instance to the mapped constant buffer resource
-		memcpy(rs.cbColorMultiplierGPUAddress[rs.currentSwapChainBufferIndex], &rs.cbColour, sizeof(rs.cbColour));
+		Transform v = Transform(Vec3f(0, 0, -3));
+		Transform m1 = Transform(Vec3f(-1.5f, 0, 0));
+		Transform m2 = Transform(Vec3f(1.5f, 0, 0));
+		rs.mvp1 = Transpose(m1.CalculateTransformMatrix() * Inverse(v.CalculateTransformMatrix()) * renderPacket->projectionMatrix);
+		rs.mvp2 = Transpose(m2.CalculateTransformMatrix() * Inverse(v.CalculateTransformMatrix()) * renderPacket->projectionMatrix);
+
+		memcpy(rs.cbColorMultiplierGPUAddress[rs.currentSwapChainBufferIndex], &rs.mvp1.ptr, sizeof(rs.mvp1));
+		memcpy(rs.cbColorMultiplierGPUAddress[rs.currentSwapChainBufferIndex] + ConstantBufferPerObjectAlignedSize, &rs.mvp2.ptr, sizeof(rs.mvp2));
 
 		RenderState::FlushCommandQueue();
-
-
 		DXCHECK(rs.command.allocator[rs.currentSwapChainBufferIndex]->Reset());
 		DXCHECK(rs.command.list->Reset(rs.command.allocator[rs.currentSwapChainBufferIndex], rs.pso));
 
@@ -437,20 +428,24 @@ namespace sol
 		DXINFO(rs.command.list->ClearRenderTargetView(rtvHandle, cc.ptr, 0, nullptr));
 		DXINFO(rs.command.list->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr));
 		DXINFO(rs.command.list->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle));
-
-
-		DXINFO(rs.command.list->SetGraphicsRootSignature(rs.rootSignature));
-
-		ID3D12DescriptorHeap* descriptorHeaps[] = { rs.mainDescriptorHeap[rs.currentSwapChainBufferIndex] };
-		DXINFO(rs.command.list->SetDescriptorHeaps(ArrayCount(descriptorHeaps), descriptorHeaps));
-		DXINFO(rs.command.list->SetGraphicsRootDescriptorTable(0, rs.mainDescriptorHeap[rs.currentSwapChainBufferIndex]->GetGPUDescriptorHandleForHeapStart()));
-
-
 		DXINFO(rs.command.list->RSSetViewports(1, &viewport));
 		DXINFO(rs.command.list->RSSetScissorRects(1, &scissorRect));
 		DXINFO(rs.command.list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+
 		DXINFO(rs.command.list->IASetVertexBuffers(0, 1, &rs.mesh.vertexBufferView));
 		DXINFO(rs.command.list->IASetIndexBuffer(&rs.mesh.indexBufferView));
+		DXINFO(rs.command.list->SetGraphicsRootSignature(rs.rootSignature));
+
+		Vec4f colour = Vec4f(1, 1, 1, 1);
+		DXINFO(rs.command.list->SetGraphicsRootConstantBufferView(0, rs.constantBufferUploadHeap[rs.currentSwapChainBufferIndex]->GetGPUVirtualAddress()));
+		DXINFO(rs.command.list->SetGraphicsRoot32BitConstants(1, 4, colour.ptr, 0));
+
+		DXINFO(rs.command.list->DrawIndexedInstanced(rs.mesh.indexCount, 1, 0, 0, 0));
+
+		DXINFO(rs.command.list->SetGraphicsRootConstantBufferView(0,
+			rs.constantBufferUploadHeap[rs.currentSwapChainBufferIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize));
+		colour = Vec4f(1, 0, 1, 1);
+		DXINFO(rs.command.list->SetGraphicsRoot32BitConstants(1, 4, colour.ptr, 0));
 		DXINFO(rs.command.list->DrawIndexedInstanced(rs.mesh.indexCount, 1, 0, 0, 0));
 
 		RenderState::ResourceTransition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);

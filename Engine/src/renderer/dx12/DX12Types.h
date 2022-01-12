@@ -107,6 +107,8 @@ namespace sol
 		static StaticTexture Create(uint32 width, uint32 height, TextureFormat format);
 	};
 
+	constexpr uint32 ConstantBufferPerObjectAlignedSize = 256;
+
 	struct RenderState
 	{
 		ID3D12Device* device;
@@ -130,11 +132,11 @@ namespace sol
 		ID3D12PipelineState* pso;
 		ID3D12RootSignature* rootSignature;
 
-		ID3D12DescriptorHeap* mainDescriptorHeap[3];
 		ID3D12Resource* constantBufferUploadHeap[3];
 		uint8* cbColorMultiplierGPUAddress[3];
-		Vec4f cbColour;
 
+		Mat4f mvp1;
+		Mat4f mvp2;
 
 		StaticMesh mesh;
 
