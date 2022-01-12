@@ -60,10 +60,19 @@ namespace sol
 	void LogDirectXDebugGetMessages();
 #endif
 
+	struct RenderState;
+
 	struct Fence
 	{
 		ID3D12Fence* fence;
 		uint64 value;
+	};
+
+	struct Command
+	{
+		ID3D12CommandQueue* queue;
+		ID3D12CommandAllocator* allocator[3];
+		ID3D12GraphicsCommandList* list;
 	};
 
 	struct StaticProgram
@@ -82,17 +91,20 @@ namespace sol
 		ID3D12Resource* vertexBuffer;
 		ID3D12Resource* indexBuffer;
 
-		static StaticMesh Create(ID3D12CommandQueue* queue, real32* vertices, uint32 vertexCount, VertexLayoutType layout);
-		static StaticMesh Create(ID3D12CommandQueue* queue, real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
+		uint32 vertexCount;
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+		uint32 indexCount;
+		D3D12_INDEX_BUFFER_VIEW indexBufferView;
+
+		static StaticMesh Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout);
+		static StaticMesh Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
 	};
 
 	struct RenderState
 	{
 		ID3D12Device* device;
 
-		ID3D12CommandQueue* commandQueue;
-		ID3D12CommandAllocator* commandAllocator[3];
-		ID3D12GraphicsCommandList* commandList;
+		Command command;
 
 		HANDLE fenceEvent;
 		Fence fences[3];
@@ -109,7 +121,15 @@ namespace sol
 		uint32 currentSwapChainBufferIndex;
 
 		ID3D12PipelineState* pso;
-	};
+		ID3D12RootSignature* rootSignature;
 
-	ID3D12Device* GetDevice();
+		StaticMesh mesh;
+
+		static ID3D12Device* GetDevice();
+		static ID3D12CommandAllocator* GetCurrentCommandAllocator();
+		static ID3D12GraphicsCommandList* GetCommandList();
+		static void ExecuteCommandList();
+		static void FlushCommandQueue();
+		static void ResourceTransition(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES end);
+	};
 }

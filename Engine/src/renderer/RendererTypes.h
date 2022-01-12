@@ -514,6 +514,7 @@ namespace sol
 			case Value::PNTC: return 3 + 3 + 2 + 4;
 			case Value::PNTM: return 3 + 3 + 2 + 16;
 			case Value::TEXT: return 4;
+			case Value::PC: return 3 + 4;
 			}
 
 			Assert(0, "INVALID STRIDE");

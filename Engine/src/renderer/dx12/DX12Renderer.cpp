@@ -13,7 +13,7 @@
 
 namespace sol
 {
-	static RenderState renderState = {};
+	static RenderState rs = {};
 #if SOL_DEBUG_RENDERING
 	static bool8 InitializeDirectXDebugLogging()
 	{
@@ -61,10 +61,48 @@ namespace sol
 	}
 #endif
 
-	ID3D12Device* sol::GetDevice()
+	ID3D12Device* RenderState::GetDevice()
 	{
-		return renderState.device;
+		return rs.device;
 	}
+
+	ID3D12CommandAllocator* RenderState::GetCurrentCommandAllocator()
+	{
+		return rs.command.allocator[rs.currentSwapChainBufferIndex];
+	}
+
+	ID3D12GraphicsCommandList* RenderState::GetCommandList()
+	{
+		return rs.command.list;
+	}
+
+	void RenderState::ExecuteCommandList()
+	{
+		ID3D12CommandList* commandLists[] = { rs.command.list };
+		DXINFO(rs.command.queue->ExecuteCommandLists(1, commandLists));
+		DXCHECK(rs.command.queue->Signal(rs.fences[rs.currentSwapChainBufferIndex].fence,
+			rs.fences[rs.currentSwapChainBufferIndex].value));
+	}
+
+	void RenderState::FlushCommandQueue()
+	{
+		Fence* fence = &rs.fences[rs.currentSwapChainBufferIndex];
+
+		if (fence->fence->GetCompletedValue() < fence->value)
+		{
+			DXCHECK(fence->fence->SetEventOnCompletion(fence->value, rs.fenceEvent));
+			WaitForSingleObject(rs.fenceEvent, INFINITE);
+		}
+
+		fence->value++;
+	}
+
+	void RenderState::ResourceTransition(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES end)
+	{
+		auto transition = CD3DX12_RESOURCE_BARRIER::Transition(resource, before, end);
+		DXINFO(rs.command.list->ResourceBarrier(1, &transition));
+	}
+
 
 	IDXGIAdapter1* FindSuitableGPUAdapter(IDXGIFactory4* dxgiFactory)
 	{
@@ -117,30 +155,15 @@ namespace sol
 		ID3D12RootSignature* sig = nullptr;
 
 		DXCHECK(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &errorBlob));
-		DXCHECK(renderState.device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&sig)));
+		DXCHECK(rs.device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&sig)));
 		signature->Release();
 
 		return sig;
 	}
 
 
-	static void FlushCommandQueue()
-	{
-		Fence* fence = &renderState.fences[renderState.currentSwapChainBufferIndex];
 
-		uint64 c = fence->fence->GetCompletedValue();
-
-		if (c < fence->value)
-		{
-			DXCHECK(fence->fence->SetEventOnCompletion(fence->value, renderState.fenceEvent));
-			WaitForSingleObject(renderState.fenceEvent, INFINITE);
-		}
-
-		c = fence->fence->GetCompletedValue();
-		fence->value++;
-	}
-
-	inline static void OffsetRTVDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* handle, int32 offset) { handle->ptr += offset * renderState.rtvDescriptorSize; }
+	inline static void OffsetRTVDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* handle, int32 offset) { handle->ptr += offset * rs.rtvDescriptorSize; }
 
 	bool8 Renderer::Initialize()
 	{
@@ -167,42 +190,42 @@ namespace sol
 		IDXGIAdapter1* adapter = FindSuitableGPUAdapter(dxgiFactory);
 		if (adapter)
 		{
-			renderState.swapChainBufferCount = 3;
+			rs.swapChainBufferCount = 3;
 
-			DXCHECK(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&renderState.device)));
+			DXCHECK(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&rs.device)));
 
 			D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {};
 			commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 			commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 			commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
-			DXCHECK(renderState.device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&renderState.commandQueue)));
-			for (uint32 i = 0; i < renderState.swapChainBufferCount; i++)
+			DXCHECK(rs.device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&rs.command.queue)));
+			for (uint32 i = 0; i < rs.swapChainBufferCount; i++)
 			{
-				DXCHECK(renderState.device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&renderState.commandAllocator[i])));
+				DXCHECK(rs.device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&rs.command.allocator[i])));
 			}
 
-			DXCHECK(renderState.device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-				renderState.commandAllocator[0], nullptr, IID_PPV_ARGS(&renderState.commandList)));
-			DXCHECK(renderState.commandList->Close());
+			DXCHECK(rs.device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+				rs.command.allocator[0], nullptr, IID_PPV_ARGS(&rs.command.list)));
+			DXCHECK(rs.command.list->Close());
 
 			D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-			rtvHeapDesc.NumDescriptors = renderState.swapChainBufferCount;
+			rtvHeapDesc.NumDescriptors = rs.swapChainBufferCount;
 			rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 			rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 			rtvHeapDesc.NodeMask = 0;
-			DXCHECK(renderState.device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&renderState.rtvDescriptorHeap)));
+			DXCHECK(rs.device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rs.rtvDescriptorHeap)));
 
 			D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
 			dsvHeapDesc.NumDescriptors = 1;
 			dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 			dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 			dsvHeapDesc.NodeMask = 0;
-			DXCHECK(renderState.device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&renderState.dsvDescriptorHeap)));
+			DXCHECK(rs.device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&rs.dsvDescriptorHeap)));
 
-			renderState.rtvDescriptorSize = renderState.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-			renderState.dsvDescriptorSize = renderState.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-			renderState.cbvSrvUavDescriptorSize = renderState.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			rs.rtvDescriptorSize = rs.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+			rs.dsvDescriptorSize = rs.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+			rs.cbvSrvUavDescriptorSize = rs.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 
 			DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
@@ -211,32 +234,32 @@ namespace sol
 			swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			swapChainDesc.SampleDesc.Count = 1;
 			swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			swapChainDesc.BufferCount = renderState.swapChainBufferCount;
+			swapChainDesc.BufferCount = rs.swapChainBufferCount;
 			swapChainDesc.OutputWindow = (HWND)Platform::GetNativeState();
 			swapChainDesc.Windowed = TRUE;
 			swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 			swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 			IDXGISwapChain* tempSwapChain = nullptr;
-			DXCHECK(dxgiFactory->CreateSwapChain(renderState.commandQueue, &swapChainDesc, &tempSwapChain));
-			renderState.swapChain = static_cast<IDXGISwapChain3*>(tempSwapChain);
+			DXCHECK(dxgiFactory->CreateSwapChain(rs.command.queue, &swapChainDesc, &tempSwapChain));
+			rs.swapChain = static_cast<IDXGISwapChain3*>(tempSwapChain);
 
-			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = renderState.rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-			for (uint32 i = 0; i < renderState.swapChainBufferCount; i++)
+			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rs.rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+			for (uint32 i = 0; i < rs.swapChainBufferCount; i++)
 			{
-				DXCHECK(renderState.swapChain->GetBuffer(i, IID_PPV_ARGS(&renderState.swapChainBuffers[i])));
-				DXINFO(renderState.device->CreateRenderTargetView(renderState.swapChainBuffers[i], nullptr, rtvHandle));
+				DXCHECK(rs.swapChain->GetBuffer(i, IID_PPV_ARGS(&rs.swapChainBuffers[i])));
+				DXINFO(rs.device->CreateRenderTargetView(rs.swapChainBuffers[i], nullptr, rtvHandle));
 				OffsetRTVDescriptor(&rtvHandle, 1);
 			}
 
-			for (uint32 i = 0; i < renderState.swapChainBufferCount; i++)
+			for (uint32 i = 0; i < rs.swapChainBufferCount; i++)
 			{
-				DXCHECK(renderState.device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&renderState.fences[i].fence)));
-				renderState.fences[i].value = 0;
+				DXCHECK(rs.device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&rs.fences[i].fence)));
+				rs.fences[i].value = 0;
 			}
 
 
-			renderState.fenceEvent = CreateEventA(nullptr, FALSE, FALSE, nullptr);
+			rs.fenceEvent = CreateEventA(nullptr, FALSE, FALSE, nullptr);
 
 			SOLINFO("DirectX12 device/swapchain/queue have been successfully created");
 
@@ -245,7 +268,7 @@ namespace sol
 				"F:/codes/SolarOmen/SolarOmen-2/Engine/src/renderer/shaders/FirstShader.hlsl",
 				VertexLayoutType::Value::PC);
 
-			ID3D12RootSignature* rootSignature = CreateRootSignature(nullptr, 0, nullptr,
+			rs.rootSignature = CreateRootSignature(nullptr, 0, nullptr,
 				0, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 			D3D12_INPUT_ELEMENT_DESC inputLayout[] =
@@ -260,7 +283,7 @@ namespace sol
 
 			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 			psoDesc.InputLayout = inputLayoutDesc;
-			psoDesc.pRootSignature = rootSignature;
+			psoDesc.pRootSignature = rs.rootSignature;
 			psoDesc.VS = program.vertexShaderByteCode;
 			psoDesc.PS = program.pixelShaderByteCode;
 			psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -270,10 +293,19 @@ namespace sol
 			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 			psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 			psoDesc.NumRenderTargets = 1;
-			psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-			psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+			//psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+			//psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
-			DXCHECK(renderState.device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&renderState.pso)));
+			DXCHECK(rs.device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&rs.pso)));
+
+			real32 vertices[] = {
+				0.0f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f ,
+				0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f ,
+				-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f
+			};
+
+			rs.mesh = StaticMesh::Create(vertices, 3, VertexLayoutType::Value::PC);
+
 
 			return true;
 		}
@@ -281,41 +313,55 @@ namespace sol
 		return false;
 	}
 
-	static void ResourceTransition(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES end)
-	{
-		auto transition = CD3DX12_RESOURCE_BARRIER::Transition(resource, before, end);
-		DXINFO(renderState.commandList->ResourceBarrier(1, &transition));
-	}
-
 	void Renderer::Render(RenderPacket* renderPacket)
 	{
-		FlushCommandQueue();
-		renderState.currentSwapChainBufferIndex = renderState.swapChain->GetCurrentBackBufferIndex();
+		RenderState::FlushCommandQueue();
+		rs.currentSwapChainBufferIndex = rs.swapChain->GetCurrentBackBufferIndex();
 
-		DXCHECK(renderState.commandAllocator[renderState.currentSwapChainBufferIndex]->Reset());
-		DXCHECK(renderState.commandList->Reset(renderState.commandAllocator[renderState.currentSwapChainBufferIndex], NULL));
+		DXCHECK(rs.command.allocator[rs.currentSwapChainBufferIndex]->Reset());
+		DXCHECK(rs.command.list->Reset(rs.command.allocator[rs.currentSwapChainBufferIndex], rs.pso));
 
-		auto renderTarget = renderState.swapChainBuffers[renderState.currentSwapChainBufferIndex];
-		ResourceTransition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		auto renderTarget = rs.swapChainBuffers[rs.currentSwapChainBufferIndex];
+		RenderState::ResourceTransition(renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-		auto rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(renderState.rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-			renderState.currentSwapChainBufferIndex, renderState.rtvDescriptorSize);
+		auto rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(rs.rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+			rs.currentSwapChainBufferIndex, rs.rtvDescriptorSize);
 
 		/////////////////////////////////////
+
+		D3D12_VIEWPORT viewport = {};
+		viewport.TopLeftX = 0;
+		viewport.TopLeftY = 0;
+		viewport.Width = (real32)Platform::GetWindowWidth();
+		viewport.Height = (real32)Platform::GetWindowHeight();
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+
+		D3D12_RECT scissorRect = {};
+		scissorRect.left = 0;
+		scissorRect.top = 0;
+		scissorRect.right = Platform::GetWindowWidth();
+		scissorRect.bottom = Platform::GetWindowHeight();
 
 		Vec4f cc = Vec4f(0.0f, 0.2f, 0.4f, 1.0f);
-		DXINFO(renderState.commandList->ClearRenderTargetView(rtvHandle, cc.ptr, 0, nullptr));
-		DXINFO(renderState.commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL));
+		DXINFO(rs.command.list->ClearRenderTargetView(rtvHandle, cc.ptr, 0, nullptr));
+		DXINFO(rs.command.list->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL));
+		DXINFO(rs.command.list->SetGraphicsRootSignature(rs.rootSignature));
+		DXINFO(rs.command.list->RSSetViewports(1, &viewport));
+		DXINFO(rs.command.list->RSSetScissorRects(1, &scissorRect));
+		DXINFO(rs.command.list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+		DXINFO(rs.command.list->IASetVertexBuffers(0, 1, &rs.mesh.vertexBufferView));
+		DXINFO(rs.command.list->DrawInstanced(3, 1, 0, 0));
 
-		ResourceTransition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		RenderState::ResourceTransition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
 		/////////////////////////////////////
-		DXCHECK(renderState.commandList->Close());
-		ID3D12CommandList* commandLists[] = { renderState.commandList };
-		DXINFO(renderState.commandQueue->ExecuteCommandLists(1, commandLists));
-		DXCHECK(renderState.commandQueue->Signal(renderState.fences[renderState.currentSwapChainBufferIndex].fence,
-			renderState.fences[renderState.currentSwapChainBufferIndex].value));
-		DXCHECK(renderState.swapChain->Present(0, 0));
+		DXCHECK(rs.command.list->Close());
+		ID3D12CommandList* commandLists[] = { rs.command.list };
+		DXINFO(rs.command.queue->ExecuteCommandLists(1, commandLists));
+		DXCHECK(rs.command.queue->Signal(rs.fences[rs.currentSwapChainBufferIndex].fence,
+			rs.fences[rs.currentSwapChainBufferIndex].value));
+		DXCHECK(rs.swapChain->Present(0, 0));
 	}
 
 	void Renderer::Shutdown()
