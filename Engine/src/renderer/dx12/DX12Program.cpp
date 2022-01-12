@@ -40,8 +40,8 @@ namespace sol
 
 	StaticProgram StaticProgram::DebugCreateCompile(const String& programPath, VertexLayoutType layout)
 	{
-		ID3DBlob* vertexShader = CompileShader(programPath, "VSmain", "vs_5_0");
-		ID3DBlob* pixelShader = CompileShader(programPath, "PSmain", "ps_5_0");
+		ID3DBlob* vertexShader = CompileShader(programPath, "VSmain", "vs_5_1");
+		ID3DBlob* pixelShader = CompileShader(programPath, "PSmain", "ps_5_1");
 
 		if (!(vertexShader && pixelShader))
 		{

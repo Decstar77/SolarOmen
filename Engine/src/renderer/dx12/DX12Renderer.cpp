@@ -2,6 +2,8 @@
 #include "../SolarRenderer.h"
 #include "core/SolarEvent.h"
 #include "core/SolarLogging.h"
+#include "core/SolarDebug.h"
+
 #if SOLAR_PLATFORM_WINDOWS && USE_DIRECX12
 
 #include "platform/SolarPlatform.h"
@@ -90,6 +92,7 @@ namespace sol
 
 		if (fence->fence->GetCompletedValue() < fence->value)
 		{
+			//SOLTRACE("WAIT");
 			DXCHECK(fence->fence->SetEventOnCompletion(fence->value, rs.fenceEvent));
 			WaitForSingleObject(rs.fenceEvent, INFINITE);
 		}
@@ -156,7 +159,9 @@ namespace sol
 
 		DXCHECK(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &errorBlob));
 		DXCHECK(rs.device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&sig)));
-		signature->Release();
+
+		DXRELEASE(errorBlob);
+		DXRELEASE(signature);
 
 		return sig;
 	}
@@ -268,8 +273,62 @@ namespace sol
 				"F:/codes/SolarOmen/SolarOmen-2/Engine/src/renderer/shaders/FirstShader.hlsl",
 				VertexLayoutType::Value::PC);
 
-			rs.rootSignature = CreateRootSignature(nullptr, 0, nullptr,
-				0, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+			D3D12_DESCRIPTOR_RANGE  descriptorTableRanges[1] = {};
+			descriptorTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+			descriptorTableRanges[0].NumDescriptors = 1;
+			descriptorTableRanges[0].BaseShaderRegister = 0;
+			descriptorTableRanges[0].RegisterSpace = 0;
+			descriptorTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+			D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable = {};
+			descriptorTable.NumDescriptorRanges = ArrayCount(descriptorTableRanges);
+			descriptorTable.pDescriptorRanges = &descriptorTableRanges[0];
+
+			D3D12_ROOT_PARAMETER  rootParameters[1] = {};
+			rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rootParameters[0].DescriptorTable = descriptorTable;
+			rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+			rs.rootSignature = CreateRootSignature(
+				rootParameters, ArrayCount(rootParameters),
+				nullptr, 0,
+				D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+				D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+				D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+				D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
+
+			for (uint32 i = 0; i < rs.swapChainBufferCount; i++)
+			{
+				D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+				heapDesc.NumDescriptors = 1;
+				heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+				heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+				DXCHECK(rs.device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&rs.mainDescriptorHeap[i])));
+			}
+
+			for (uint32 i = 0; i < rs.swapChainBufferCount; i++)
+			{
+				auto heapType = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+				auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
+				DXCHECK(rs.device->CreateCommittedResource(
+					&heapType,
+					D3D12_HEAP_FLAG_NONE,
+					&resDesc,
+					D3D12_RESOURCE_STATE_GENERIC_READ,
+					nullptr,
+					IID_PPV_ARGS(&rs.constantBufferUploadHeap[i])));
+
+				D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+				cbvDesc.BufferLocation = rs.constantBufferUploadHeap[i]->GetGPUVirtualAddress();
+				cbvDesc.SizeInBytes = (sizeof(Vec4f) + 255) & ~255;
+				DXINFO(rs.device->CreateConstantBufferView(&cbvDesc, rs.mainDescriptorHeap[i]->GetCPUDescriptorHandleForHeapStart()));
+
+				CD3DX12_RANGE readRange(0, 0);
+				DXCHECK(rs.constantBufferUploadHeap[i]->Map(0, &readRange, reinterpret_cast<void**>(&rs.cbColorMultiplierGPUAddress[i])));
+				memcpy(rs.cbColorMultiplierGPUAddress[i], &rs.cbColour.ptr, sizeof(rs.cbColour));
+			}
+
 
 			D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 			{
@@ -277,12 +336,9 @@ namespace sol
 				{ "COLOUR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 			};
 
-			D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
-			inputLayoutDesc.NumElements = sizeof(inputLayout) / sizeof(D3D12_INPUT_ELEMENT_DESC);
-			inputLayoutDesc.pInputElementDescs = inputLayout;
-
 			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-			psoDesc.InputLayout = inputLayoutDesc;
+			psoDesc.InputLayout.NumElements = ArrayCount(inputLayout);
+			psoDesc.InputLayout.pInputElementDescs = inputLayout;
 			psoDesc.pRootSignature = rs.rootSignature;
 			psoDesc.VS = program.vertexShaderByteCode;
 			psoDesc.PS = program.pixelShaderByteCode;
@@ -293,19 +349,45 @@ namespace sol
 			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 			psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 			psoDesc.NumRenderTargets = 1;
-			//psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-			//psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+			psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+			psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
 			DXCHECK(rs.device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&rs.pso)));
 
-			real32 vertices[] = {
-				0.0f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f ,
-				0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f ,
-				-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f
+			StaticTexture depthTexture = StaticTexture::Create(Platform::GetWindowWidth(), Platform::GetWindowHeight(), TextureFormat::Value::D32_FLOAT);
+
+			D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+			depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+			depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+			depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+			DXINFO(rs.device->CreateDepthStencilView(depthTexture.texture, &depthStencilDesc, rs.dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart()));
+
+
+			//real32 vertices[] = {
+			//	0.0f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f ,
+			//	0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f ,
+			//	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f
+			//};
+
+			//rs.mesh = StaticMesh::Create(vertices, 3, VertexLayoutType::Value::PC);
+
+			real32 vList[] = {
+				-0.5f,  0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
+				 0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
+				-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f,
+				 0.5f,  0.5f, 0.5f, 1.0f, 0.0f, 1.0f, 1.0f
 			};
 
-			rs.mesh = StaticMesh::Create(vertices, 3, VertexLayoutType::Value::PC);
+			uint32 iList[] = {
+				0, 1, 2,
+				0, 3, 1
+			};
 
+			rs.mesh = StaticMesh::Create(vList, 4, iList, 6, VertexLayoutType::Value::PC);
+
+
+
+			for (uint32 i = 0; i < rs.swapChainBufferCount; i++) { rs.fences[i].value = 0; }
 
 			return true;
 		}
@@ -315,8 +397,14 @@ namespace sol
 
 	void Renderer::Render(RenderPacket* renderPacket)
 	{
-		RenderState::FlushCommandQueue();
 		rs.currentSwapChainBufferIndex = rs.swapChain->GetCurrentBackBufferIndex();
+
+		rs.cbColour = Vec4f(1, 1, 1, 1);
+		// copy our ConstantBuffer instance to the mapped constant buffer resource
+		memcpy(rs.cbColorMultiplierGPUAddress[rs.currentSwapChainBufferIndex], &rs.cbColour, sizeof(rs.cbColour));
+
+		RenderState::FlushCommandQueue();
+
 
 		DXCHECK(rs.command.allocator[rs.currentSwapChainBufferIndex]->Reset());
 		DXCHECK(rs.command.list->Reset(rs.command.allocator[rs.currentSwapChainBufferIndex], rs.pso));
@@ -327,6 +415,8 @@ namespace sol
 		auto rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(rs.rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
 			rs.currentSwapChainBufferIndex, rs.rtvDescriptorSize);
 
+		auto dsvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(rs.dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+			0, rs.dsvDescriptorSize);
 		/////////////////////////////////////
 
 		D3D12_VIEWPORT viewport = {};
@@ -345,13 +435,23 @@ namespace sol
 
 		Vec4f cc = Vec4f(0.0f, 0.2f, 0.4f, 1.0f);
 		DXINFO(rs.command.list->ClearRenderTargetView(rtvHandle, cc.ptr, 0, nullptr));
-		DXINFO(rs.command.list->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL));
+		DXINFO(rs.command.list->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr));
+		DXINFO(rs.command.list->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle));
+
+
 		DXINFO(rs.command.list->SetGraphicsRootSignature(rs.rootSignature));
+
+		ID3D12DescriptorHeap* descriptorHeaps[] = { rs.mainDescriptorHeap[rs.currentSwapChainBufferIndex] };
+		DXINFO(rs.command.list->SetDescriptorHeaps(ArrayCount(descriptorHeaps), descriptorHeaps));
+		DXINFO(rs.command.list->SetGraphicsRootDescriptorTable(0, rs.mainDescriptorHeap[rs.currentSwapChainBufferIndex]->GetGPUDescriptorHandleForHeapStart()));
+
+
 		DXINFO(rs.command.list->RSSetViewports(1, &viewport));
 		DXINFO(rs.command.list->RSSetScissorRects(1, &scissorRect));
 		DXINFO(rs.command.list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
 		DXINFO(rs.command.list->IASetVertexBuffers(0, 1, &rs.mesh.vertexBufferView));
-		DXINFO(rs.command.list->DrawInstanced(3, 1, 0, 0));
+		DXINFO(rs.command.list->IASetIndexBuffer(&rs.mesh.indexBufferView));
+		DXINFO(rs.command.list->DrawIndexedInstanced(rs.mesh.indexCount, 1, 0, 0, 0));
 
 		RenderState::ResourceTransition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
@@ -361,7 +461,10 @@ namespace sol
 		DXINFO(rs.command.queue->ExecuteCommandLists(1, commandLists));
 		DXCHECK(rs.command.queue->Signal(rs.fences[rs.currentSwapChainBufferIndex].fence,
 			rs.fences[rs.currentSwapChainBufferIndex].value));
+
+
 		DXCHECK(rs.swapChain->Present(0, 0));
+
 	}
 
 	void Renderer::Shutdown()

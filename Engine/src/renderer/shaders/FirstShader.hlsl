@@ -10,11 +10,18 @@ struct VS_OUTPUT
 	float4 color: COLOUR;
 };
 
+struct VertexBuffer
+{
+	float4 colorMultiplier;
+};
+
+ConstantBuffer<VertexBuffer> vertexBuffer : register(b0, space0);
+
 VS_OUTPUT VSmain(VS_INPUT input)
 {
 	VS_OUTPUT output;
 	output.pos = float4(input.pos, 1.0f);
-	output.color = input.color;
+	output.color = input.color * vertexBuffer.colorMultiplier;
 	return output;
 }
 

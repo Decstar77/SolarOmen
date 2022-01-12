@@ -100,6 +100,13 @@ namespace sol
 		static StaticMesh Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
 	};
 
+	struct StaticTexture
+	{
+		ID3D12Resource* texture;
+
+		static StaticTexture Create(uint32 width, uint32 height, TextureFormat format);
+	};
+
 	struct RenderState
 	{
 		ID3D12Device* device;
@@ -122,6 +129,12 @@ namespace sol
 
 		ID3D12PipelineState* pso;
 		ID3D12RootSignature* rootSignature;
+
+		ID3D12DescriptorHeap* mainDescriptorHeap[3];
+		ID3D12Resource* constantBufferUploadHeap[3];
+		uint8* cbColorMultiplierGPUAddress[3];
+		Vec4f cbColour;
+
 
 		StaticMesh mesh;
 

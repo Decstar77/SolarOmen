@@ -94,6 +94,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\SolarDebug.h" />
     <ClInclude Include="src\core\SolarPrimitives.h" />
     <ClInclude Include="src\renderer\dx12\d3dx12.h" />
     <ClInclude Include="src\renderer\dx12\DX12Types.h" />
@@ -107,8 +108,6 @@
     <ClInclude Include="src\core\SolarMath.h" />
     <ClInclude Include="src\platform\SolarPlatform.h" />
     <ClInclude Include="src\platform\win32\Win32State.h" />
-    <ClInclude Include="src\renderer\dx11\DX11Types.h" />
-    <ClInclude Include="src\renderer\dx11\DX11RenderCommands.h" />
     <ClInclude Include="src\renderer\SolarRenderer.h" />
     <ClInclude Include="src\renderer\RendererTypes.h" />
     <ClInclude Include="src\SolarDefines.h" />
@@ -131,14 +130,10 @@
     <ClCompile Include="src\game\SolarEntity.cpp" />
     <ClCompile Include="src\game\SolarRoom.cpp" />
     <ClCompile Include="src\platform\win32\Win32Platform.cpp" />
-    <ClCompile Include="src\renderer\dx11\DX11Program.cpp" />
-    <ClCompile Include="src\renderer\dx11\DX11Renderer.cpp" />
-    <ClCompile Include="src\renderer\dx11\DX11RenderCommands.cpp" />
-    <ClCompile Include="src\renderer\dx11\DX11StaticMesh.cpp" />
-    <ClCompile Include="src\renderer\dx11\DX11Texture.cpp" />
     <ClCompile Include="src\renderer\dx12\DX12Mesh.cpp" />
     <ClCompile Include="src\renderer\dx12\DX12Program.cpp" />
     <ClCompile Include="src\renderer\dx12\DX12Renderer.cpp" />
+    <ClCompile Include="src\renderer\dx12\DX12Texture.cpp" />
     <ClCompile Include="src\resources\SolarResources.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

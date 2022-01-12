@@ -84,7 +84,7 @@ namespace sol
 			GameMemory::ReleaseAllTransientMemory();
 			clock.Update();
 			dt = (real32)clock.elapsed;
-			//SOLTRACE(String("Dt: ").Add((real32)clock.elapsed).GetCStr());
+			//SOLTRACE(String("Dt: ").Add((real32)clock.elapsed * 1000.0f).GetCStr());
 		}
 
 		return 1;

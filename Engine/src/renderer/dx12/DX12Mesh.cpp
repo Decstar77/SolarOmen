@@ -61,6 +61,9 @@ namespace sol
 
 		RenderState::FlushCommandQueue();
 		RenderState::ExecuteCommandList();
+		RenderState::FlushCommandQueue();
+
+		DXRELEASE(stagingBuffer);
 
 		StaticMesh mesh = {};
 		mesh.vertexCount = vertexCount;
@@ -68,6 +71,64 @@ namespace sol
 		mesh.vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
 		mesh.vertexBufferView.SizeInBytes = vertexSizeBytes;
 		mesh.vertexBufferView.StrideInBytes = layout.GetStride() * sizeof(real32);
+
+		return mesh;
+	}
+
+	StaticMesh StaticMesh::Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout)
+	{
+		uint32 vertexSizeBytes = vertexCount * layout.GetStride() * sizeof(real32);
+		uint32 indexSizeBytes = indexCount * sizeof(uint32);
+
+		auto vertexBuffer = CreateResourceHeap(vertexSizeBytes, D3D12_RESOURCE_STATE_COPY_DEST);
+		auto vertexStagingBuffer = CreateCopyResourceHeap(vertexSizeBytes);
+
+		auto indexBuffer = CreateResourceHeap(indexSizeBytes, D3D12_RESOURCE_STATE_COPY_DEST);
+		auto indexStagingBuffer = CreateCopyResourceHeap(indexSizeBytes);
+
+		D3D12_SUBRESOURCE_DATA vertexData = {};
+		vertexData.pData = vertices;
+		vertexData.RowPitch = vertexSizeBytes;
+		vertexData.SlicePitch = vertexSizeBytes;
+
+		D3D12_SUBRESOURCE_DATA indexData = {};
+		indexData.pData = indices;
+		indexData.RowPitch = indexSizeBytes;
+		indexData.SlicePitch = indexSizeBytes;
+
+		auto commandAllocator = RenderState::GetCurrentCommandAllocator();
+		auto commandList = RenderState::GetCommandList();
+
+		DXCHECK(commandAllocator->Reset());
+		DXCHECK(commandList->Reset(commandAllocator, NULL));
+
+		UpdateSubresources(commandList, vertexBuffer, vertexStagingBuffer, 0, 0, 1, &vertexData);
+		UpdateSubresources(commandList, indexBuffer, indexStagingBuffer, 0, 0, 1, &indexData);
+
+		RenderState::ResourceTransition(vertexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+		RenderState::ResourceTransition(indexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+
+		DXCHECK(commandList->Close());
+
+		RenderState::FlushCommandQueue();
+		RenderState::ExecuteCommandList();
+		RenderState::FlushCommandQueue();
+
+		DXRELEASE(vertexStagingBuffer);
+		DXRELEASE(indexStagingBuffer);
+
+		StaticMesh mesh = {};
+		mesh.vertexCount = vertexCount;
+		mesh.vertexBuffer = vertexBuffer;
+		mesh.vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+		mesh.vertexBufferView.SizeInBytes = vertexSizeBytes;
+		mesh.vertexBufferView.StrideInBytes = layout.GetStride() * sizeof(real32);
+
+		mesh.indexCount = indexCount;
+		mesh.indexBuffer = indexBuffer;
+		mesh.indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+		mesh.indexBufferView.SizeInBytes = indexSizeBytes;
+		mesh.indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 
 		return mesh;
 	}
