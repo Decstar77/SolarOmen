@@ -104,6 +104,7 @@ namespace sol
 	{
 		ID3D12Resource* texture;
 
+		static StaticTexture Create(const TextureResource& textureResource);
 		static StaticTexture Create(uint32 width, uint32 height, TextureFormat format);
 	};
 
@@ -139,12 +140,105 @@ namespace sol
 		Mat4f mvp2;
 
 		StaticMesh mesh;
+		StaticTexture texture;
 
 		static ID3D12Device* GetDevice();
 		static ID3D12CommandAllocator* GetCurrentCommandAllocator();
 		static ID3D12GraphicsCommandList* GetCommandList();
 		static void ExecuteCommandList();
-		static void FlushCommandQueue();
+		static void FlushCommandQueue(bool8 incrementFenceValue);
 		static void ResourceTransition(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES end);
 	};
+
+	inline DXGI_FORMAT GetTextureFormatToD3D(const TextureFormat& format)
+	{
+		switch (format.Get())
+		{
+		case TextureFormat::Value::R8G8B8A8_UNORM: return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case TextureFormat::Value::R16G16_UNORM: return DXGI_FORMAT_R16G16_UNORM;
+		case TextureFormat::Value::R8_BYTE: return DXGI_FORMAT_R8_UINT;
+		case TextureFormat::Value::R32_FLOAT: return DXGI_FORMAT_R32_FLOAT;
+		case TextureFormat::Value::D32_FLOAT: return DXGI_FORMAT_D32_FLOAT;
+		case TextureFormat::Value::R32_TYPELESS: return DXGI_FORMAT_R32_TYPELESS;
+		case TextureFormat::Value::R16_UNORM: return DXGI_FORMAT_R16_UNORM;
+		case TextureFormat::Value::D16_UNORM: return DXGI_FORMAT_D16_UNORM;
+		case TextureFormat::Value::R16_TYPELESS: return DXGI_FORMAT_R16_TYPELESS;
+		case TextureFormat::Value::R32G32_FLOAT: return DXGI_FORMAT_R32G32_FLOAT;
+		case TextureFormat::Value::R32G32B32_FLOAT: return DXGI_FORMAT_R32G32B32_FLOAT;
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		default: Assert(0, "TextureFormatToD3D ??");
+		}
+
+		return DXGI_FORMAT_UNKNOWN;
+	}
+
+	inline uint32 GetTextureFormatSizeBytes(const TextureFormat& format)
+	{
+		switch (format.Get())
+		{
+		case TextureFormat::Value::R8G8B8A8_UNORM: return sizeof(uint8) * 4;
+		case TextureFormat::Value::R16G16_UNORM: return sizeof(uint16) * 2;
+		case TextureFormat::Value::R8_BYTE: return sizeof(uint8);
+		case TextureFormat::Value::R32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::D32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32_TYPELESS: return sizeof(real32);
+		case TextureFormat::Value::R16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::D16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::R16_TYPELESS: return sizeof(uint16);
+		case TextureFormat::Value::R32G32_FLOAT: return sizeof(real32) * 2;
+		case TextureFormat::Value::R32G32B32_FLOAT: return sizeof(real32) * 3;
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return sizeof(real32) * 4;
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return sizeof(uint16) * 4;
+		default: Assert(0, "TextureFormatToD3D ??");
+		}
+
+		return 0;
+	}
+
+	inline uint32 GetTextureFormatElementSizeBytes(const TextureFormat& format)
+	{
+		switch (format.Get())
+		{
+		case TextureFormat::Value::R8G8B8A8_UNORM: return sizeof(uint8);
+		case TextureFormat::Value::R16G16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::R8_BYTE: return sizeof(uint8);
+		case TextureFormat::Value::R32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::D32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32_TYPELESS: return sizeof(real32);
+		case TextureFormat::Value::R16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::D16_UNORM: return sizeof(uint16);
+		case TextureFormat::Value::R16_TYPELESS: return sizeof(uint16);
+		case TextureFormat::Value::R32G32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32G32B32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return sizeof(real32);
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return sizeof(uint16);
+		default: Assert(0, "TextureFormatToD3D ??");
+		}
+
+		return 0;
+	}
+
+	inline uint32 GetTextureFormatElementCount(const TextureFormat& format)
+	{
+		switch (format.Get())
+		{
+		case TextureFormat::Value::R8G8B8A8_UNORM: return 4;
+		case TextureFormat::Value::R16G16_UNORM: return 2;
+		case TextureFormat::Value::R8_BYTE: return 1;
+		case TextureFormat::Value::R32_FLOAT: return 1;
+		case TextureFormat::Value::D32_FLOAT: return 1;
+		case TextureFormat::Value::R32_TYPELESS: return 1;
+		case TextureFormat::Value::R16_UNORM: return 1;
+		case TextureFormat::Value::D16_UNORM: return 1;
+		case TextureFormat::Value::R16_TYPELESS: return 1;
+		case TextureFormat::Value::R32G32_FLOAT: return 2;
+		case TextureFormat::Value::R32G32B32_FLOAT: return 3;
+		case TextureFormat::Value::R32G32B32A32_FLOAT: return 4;
+		case TextureFormat::Value::R16G16B16A16_FLOAT: return 4;
+		default: Assert(0, "TextureFormatToD3D ??");
+		}
+
+		return 0;
+	}
 }

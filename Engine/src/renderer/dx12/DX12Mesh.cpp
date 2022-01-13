@@ -59,9 +59,9 @@ namespace sol
 
 		DXCHECK(commandList->Close());
 
-		RenderState::FlushCommandQueue();
+		RenderState::FlushCommandQueue(true);
 		RenderState::ExecuteCommandList();
-		RenderState::FlushCommandQueue();
+		RenderState::FlushCommandQueue(false);
 
 		DXRELEASE(stagingBuffer);
 
@@ -110,9 +110,9 @@ namespace sol
 
 		DXCHECK(commandList->Close());
 
-		RenderState::FlushCommandQueue();
+		RenderState::FlushCommandQueue(true);
 		RenderState::ExecuteCommandList();
-		RenderState::FlushCommandQueue();
+		RenderState::FlushCommandQueue(false);
 
 		DXRELEASE(vertexStagingBuffer);
 		DXRELEASE(indexStagingBuffer);

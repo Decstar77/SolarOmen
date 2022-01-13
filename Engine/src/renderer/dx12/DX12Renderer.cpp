@@ -86,7 +86,7 @@ namespace sol
 			rs.fences[rs.currentSwapChainBufferIndex].value));
 	}
 
-	void RenderState::FlushCommandQueue()
+	void RenderState::FlushCommandQueue(bool8 incrementFenceValue)
 	{
 		Fence* fence = &rs.fences[rs.currentSwapChainBufferIndex];
 
@@ -97,7 +97,10 @@ namespace sol
 			WaitForSingleObject(rs.fenceEvent, INFINITE);
 		}
 
-		fence->value++;
+		if (incrementFenceValue)
+		{
+			fence->value++;
+		}
 	}
 
 	void RenderState::ResourceTransition(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES end)
@@ -232,7 +235,6 @@ namespace sol
 			rs.dsvDescriptorSize = rs.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 			rs.cbvSrvUavDescriptorSize = rs.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-
 			DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 			swapChainDesc.BufferDesc.Width = Platform::GetWindowWidth();
 			swapChainDesc.BufferDesc.Height = Platform::GetWindowHeight();
@@ -286,9 +288,24 @@ namespace sol
 			rootParameters[1].Constants.Num32BitValues = 4;
 			rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
+			D3D12_STATIC_SAMPLER_DESC sampler = {};
+			sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+			sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+			sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+			sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+			sampler.MipLODBias = 0;
+			sampler.MaxAnisotropy = 0;
+			sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+			sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+			sampler.MinLOD = 0.0f;
+			sampler.MaxLOD = D3D12_FLOAT32_MAX;
+			sampler.ShaderRegister = 0;
+			sampler.RegisterSpace = 0;
+			sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
 			rs.rootSignature = CreateRootSignature(
 				rootParameters, ArrayCount(rootParameters),
-				nullptr, 0,
+				&sampler, 1,
 				D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 				D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
@@ -321,7 +338,8 @@ namespace sol
 			D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 			{
 				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-				{ "COLOUR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+				{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 			};
 
 			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
@@ -343,6 +361,9 @@ namespace sol
 			DXCHECK(rs.device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&rs.pso)));
 
 			StaticTexture depthTexture = StaticTexture::Create(Platform::GetWindowWidth(), Platform::GetWindowHeight(), TextureFormat::Value::D32_FLOAT);
+			TextureResource textureRes = *Resources::GetTextureResource("PolygonScifi_01_C");
+			rs.texture = StaticTexture::Create(textureRes);
+
 
 			D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
 			depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -359,19 +380,18 @@ namespace sol
 
 			//rs.mesh = StaticMesh::Create(vertices, 3, VertexLayoutType::Value::PC);
 
-			real32 vList[] = {
-				-0.5f,  0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
-				 0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
-				-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f,
-				 0.5f,  0.5f, 0.5f, 1.0f, 0.0f, 1.0f, 1.0f
+			real32 vertexData[] = {
+				-1, 1, 0,	0, 0, -1,	0, 0,
+				1, -1, 0,	0, 0, -1,	1, 1,
+				-1, -1, 0,	0, 0, -1,	0, 1,
+				1, 1, 0,	0, 0, -1,	1, 0
 			};
 
-			uint32 iList[] = {
-				0, 1, 2,
-				0, 3, 1
+			uint32 indexData[] = {
+				0, 1, 2, 0, 3, 1
 			};
 
-			rs.mesh = StaticMesh::Create(vList, 4, iList, 6, VertexLayoutType::Value::PC);
+			rs.mesh = StaticMesh::Create(vertexData, 4, indexData, 6, VertexLayoutType::Value::PNT);
 
 
 
@@ -396,7 +416,7 @@ namespace sol
 		memcpy(rs.cbColorMultiplierGPUAddress[rs.currentSwapChainBufferIndex], &rs.mvp1.ptr, sizeof(rs.mvp1));
 		memcpy(rs.cbColorMultiplierGPUAddress[rs.currentSwapChainBufferIndex] + ConstantBufferPerObjectAlignedSize, &rs.mvp2.ptr, sizeof(rs.mvp2));
 
-		RenderState::FlushCommandQueue();
+		RenderState::FlushCommandQueue(true);
 		DXCHECK(rs.command.allocator[rs.currentSwapChainBufferIndex]->Reset());
 		DXCHECK(rs.command.list->Reset(rs.command.allocator[rs.currentSwapChainBufferIndex], rs.pso));
 

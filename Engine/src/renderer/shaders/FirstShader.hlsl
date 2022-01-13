@@ -1,13 +1,15 @@
 struct VS_INPUT
 {
 	float3 pos : POSITION;
-	float4 color: COLOUR;
+	float3 normal : NORMAL;
+	float2 uv : UV;
 };
 
 struct VS_OUTPUT
 {
-	float4 pos: SV_POSITION;
-	float4 color: COLOUR;
+	float4 pos : SV_POSITION;
+	float3 normal : NORMAL;
+	float2 uv : UV;
 };
 
 struct VertexBuffer
@@ -27,12 +29,14 @@ VS_OUTPUT VSmain(VS_INPUT input)
 {
 	VS_OUTPUT output;
 	output.pos = mul(float4(input.pos, 1.0f), vertexBuffer.mvp);
-	output.color = colourBuffer.colour;
+	output.normal = input.normal;
+	output.uv = input.uv;
+
 	return output;
 }
 
 float4 PSmain(VS_OUTPUT input) : SV_TARGET
 {
 	// return interpolated color
-	return input.color;
+	return float4(input.uv.x, input.uv.y, 0.0, 1.0);
 }
