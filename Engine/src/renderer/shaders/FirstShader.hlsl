@@ -35,6 +35,9 @@ VS_OUTPUT VSmain(VS_INPUT input)
 	return output;
 }
 
+Texture2D t0 : register(t0);
+SamplerState s0 : register(s0);
+
 float4 PSmain(VS_OUTPUT input) : SV_TARGET
 {
 	// return interpolated color

@@ -160,7 +160,14 @@ namespace sol
 
 		ID3D12RootSignature* sig = nullptr;
 
-		DXCHECK(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &errorBlob));
+		HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &errorBlob);
+
+		if (FAILED(hr))
+		{
+			SOLERROR((char*)errorBlob->GetBufferPointer());
+			return nullptr;
+		}
+
 		DXCHECK(rs.device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&sig)));
 
 		DXRELEASE(errorBlob);
@@ -231,6 +238,13 @@ namespace sol
 			dsvHeapDesc.NodeMask = 0;
 			DXCHECK(rs.device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&rs.dsvDescriptorHeap)));
 
+			D3D12_DESCRIPTOR_HEAP_DESC cbvSrvUavHeapDesc = {};
+			dsvHeapDesc.NumDescriptors = 10;
+			dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+			dsvHeapDesc.NodeMask = 0;
+			DXCHECK(rs.device->CreateDescriptorHeap(&cbvSrvUavHeapDesc, IID_PPV_ARGS(&rs.cbvSrvUavDescriptorHeap)));
+
 			rs.rtvDescriptorSize = rs.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 			rs.dsvDescriptorSize = rs.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 			rs.cbvSrvUavDescriptorSize = rs.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -276,7 +290,7 @@ namespace sol
 				VertexLayoutType::Value::PC);
 
 
-			D3D12_ROOT_PARAMETER  rootParameters[2] = {};
+			D3D12_ROOT_PARAMETER  rootParameters[3] = {};
 			rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 			rootParameters[0].Descriptor.RegisterSpace = 0;
 			rootParameters[0].Descriptor.ShaderRegister = 0;
@@ -287,6 +301,18 @@ namespace sol
 			rootParameters[1].Constants.ShaderRegister = 1;
 			rootParameters[1].Constants.Num32BitValues = 4;
 			rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+			D3D12_DESCRIPTOR_RANGE  descriptorTableRanges[1] = {};
+			descriptorTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+			descriptorTableRanges[0].NumDescriptors = 1;
+			descriptorTableRanges[0].BaseShaderRegister = 0;
+			descriptorTableRanges[0].RegisterSpace = 0;
+			descriptorTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+			rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rootParameters[2].DescriptorTable.NumDescriptorRanges = 1;
+			rootParameters[2].DescriptorTable.pDescriptorRanges = &descriptorTableRanges[0];
+			rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 			D3D12_STATIC_SAMPLER_DESC sampler = {};
 			sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
@@ -334,7 +360,6 @@ namespace sol
 				memcpy(rs.cbColorMultiplierGPUAddress[i] + ConstantBufferPerObjectAlignedSize, &rs.mvp2.ptr, sizeof(rs.mvp2));
 			}
 
-
 			D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 			{
 				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -364,6 +389,13 @@ namespace sol
 			TextureResource textureRes = *Resources::GetTextureResource("PolygonScifi_01_C");
 			rs.texture = StaticTexture::Create(textureRes);
 
+			//D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			//srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			//srvDesc.Format = GetTextureFormatToD3D(textureRes.format);
+			//srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			//srvDesc.Texture2D.MipLevels = 1;
+
+			//(rs.device->CreateShaderResourceView(rs.texture.texture, &srvDesc, rs.cbvSrvUavDescriptorHeap->GetCPUDescriptorHandleForHeapStart()));
 
 			D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
 			depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -456,9 +488,13 @@ namespace sol
 		DXINFO(rs.command.list->IASetIndexBuffer(&rs.mesh.indexBufferView));
 		DXINFO(rs.command.list->SetGraphicsRootSignature(rs.rootSignature));
 
-		Vec4f colour = Vec4f(1, 1, 1, 1);
+
 		DXINFO(rs.command.list->SetGraphicsRootConstantBufferView(0, rs.constantBufferUploadHeap[rs.currentSwapChainBufferIndex]->GetGPUVirtualAddress()));
+		Vec4f colour = Vec4f(1, 1, 1, 1);
 		DXINFO(rs.command.list->SetGraphicsRoot32BitConstants(1, 4, colour.ptr, 0));
+
+		//rs.command.list->SetGraphicsRootDescriptorTable(2, )
+
 
 		DXINFO(rs.command.list->DrawIndexedInstanced(rs.mesh.indexCount, 1, 0, 0, 0));
 

@@ -123,6 +123,7 @@ namespace sol
 		uint32 rtvDescriptorSize;
 		ID3D12DescriptorHeap* dsvDescriptorHeap;
 		uint32 dsvDescriptorSize;
+		ID3D12DescriptorHeap* cbvSrvUavDescriptorHeap;
 		uint32 cbvSrvUavDescriptorSize;
 
 		uint32 swapChainBufferCount;

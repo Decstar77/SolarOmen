@@ -1,10 +1,11 @@
 #pragma once
 #include "SolarDefines.h"
+#include "../SolarRenderer.h"
 #include "renderer/RendererTypes.h"
 #include "resources/SolarResourceTypes.h"
 
-#include <d3d11.h>
-#include <dxgi.h>
+#include <d3d11_3.h>
+#include <dxgi1_2.h>
 #include <dxgidebug.h>
 #include <d3dcompiler.h>
 
@@ -49,7 +50,7 @@ namespace sol
 {
 	struct SwapChain
 	{
-		IDXGISwapChain* swapChain;
+		IDXGISwapChain1* swapChain;
 		ID3D11Texture2D* depthTexture;
 		ID3D11DepthStencilView* depthView;
 		ID3D11ShaderResourceView* depthShaderView;
@@ -68,8 +69,8 @@ namespace sol
 
 	struct DeviceContext
 	{
-		ID3D11Device* device;
-		ID3D11DeviceContext* context;
+		ID3D11Device1* device;
+		ID3D11DeviceContext1* context;
 #if SOL_DEBUG_RENDERING
 		RenderDebug debug;
 #endif
@@ -466,4 +467,4 @@ namespace sol
 		return 0;
 	}
 
-	}
+}

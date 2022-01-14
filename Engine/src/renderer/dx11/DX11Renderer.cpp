@@ -1,7 +1,7 @@
 #include "../SolarRenderer.h"
 #include "core/SolarEvent.h"
 #include "core/SolarLogging.h"
-#if SOLAR_PLATFORM_WINDOWS && USE_DIRECX11
+#if SOLAR_PLATFORM_WINDOWS && USE_DIRECTX11
 
 #include "platform/SolarPlatform.h"
 #include "platform/win32/Win32State.h"
@@ -246,9 +246,107 @@ namespace sol
 		InitializeDirectXDebugLogging();
 #endif
 		HWND window = (HWND)Platform::GetNativeState();
-
 		D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 
+#if 1
+		ID3D11Device* device = nullptr;
+		ID3D11DeviceContext* context = nullptr;
+		D3D11CreateDevice(
+			NULL,
+			D3D_DRIVER_TYPE_HARDWARE,
+			NULL,
+			D3D11_CREATE_DEVICE_DEBUG,
+			NULL, 0,
+			D3D11_SDK_VERSION,
+			&device,
+			&featureLevel,
+			&context
+		);
+
+		ID3D11Device1* device1 = nullptr;
+		ID3D11DeviceContext1* context1 = nullptr;
+		auto hr = device->QueryInterface(__uuidof(ID3D11Device1), (void**)&device1);
+		hr = context->QueryInterface(__uuidof(ID3D11DeviceContext), (void**)&context1);
+
+		IDXGIFactory2* dxgiFactory = nullptr;
+		hr = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
+
+		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+		swapChainDesc.Width = 0;
+		swapChainDesc.Height = 0;
+		swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		swapChainDesc.Stereo = FALSE;
+		swapChainDesc.SampleDesc.Count = 1;
+		swapChainDesc.SampleDesc.Quality = 0;
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDesc.BufferCount = 3;
+		swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+		swapChainDesc.Flags = 0;
+
+		IDXGISwapChain1* swapChain1;
+		hr = dxgiFactory->CreateSwapChainForHwnd(device1, window, &swapChainDesc, NULL, NULL, &swapChain1);
+
+
+
+		renderState.deviceContext.device = device1;
+		renderState.deviceContext.context = context1;
+		renderState.swapChain.swapChain = swapChain1;
+
+		CreateSwapChainBuffers();
+
+		SOLINFO("DX11 Swapchain and device created");
+
+		CreateAllRasterState();
+		CreateAllDepthStencilState();
+		CreateAllBlendState();
+		CreateAllSamplerState();
+
+		EventSystem::Register((uint16)EngineEvent::Value::WINDOW_RESIZED, 0, OnWindowResizeCallback);
+
+		renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("post_processing"));
+		renderState.phongProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("phong"));
+		{
+			ProgramResource* res = Resources::GetProgramResource("phongKenney");
+			res->vertexLayout = VertexLayoutType::Value::PNTC;
+			renderState.phongKenneyProgram = ProgramInstance::CreateGraphics(*res);
+		}
+
+		renderState.modelConstBuffer = ShaderConstBuffer<ShaderConstBufferModel>::Create();
+		renderState.viewConstBuffer = ShaderConstBuffer<ShaderConstBufferView>::Create();
+		renderState.lightingConstBuffer = ShaderConstBuffer<ShaderConstBufferLightingInfo>::Create();
+		renderState.uiConstBuffer = ShaderConstBuffer<ShaderConstBufferUIData>::Create();
+
+		RenderCommand::SetShaderConstBuffer(&renderState.modelConstBuffer, ShaderStage::VERTEX, 0);
+		RenderCommand::SetShaderConstBuffer(&renderState.viewConstBuffer, ShaderStage::VERTEX, 1);
+		RenderCommand::SetShaderConstBuffer(&renderState.lightingConstBuffer, ShaderStage::PIXEL, 0);
+		RenderCommand::SetShaderConstBuffer(&renderState.uiConstBuffer, ShaderStage::PIXEL, 4);
+
+		RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
+		RenderCommand::UploadShaderConstBuffer(&renderState.viewConstBuffer);
+		RenderCommand::UploadShaderConstBuffer(&renderState.lightingConstBuffer);
+		RenderCommand::UploadShaderConstBuffer(&renderState.uiConstBuffer);
+
+		renderState.quad = StaticMesh::CreateScreenSpaceQuad();
+		renderState.cube = StaticMesh::CreateUnitCube();
+
+		ManagedArray<ModelResource> models = Resources::GetAllModelResources();
+		for (uint32 i = 0; i < models.count; i++)
+		{
+			StaticMesh mesh = StaticMesh::Create(&models[i]);
+			renderState.staticMeshes.Put(models[i].id, mesh);
+		}
+
+		ManagedArray<TextureResource> textures = Resources::GetAllTextureResources();
+		for (uint32 i = 0; i < textures.count; i++)
+		{
+			TextureInstance texture = TextureInstance::Create(&textures[i]);
+			renderState.textures.Put(textures[i].id, texture);
+		}
+
+		return true;
+#else
 		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 		swapChainDesc.BufferDesc.Width = 0;
 		swapChainDesc.BufferDesc.Height = 0;
@@ -344,6 +442,7 @@ namespace sol
 		}
 
 		return false;
+#endif
 	}
 
 	void Renderer::Render(RenderPacket* renderPacket)
@@ -404,9 +503,10 @@ namespace sol
 		//RenderCommand::DrawStaticMesh(renderState.quad);
 
 		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDER_END, nullptr, {});
-
 		DeviceContext dc = renderState.deviceContext;
-		DXCHECK(renderState.swapChain.swapChain->Present(0, 0));
+
+		DXGI_PRESENT_PARAMETERS parameters = { 0 };
+		DXCHECK(renderState.swapChain.swapChain->Present1(0, 0, &parameters));
 	}
 
 	void Renderer::Shutdown()

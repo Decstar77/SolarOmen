@@ -1,6 +1,6 @@
 #include "DX11Types.h"
 #include "core/SolarLogging.h"
-#if SOLAR_PLATFORM_WINDOWS && USE_DIRECX11
+#if SOLAR_PLATFORM_WINDOWS && USE_DIRECTX11
 namespace sol
 {
 	void TextureInstance::Release(TextureInstance* texture)

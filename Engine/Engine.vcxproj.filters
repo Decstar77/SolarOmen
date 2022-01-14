@@ -75,13 +75,13 @@
     <ClInclude Include="src\core\SolarPrimitives.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\dx12\DX12Types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\dx12\d3dx12.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\SolarDebug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\dx11\DX11Types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\dx11\DX11RenderCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -122,16 +122,19 @@
     <ClCompile Include="src\core\SolarPrimitives.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\dx12\DX12Renderer.cpp">
+    <ClCompile Include="src\renderer\dx11\DX11Program.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\dx12\DX12Program.cpp">
+    <ClCompile Include="src\renderer\dx11\DX11RenderCommands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\dx12\DX12Mesh.cpp">
+    <ClCompile Include="src\renderer\dx11\DX11Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\dx12\DX12Texture.cpp">
+    <ClCompile Include="src\renderer\dx11\DX11StaticMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\dx11\DX11Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

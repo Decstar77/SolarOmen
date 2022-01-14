@@ -4,8 +4,8 @@
 
 namespace sol
 {
-#define USE_DIRECX11 0
-#define USE_DIRECX12 1
+#define USE_DIRECTX11 1
+#define USE_DIRECX12 0
 
 	class SOL_API Renderer
 	{
