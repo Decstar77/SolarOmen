@@ -32,6 +32,10 @@ namespace sol
 
 			EventSystem::Register((uint16)EngineEvent::Value::WINDOW_RESIZED, nullptr, OnWindowResizeCallback);
 
+			es->room.Initliaze();
+			es->selectedEntity = es->room.CreateEntity("Test");
+			es->selectedEntity.SetMaterial("cube", "");
+
 			return true;
 		}
 
@@ -101,13 +105,17 @@ namespace sol
 
 		OperateCamera(&es->camera, dt);
 
-		RenderEntry entry = {};
-		entry.worldTransform = Transform();
-		entry.material.modelId = Resources::GetModelResource("cube")->id;
-		renderPacket->renderEntries.Add(entry);
-
 		renderPacket->viewMatrix = es->camera.GetViewMatrix();
 		renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
+
+		if (es->selectedEntity.IsValid())
+		{
+			RenderEntry entry = {};
+			entry.worldTransform = es->selectedEntity.GetWorldTransform();
+			entry.material = es->selectedEntity.GetMaterialomponent()->material;
+
+			renderPacket->renderEntries.Add(entry);
+		}
 
 		return true;
 	}

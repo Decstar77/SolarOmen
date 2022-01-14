@@ -50,7 +50,19 @@ namespace sol
 		static TextureResource* GetTextureResource(const ResourceId& id);
 		static TextureResource* GetTextureResource(const String& name);
 
+		static ManagedArray<ProgramResource> GetAllProgramResources();
 		static ProgramResource* GetProgramResource(const ResourceId& id);
 		static ProgramResource* GetProgramResource(const String& name);
+	};
+
+	class SOL_API ModelGenerator
+	{
+	public:
+		static ModelResource CreateQuad(real32 x, real32 y, real32 w, real32 h, real32 depth);
+		static ModelResource CreateGrid(real32 width, real32 depth, uint32 m, uint32 n);
+		static ModelResource CreateBox(real32 width, real32 height, real32 depth, uint32 numSubdivisions, VertexLayoutType layout);
+		static ModelResource CreateSphere(real32 radius, uint32 sliceCount, uint32 stackCount);
+		static ModelResource CreateGeosphere(real32 radius, uint32 numSubdivisions);
+		static ModelResource CreateCylinder(real32 bottomRadius, real32 topRadius, real32 height, uint32 sliceCount, uint32 stackCount);
 	};
 }

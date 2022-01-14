@@ -153,6 +153,20 @@ namespace sol
 			rsDesc.AntialiasedLineEnable = FALSE;
 			DXCHECK(dc.device->CreateRasterizerState(&rsDesc, &renderState.rasterNoFaceCullState));
 		}
+
+		{
+			D3D11_RASTERIZER_DESC rsDesc = {};
+			rsDesc.FillMode = D3D11_FILL_WIREFRAME;
+			rsDesc.CullMode = D3D11_CULL_NONE;
+			rsDesc.FrontCounterClockwise = FALSE;
+			rsDesc.DepthBias = 0;
+			rsDesc.DepthBiasClamp = 1.0f;
+			rsDesc.SlopeScaledDepthBias = 0.0f;
+			rsDesc.DepthClipEnable = TRUE;
+			rsDesc.MultisampleEnable = FALSE;
+			rsDesc.AntialiasedLineEnable = FALSE;
+			DXCHECK(dc.device->CreateRasterizerState(&rsDesc, &renderState.rasterNoFaceCullWireframe));
+		}
 	}
 
 	static void CreateAllDepthStencilState()
@@ -328,18 +342,18 @@ namespace sol
 							RenderCommand::UploadShaderConstBuffer(&renderState.lightingConstBuffer);
 							RenderCommand::UploadShaderConstBuffer(&renderState.uiConstBuffer);
 
-							renderState.quad = StaticMesh::CreateScreenSpaceQuad();
-							renderState.cube = StaticMesh::CreateUnitCube();
+							renderState.quad = StaticMesh::Create(ModelGenerator::CreateQuad(-1, 1, 2, 2, 0));
+							renderState.cube = StaticMesh::Create(ModelGenerator::CreateBox(1, 1, 1, 1, VertexLayoutType::Value::PNT));
 
 							ManagedArray<ModelResource> models = Resources::GetAllModelResources();
-							for (uint32 i = 0; i < models.count; i++)
+							for (uint32 i = 1; i < models.count; i++)
 							{
 								StaticMesh mesh = StaticMesh::Create(&models[i]);
 								renderState.staticMeshes.Put(models[i].id, mesh);
 							}
 
 							ManagedArray<TextureResource> textures = Resources::GetAllTextureResources();
-							for (uint32 i = 0; i < textures.count; i++)
+							for (uint32 i = 1; i < textures.count; i++)
 							{
 								TextureInstance texture = TextureInstance::Create(&textures[i]);
 								renderState.textures.Put(textures[i].id, texture);
@@ -387,7 +401,7 @@ namespace sol
 		RenderCommand::SetTopology(Topology::Value::TRIANGLE_LIST);
 		RenderCommand::SetViewportState(windowWidth, windowHeight);
 		RenderCommand::SetDepthState(renderState.depthLessEqualState);
-		RenderCommand::SetRasterState(renderState.rasterNoFaceCullState);
+		RenderCommand::SetRasterState(renderState.rasterBackFaceCullingState);
 
 		Mat4f view = renderPacket->viewMatrix;
 		Mat4f proj = renderPacket->projectionMatrix;
@@ -407,6 +421,19 @@ namespace sol
 			renderState.modelConstBuffer.data.mvp = m * view * proj;
 			RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
 
+#if 1
+			//if (entry->material.albedoId.IsValid() && entry->material.modelId.IsValid())
+			//{
+			//	RenderCommand::SetTexture(*renderState.textures.Get(entry->material.albedoId), 0);
+			//	RenderCommand::SetProgram(renderState.phongProgram);
+			//	RenderCommand::DrawStaticMesh(*renderState.staticMeshes.Get(entry->material.modelId));
+			//}
+
+			RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
+			RenderCommand::SetProgram(renderState.phongProgram);
+			RenderCommand::DrawStaticMesh(renderState.quad);
+
+#else
 			RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
 			if (entry->material.modelId.IsValid())
 			{
@@ -421,16 +448,8 @@ namespace sol
 				}
 				RenderCommand::DrawStaticMesh(*mesh);
 			}
+#endif
 		}
-
-		//renderState.modelConstBuffer.data.mvp = Mat4f(1) * view * proj;
-		//renderState.modelConstBuffer.data.invM = Mat4f(1);
-		//renderState.modelConstBuffer.data.model = Mat4f(1);
-		//RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
-
-		//RenderCommand::SetProgram(renderState.phongProgram);
-		//RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
-		//RenderCommand::DrawStaticMesh(renderState.quad);
 
 		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDER_END, nullptr, {});
 		DeviceContext dc = renderState.deviceContext;

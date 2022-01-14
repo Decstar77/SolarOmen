@@ -18,5 +18,8 @@ namespace sol
 		real32 maxTime = REAL_MIN;
 
 		Camera camera;
+
+		Room room;
+		Entity selectedEntity;
 	};
 }

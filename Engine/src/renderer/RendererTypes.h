@@ -602,7 +602,7 @@ namespace sol
 	{
 		ResourceId modelId;
 		ResourceId albedoId;
-		ResourceId shaderId;
+		ResourceId programId;
 	};
 
 	struct  RenderEntry

@@ -21,6 +21,11 @@ namespace sol
 		return {};
 	}
 
+	ManagedArray<ProgramResource> Resources::GetAllProgramResources()
+	{
+		return programs.GetValueSet();
+	}
+
 	ProgramResource* Resources::GetProgramResource(const String& name)
 	{
 		return GetResourcesFromName<ProgramResource>(programs.GetValueSet(), name);
@@ -103,6 +108,10 @@ namespace sol
 
 	void ResourceSystem::LoadAllModels()
 	{
+		ModelResource invalid = {};
+		invalid.name = "NONE/INVALID";
+		models.Put(0, invalid);
+
 		BinaryAssetFile file = {};
 		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("models.bin"), false);
 
@@ -135,6 +144,10 @@ namespace sol
 
 	void ResourceSystem::LoadAllTextures()
 	{
+		TextureResource invalid = {};
+		invalid.name = "NONE/INVALID";
+		textures.Put(0, invalid);
+
 		BinaryAssetFile file = {};
 		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("textures.bin"), false);
 
@@ -168,6 +181,10 @@ namespace sol
 
 	void ResourceSystem::LoadAllShaderPrograms()
 	{
+		ProgramResource invalid = {};
+		invalid.name = "NONE/INVALID";
+		programs.Put(0, invalid);
+
 		BinaryAssetFile file = {};
 		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("programs.bin"), false);
 

@@ -6,11 +6,10 @@
 
 #include <d3d11_3.h>
 #include <dxgi1_2.h>
-#include <dxgidebug.h>
-#include <d3dcompiler.h>
 
 #define DirectXDebugMessageCount 10
 #if SOL_DEBUG_RENDERING
+#include <dxgidebug.h>
 #define DXCHECK(call)                                                                                                   \
     {                                                                                                                   \
         dc.debug.next = dc.debug.info_queue->GetNumStoredMessages(DXGI_DEBUG_ALL);                    \
@@ -127,8 +126,9 @@ namespace sol
 		static StaticMesh Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout);
 		static StaticMesh Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
 		static StaticMesh Create(ModelResource* modelResouce);
+		static StaticMesh Create(const ModelResource& modelResouce);
 		static StaticMesh CreateScreenSpaceQuad();
-		static StaticMesh CreateUnitCube();
+
 	};
 
 	struct TextureInstance
@@ -296,6 +296,7 @@ namespace sol
 				ID3D11RasterizerState* rasterBackFaceCullingState;
 				ID3D11RasterizerState* rasterFrontFaceCullingState;
 				ID3D11RasterizerState* rasterNoFaceCullState;
+				ID3D11RasterizerState* rasterNoFaceCullWireframe;
 			};
 		};
 

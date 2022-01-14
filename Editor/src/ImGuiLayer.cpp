@@ -57,6 +57,7 @@ namespace sol
 		if (ImGui::CreateContext())
 		{
 			ImGui::StyleColorsDark();
+			ImGui::GetStyle().WindowRounding = 0;
 
 			if (ImGui_ImplWin32_Init(Platform::GetNativeState()))
 			{
@@ -169,6 +170,101 @@ namespace sol
 		ImGui::PopStyleVar();
 	}
 
+	static void ShowAssetWindow(EditorState* es, real32 dt)
+	{
+
+		ImGui::Begin("Assets", &es->showAssetWindow);
+
+		if (ImGui::CollapsingHeader("Models"))
+		{
+			auto resources = Resources::GetAllModelResources();
+			ImGui::Text("Total: %i", resources.count);
+
+			for (uint32 i = 0; i < resources.count; i++)
+			{
+				auto* res = &resources[i];
+				ImGui::Text(res->name.GetCStr());
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Textures"))
+		{
+			auto resources = Resources::GetAllTextureResources();
+			ImGui::Text("Total: %i", resources.count);
+
+			for (uint32 i = 0; i < resources.count; i++)
+			{
+				auto* res = &resources[i];
+				ImGui::Text(res->name.GetCStr());
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Shader"))
+		{
+			auto resources = Resources::GetAllProgramResources();
+			ImGui::Text("Total: %i", resources.count);
+
+			for (uint32 i = 0; i < resources.count; i++)
+			{
+				auto* res = &resources[i];
+				ImGui::Text(res->name.GetCStr());
+			}
+		}
+
+		ImGui::End();
+
+	}
+
+	template<typename T>
+	bool ComboEnum(const String& lable, int32* currentItem)
+	{
+		constexpr int32 count = (int32)T::Value::COUNT;
+		const char* items[count] = {};
+		for (int32 i = 0; i < count; i++)
+		{
+			items[i] = T::__STRINGS__[i].GetCStr();
+		}
+
+		return ImGui::Combo("Type", currentItem, items, count);
+	}
+
+	template<typename T>
+	ResourceId ComboBoxOfAsset(const char* label, const ManagedArray<T>& assets, ResourceId currentId)
+	{
+		int32 currentItem = 0;
+		const char** items = GameMemory::PushTransientCount<const char*>(assets.count);
+		String* itemData = GameMemory::PushTransientCount<String>(assets.count);
+
+		for (uint32 i = 0; i < assets.count; i++)
+		{
+			if (assets[i].id == currentId) { currentItem = i; }
+			itemData[i].Add(assets[i].name);
+			items[i] = itemData[i].GetCStr();
+		}
+
+		if (ImGui::Combo(label, &currentItem, items, assets.count))
+		{
+			currentId = assets[currentItem].id;
+		}
+
+		return currentId;
+	}
+
+	static void ShowInspectorWindow(EditorState* es, real32 dt)
+	{
+		ImGui::Begin("Inspector", &es->showInspectorWindow);
+
+		if (es->selectedEntity.IsValid())
+		{
+			MaterailComponent* materialComp = es->selectedEntity.GetMaterialomponent();
+			materialComp->material.modelId = ComboBoxOfAsset("Model", Resources::GetAllModelResources(), materialComp->material.modelId);
+			materialComp->material.albedoId = ComboBoxOfAsset("Abledo", Resources::GetAllTextureResources(), materialComp->material.albedoId);
+			materialComp->material.programId = ComboBoxOfAsset("Program", Resources::GetAllProgramResources(), materialComp->material.programId);
+		}
+
+		ImGui::End();
+	}
+
 	void UpdateImGui(EditorState* es, real32 dt)
 	{
 		ImGui_ImplDX11_NewFrame();
@@ -179,6 +275,8 @@ namespace sol
 
 		ShowMainMenuBar(es);
 		if (es->showPerformanceWindow) { ShowPerformanceWindow(es, dt); }
+		if (es->showAssetWindow) { ShowAssetWindow(es, dt); }
+		if (es->showInspectorWindow) { ShowInspectorWindow(es, dt); }
 	}
 }
 
