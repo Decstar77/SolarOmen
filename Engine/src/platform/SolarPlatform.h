@@ -47,7 +47,7 @@ namespace sol
 		static uint32 GetWindowHeight();
 		static void SetWindowPosition(int32 x, int32 y);
 
-		static void DisplayError(String message);
+		static void DisplayError(const char* message);
 		static void ConsoleWrite(const char* mssage, uint8 colour);
 
 		static real64 GetAbsoluteTime();

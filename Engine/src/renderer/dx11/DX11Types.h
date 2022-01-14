@@ -57,6 +57,7 @@ namespace sol
 		ID3D11RenderTargetView* renderView;
 	};
 
+#if SOL_DEBUG_RENDERING
 	struct RenderDebug
 	{
 		uint64 next;
@@ -66,6 +67,7 @@ namespace sol
 	};
 
 	void LogDirectXDebugGetMessages(RenderDebug* debug);
+#endif
 
 	struct DeviceContext
 	{

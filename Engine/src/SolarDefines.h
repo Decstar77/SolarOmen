@@ -42,7 +42,7 @@ STATIC_ASSERT(sizeof(real32) == 4, "Expected real32 to be 4 bytes.");
 STATIC_ASSERT(sizeof(real64) == 8, "Expected real64 to be 8 bytes.");
 
 #define SOL_DEBUG 1
-#define SOL_DEBUG_RENDERING 1
+#define SOL_DEBUG_RENDERING 0
 
 #define REAL_MAX FLT_MAX
 #define REAL_MIN -FLT_MAX

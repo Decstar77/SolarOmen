@@ -120,6 +120,12 @@ namespace sol
 		WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), message, (DWORD)length, number_written, 0);
 	}
 
+	void Platform::DisplayError(const char* message)
+	{
+		MessageBeep(MB_ICONERROR);
+		MessageBoxA(NULL, message, "Fatal Error", MB_ICONERROR);
+	}
+
 	real64 Platform::GetAbsoluteTime()
 	{
 		if (!winState.clockFrequency) {

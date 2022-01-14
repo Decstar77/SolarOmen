@@ -27,5 +27,10 @@ namespace sol
 		strcat_s(msg, length + 12, "\n");
 
 		Platform::ConsoleWrite(msg, (uint8)level);
+
+		if (level == LogLevel::FATAL)
+		{
+			Platform::DisplayError(message);
+		}
 	}
 }
