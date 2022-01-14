@@ -421,8 +421,8 @@ namespace sol
 				}
 				RenderCommand::DrawStaticMesh(*mesh);
 			}
-
 		}
+
 		//renderState.modelConstBuffer.data.mvp = Mat4f(1) * view * proj;
 		//renderState.modelConstBuffer.data.invM = Mat4f(1);
 		//renderState.modelConstBuffer.data.model = Mat4f(1);

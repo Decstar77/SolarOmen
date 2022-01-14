@@ -13,6 +13,7 @@ namespace sol
 		HINSTANCE hinstance;
 		bool8 running;
 		bool8 active;
+		bool8 rawInput;
 
 		uint32 width;
 		uint32 height;

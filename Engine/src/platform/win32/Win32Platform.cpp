@@ -184,13 +184,57 @@ namespace sol
 		input->mouseDelta = input->mousePositionPixelCoords - input->oldInput->mousePositionPixelCoords;
 	}
 
+	static void ProcessRawMouseInput()
+	{
+		Input* input = Input::Get();
+
+		POINT mousep = {};
+		GetCursorPos(&mousep);
+		ScreenToClient((HWND)winState.window, &mousep);
+		real32 mx = (real32)mousep.x;
+		real32 my = (real32)mousep.y;
+
+		mx = Clamp<real32>(mx, 0.0f, (real32)winState.width);
+		my = Clamp<real32>(my, 0.0f, (real32)winState.height);
+
+		input->mousePositionPixelCoords.x = mx;
+		input->mousePositionPixelCoords.y = my;
+
+		if (input->mouse_locked && winState.active)
+		{
+			SetCursor(FALSE);
+
+			input->oldInput->mousePositionPixelCoords = Vec2f((real32)(winState.width / 2),
+				(real32)(winState.height / 2));
+
+			POINT p = {};
+			p.x = winState.width / 2;
+			p.y = winState.height / 2;
+
+			ClientToScreen((HWND)winState.window, &p);
+
+			SetCursorPos(p.x, p.y);
+		}
+
+		input->del = (GetKeyState(VK_DELETE) & (1 << 15));
+
+		input->mouseNorm.x = mx / (real32)winState.width;
+		input->mouseNorm.y = my / (real32)winState.height;
+
+		input->mb1 = GetKeyState(VK_LBUTTON) & (1 << 15);
+		input->mb2 = GetKeyState(VK_RBUTTON) & (1 << 15);
+		input->mb3 = GetKeyState(VK_MBUTTON) & (1 << 15);
+	}
+
 	bool8 Platform::PumpMessages()
 	{
 		if (winState.running)
 		{
 			Input::Flip();
+			Input::Get()->mouseDelta = Vec2f(0);
 
 			winState.active = (bool8)GetFocus();
+
 			MSG message = {};
 			while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE))
 			{
@@ -198,7 +242,14 @@ namespace sol
 				DispatchMessageA(&message);
 			}
 
-			ProcessMouseInput();
+			if (winState.rawInput)
+			{
+				ProcessRawMouseInput();
+			}
+			else
+			{
+				ProcessMouseInput();
+			}
 		}
 
 		return winState.running;
@@ -207,6 +258,55 @@ namespace sol
 	void* Platform::GetNativeState()
 	{
 		return winState.window;
+	}
+
+	void InitializeRawInput()
+	{
+		// @NOTE: Mouse
+		{
+			RAWINPUTDEVICE mouseRID = {};
+			mouseRID.usUsagePage = 0x1;
+			mouseRID.usUsage = 0x02;
+			mouseRID.dwFlags = 0;
+			mouseRID.hwndTarget = (HWND)winState.window;
+
+			if (RegisterRawInputDevices(&mouseRID, 1, sizeof(mouseRID)))
+			{
+				winState.rawInput = true;
+			}
+			else
+			{
+				SOLWARN("Could not initalize raw input for mouse !!");
+			}
+
+			//RAWINPUTDEVICE ps4ControllerRID;
+			//ps4ControllerRID.usUsagePage = 0x01;
+			//ps4ControllerRID.usUsage = 0x05;
+			//ps4ControllerRID.dwFlags = RIDEV_INPUTSINK;
+			//ps4ControllerRID.hwndTarget = (HWND)winState.window;
+			//if (RegisterRawInputDevices(&ps4ControllerRID, 1, sizeof(ps4ControllerRID)))
+			//{
+			//
+			//}
+		}
+
+		// @NOTE: Keyboard
+		{
+			RAWINPUTDEVICE keebRid = {};
+			keebRid.usUsagePage = 0x1;
+			keebRid.usUsage = 0x06;
+			keebRid.dwFlags = 0;
+			keebRid.hwndTarget = (HWND)winState.window;
+
+			if (RegisterRawInputDevices(&keebRid, 1, sizeof(keebRid)))
+			{
+				winState.rawInput = true;
+			}
+			else
+			{
+				SOLWARN("Could not initalize raw input for keyboard !!");
+			}
+		}
 	}
 
 	LRESULT CALLBACK WindProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
@@ -271,7 +371,7 @@ namespace sol
 				winState.width = windowWidth;
 				winState.height = windowHeight;
 
-				//InitializeRawInput(ps);
+				InitializeRawInput();
 				InitializeClock();
 			}
 			else
@@ -297,6 +397,63 @@ namespace sol
 	}
 
 	void ProcessKeyboardInput(uint16 vkCode, bool32 isDown);
+	static void ProcessRawInput(LPARAM lparam)
+	{
+		uint32 size = 0;
+		GetRawInputData(reinterpret_cast<HRAWINPUT>(lparam), RID_INPUT, NULL, &size, sizeof(RAWINPUTHEADER));
+		Input* input = Input::Get();
+		if (size > 0)
+		{
+			uint8* data = GameMemory::PushTransientCount<uint8>(size);
+			uint32 read = GetRawInputData(reinterpret_cast<HRAWINPUT>(lparam), RID_INPUT, data, &size, sizeof(RAWINPUTHEADER));
+
+			if (read == size)
+			{
+				RAWINPUT* rawInput = reinterpret_cast<RAWINPUT*>(data);
+				if (rawInput->header.dwType == RIM_TYPEMOUSE)
+				{
+					real32 x = static_cast<real32>(rawInput->data.mouse.lLastX);
+					real32 y = static_cast<real32>(rawInput->data.mouse.lLastY);
+
+					input->mouseDelta += Vec2f(x, y);
+				}
+				else if (rawInput->header.dwType == RIM_TYPEKEYBOARD)
+				{
+					uint16 vkCode = rawInput->data.keyboard.VKey;
+					bool32 isDown = false;
+					if (rawInput->data.keyboard.Flags == RI_KEY_MAKE)
+					{
+						isDown = true;
+					}
+					else //else if (rawInput->data.keyboard.Flags == RI_KEY_BREAK)
+					{
+						isDown = false;
+					}
+
+					ProcessKeyboardInput(vkCode, isDown);
+				}
+				else if (rawInput->header.dwType == RIM_TYPEHID)
+				{
+					//RID_DEVICE_INFO deviceInfo;
+					//UINT deviceInfoSize = sizeof(deviceInfo);
+					//bool gotInfo = GetRawInputDeviceInfo(rawInput->header.hDevice, RIDI_DEVICEINFO, &deviceInfo, &deviceInfoSize) > 0;
+					//
+					//WCHAR deviceName[1024] = { 0 };
+					//UINT deviceNameLength = sizeof(deviceName) / sizeof(*deviceName);
+					//bool gotName = GetRawInputDeviceInfoW(rawInput->header.hDevice, RIDI_DEVICENAME, deviceName, &deviceNameLength) > 0;
+
+					//if (gotInfo && gotName)
+					//{
+					//	if (IsDualshock4(deviceInfo.hid))
+					//	{
+					//		//UpdateDualshock4(rawInput->data.hid.bRawData, rawInput->data.hid.dwSizeHid, deviceName, &outputData);
+					//	}
+					//}
+				}
+			}
+		}
+	}
+
 	LRESULT CALLBACK WindProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		LRESULT result = {};
@@ -337,8 +494,12 @@ namespace sol
 			winState.height = eventResize.height;
 
 			EventSystem::Fire<EventWindowResize>((uint16)EngineEvent::Value::WINDOW_RESIZED, 0, eventResize);
-
 		} break;
+		case WM_INPUT:
+		{
+			ProcessRawInput(lparam);
+		}break;
+
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
 		case WM_KEYDOWN:
