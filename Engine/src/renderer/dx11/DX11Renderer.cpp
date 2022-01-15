@@ -342,13 +342,13 @@ namespace sol
 							RenderCommand::UploadShaderConstBuffer(&renderState.lightingConstBuffer);
 							RenderCommand::UploadShaderConstBuffer(&renderState.uiConstBuffer);
 
-							renderState.quad = StaticMesh::Create(ModelGenerator::CreateQuad(-1, 1, 2, 2, 0));
-							renderState.cube = StaticMesh::Create(ModelGenerator::CreateBox(1, 1, 1, 1, VertexLayoutType::Value::PNT));
+							renderState.quad = StaticModel::Create(ModelGenerator::CreateQuad(-1, 1, 2, 2, 0));
+							renderState.cube = StaticModel::Create(ModelGenerator::CreateBox(1, 1, 1, 1, VertexLayoutType::Value::PNT));
 
 							ManagedArray<ModelResource> models = Resources::GetAllModelResources();
 							for (uint32 i = 1; i < models.count; i++)
 							{
-								StaticMesh mesh = StaticMesh::Create(&models[i]);
+								StaticModel mesh = StaticModel::Create(&models[i]);
 								renderState.staticMeshes.Put(models[i].id, mesh);
 							}
 
@@ -358,7 +358,7 @@ namespace sol
 								Vec4f invalidTextureColour = Vec4f(1, 0, 1, 1);
 								BindUsage invalidTextureBindUsage[4] = {};
 								invalidTextureBindUsage[0] = BindUsage::Value::SHADER_RESOURCE;
-								renderState.invalidTexture = TextureInstance::Create(1, 1,
+								renderState.invalidTexture = StaticTexture::Create(1, 1,
 									TextureFormat::Value::R32G32B32A32_FLOAT, invalidTextureColour.ptr,
 									false, invalidTextureBindUsage, ResourceCPUFlags::Value::NONE);
 								renderState.textures.Put(0, renderState.invalidTexture);
@@ -366,7 +366,7 @@ namespace sol
 
 							for (uint32 i = 1; i < textures.count; i++)
 							{
-								TextureInstance texture = TextureInstance::Create(&textures[i]);
+								StaticTexture texture = StaticTexture::Create(&textures[i]);
 								renderState.textures.Put(textures[i].id, texture);
 							}
 
@@ -433,10 +433,10 @@ namespace sol
 			RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
 
 #if 1
-			TextureInstance* texture = renderState.textures.Get(entry->material.albedoId);
+			StaticTexture* texture = renderState.textures.Get(entry->material.albedoId);
 			texture = texture ? texture : &renderState.invalidTexture;
 
-			StaticMesh* mesh = renderState.staticMeshes.Get(entry->material.modelId);
+			StaticModel* mesh = renderState.staticMeshes.Get(entry->material.modelId);
 			mesh = mesh ? mesh : &renderState.cube;
 
 			RenderCommand::SetTexture(*texture, 0);
@@ -451,7 +451,7 @@ namespace sol
 			RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
 			if (entry->material.modelId.IsValid())
 			{
-				StaticMesh* mesh = renderState.staticMeshes.Get(entry->material.modelId);
+				StaticModel* mesh = renderState.staticMeshes.Get(entry->material.modelId);
 				if (mesh->vertexLayout == VertexLayoutType::Value::PNT)
 				{
 					RenderCommand::SetProgram(renderState.phongProgram);
@@ -479,15 +479,15 @@ namespace sol
 		RenderCommand::SetStaticMesh({});
 		for (int32 i = 0; i < 10; i++) { RenderCommand::SetTexture({}, i); }
 
-		StaticMesh::Release(&renderState.quad);
-		StaticMesh::Release(&renderState.cube);
+		StaticModel::Release(&renderState.quad);
+		StaticModel::Release(&renderState.cube);
 
-		ManagedArray<StaticMesh> meshes = renderState.staticMeshes.GetValueSet();
-		for (uint32 i = 0; i < meshes.count; i++) { StaticMesh::Release(&meshes[i]); }
+		ManagedArray<StaticModel> meshes = renderState.staticMeshes.GetValueSet();
+		for (uint32 i = 0; i < meshes.count; i++) { StaticModel::Release(&meshes[i]); }
 		meshes.Clear();
 
-		ManagedArray<TextureInstance> textures = renderState.textures.GetValueSet();
-		for (uint32 i = 0; i < textures.count; i++) { TextureInstance::Release(&textures[i]); }
+		ManagedArray<StaticTexture> textures = renderState.textures.GetValueSet();
+		for (uint32 i = 0; i < textures.count; i++) { StaticTexture::Release(&textures[i]); }
 		textures.Clear();
 
 		ShaderConstBuffer<ShaderConstBufferModel>::Release(&renderState.modelConstBuffer);

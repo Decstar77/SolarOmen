@@ -109,7 +109,7 @@ namespace sol
 		Value value;
 	};
 
-	struct StaticMesh
+	struct StaticModel
 	{
 		uint32 strideBytes; // @NOTE: Used for rendering
 		uint32 indexCount;  // @NOTE: Used for rendering
@@ -121,17 +121,17 @@ namespace sol
 
 		//void UpdateVertexBuffer(real32* vertices, uint32 sizeBytes);
 
-		//static StaticMesh Create(const ModelAsset& modelAsset);
-		static void Release(StaticMesh* mesh);
-		static StaticMesh Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout);
-		static StaticMesh Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
-		static StaticMesh Create(ModelResource* modelResouce);
-		static StaticMesh Create(const ModelResource& modelResouce);
-		static StaticMesh CreateScreenSpaceQuad();
+		//static StaticModel Create(const ModelAsset& modelAsset);
+		static void Release(StaticModel* mesh);
+		static StaticModel Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout);
+		static StaticModel Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
+		static StaticModel Create(ModelResource* modelResouce);
+		static StaticModel Create(const ModelResource& modelResouce);
+		static StaticModel CreateScreenSpaceQuad();
 
 	};
 
-	struct TextureInstance
+	struct StaticTexture
 	{
 		int32 width;
 		int32 height;
@@ -146,12 +146,12 @@ namespace sol
 		ID3D11DepthStencilView* depthView;
 		ID3D11RenderTargetView* renderView;
 
-		static void Release(TextureInstance* texture);
-		static TextureInstance Create(int32 width, int32 height, TextureFormat format, void* pixels, bool8 mips, BindUsage* usage, ResourceCPUFlags cpuFlags);
-		static TextureInstance Create(TextureResource* textureResource);
+		static void Release(StaticTexture* texture);
+		static StaticTexture Create(int32 width, int32 height, TextureFormat format, void* pixels, bool8 mips, BindUsage* usage, ResourceCPUFlags cpuFlags);
+		static StaticTexture Create(TextureResource* textureResource);
 
-		//static TextureInstance Create(const FontCharacter& fontChar);
-		//static TextureInstance Create(const TextureAsset& textureAsset);
+		//static StaticTexture Create(const FontCharacter& fontChar);
+		//static StaticTexture Create(const TextureAsset& textureAsset);
 	};
 
 	struct CubeMapInstance
@@ -335,12 +335,12 @@ namespace sol
 		};
 
 
-		StaticMesh quad;
-		StaticMesh cube;
-		TextureInstance invalidTexture;
+		StaticModel quad;
+		StaticModel cube;
+		StaticTexture invalidTexture;
 
-		HashMap<StaticMesh> staticMeshes;
-		HashMap<TextureInstance> textures;
+		HashMap<StaticModel> staticMeshes;
+		HashMap<StaticTexture> textures;
 
 		ShaderConstBuffer<ShaderConstBufferModel> modelConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferView> viewConstBuffer;

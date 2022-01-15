@@ -84,7 +84,7 @@ namespace sol
 		}
 	}
 
-	void RenderCommand::SetStaticMesh(const StaticMesh& mesh)
+	void RenderCommand::SetStaticMesh(const StaticModel& mesh)
 	{
 		uint32 offset = 0;
 		DeviceContext dc = GetDeviceContext();
@@ -92,7 +92,7 @@ namespace sol
 		DXINFO(dc.context->IASetIndexBuffer(mesh.indexBuffer, DXGI_FORMAT_R32_UINT, 0));
 	}
 
-	void RenderCommand::DrawStaticMesh(const StaticMesh& mesh)
+	void RenderCommand::DrawStaticMesh(const StaticModel& mesh)
 	{
 		SetStaticMesh(mesh);
 		DeviceContext dc = GetDeviceContext();
@@ -114,7 +114,7 @@ namespace sol
 		DXINFO(dc.context->CSSetSamplers(slot, 1, &sampler.sampler));
 	}
 
-	void RenderCommand::SetTexture(const TextureInstance& texture, int32 slot)
+	void RenderCommand::SetTexture(const StaticTexture& texture, int32 slot)
 	{
 		Assert(slot >= 0, "Shader register invalid");
 		DeviceContext dc = GetDeviceContext();

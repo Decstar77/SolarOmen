@@ -3,7 +3,7 @@
 #if SOLAR_PLATFORM_WINDOWS && USE_DIRECTX11
 namespace sol
 {
-	//void StaticMesh::UpdateVertexBuffer(real32* vertices, uint32 sizeBytes)
+	//void StaticModel::UpdateVertexBuffer(real32* vertices, uint32 sizeBytes)
 	//{
 	//	GetRenderState();
 	//	D3D11_MAPPED_SUBRESOURCE resource = {};
@@ -12,7 +12,7 @@ namespace sol
 	//	DXINFO(rs->context->Unmap(vertexBuffer, 0));
 	//}
 
-	//StaticMesh StaticMesh::Create(real32* vertices, uint32 sizeBytes, VertexLayoutType layout)
+	//StaticModel StaticModel::Create(real32* vertices, uint32 sizeBytes, VertexLayoutType layout)
 	//{
 	//	D3D11_BUFFER_DESC vertexDesc = {};
 	//	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -22,7 +22,7 @@ namespace sol
 	//	vertexDesc.ByteWidth = sizeBytes;
 	//	vertexDesc.StructureByteStride = sizeof(real32) * layout.GetStride();
 
-	//	StaticMesh result = {};
+	//	StaticModel result = {};
 	//	result.strideBytes = sizeof(real32) * layout.GetStride();
 	//	result.vertexLayout = layout;
 	//	GetRenderState();
@@ -31,7 +31,7 @@ namespace sol
 	//	return result;
 	//}
 
-	//StaticMesh cm::StaticMesh::Create(const ModelAsset& modelAsset)
+	//StaticModel cm::StaticModel::Create(const ModelAsset& modelAsset)
 	//{
 	//	Assert(modelAsset.layout != VertexLayoutType::Value::INVALID, "Invalid mesh vertex layout");
 
@@ -68,7 +68,7 @@ namespace sol
 	//	D3D11_SUBRESOURCE_DATA index_res = {};
 	//	index_res.pSysMem = indices;
 
-	//	StaticMesh result = {  };
+	//	StaticModel result = {  };
 	//	DXCHECK(rs->device->CreateBuffer(&vertex_desc, &vertex_res, &result.vertexBuffer));
 	//	DXCHECK(rs->device->CreateBuffer(&index_desc, &index_res, &result.indexBuffer));
 	//	result.strideBytes = vertex_stride_bytes;
@@ -79,7 +79,7 @@ namespace sol
 	//	return result;
 	//}
 
-	void StaticMesh::Release(StaticMesh* mesh)
+	void StaticModel::Release(StaticModel* mesh)
 	{
 		DXRELEASE(mesh->indexBuffer);
 		DXRELEASE(mesh->vertexBuffer);
@@ -87,7 +87,7 @@ namespace sol
 		GameMemory::ZeroStruct(mesh);
 	}
 
-	StaticMesh StaticMesh::Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout)
+	StaticModel StaticModel::Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout)
 	{
 		D3D11_BUFFER_DESC vertexDesc = {};
 		vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -97,7 +97,7 @@ namespace sol
 		vertexDesc.ByteWidth = vertexCount * sizeof(real32);
 		vertexDesc.StructureByteStride = layout.GetStride() * sizeof(real32);
 
-		StaticMesh result = {};
+		StaticModel result = {};
 		result.vertexLayout = layout;
 		result.vertexCount = vertexCount / layout.GetStride();
 		result.strideBytes = layout.GetStride() * sizeof(real32);
@@ -110,7 +110,7 @@ namespace sol
 		return result;
 	}
 
-	StaticMesh StaticMesh::Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout)
+	StaticModel StaticModel::Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout)
 	{
 		uint32 vertexStrideBytes = sizeof(real32) * layout.GetStride();
 		uint32 indicesStrideBytes = sizeof(uint32);
@@ -138,7 +138,7 @@ namespace sol
 		D3D11_SUBRESOURCE_DATA index_res = {};
 		index_res.pSysMem = indices;
 
-		StaticMesh result = {};
+		StaticModel result = {};
 		result.strideBytes = vertexStrideBytes;
 		result.vertexCount = vertexCount / layout.GetStride();
 		result.indexCount = indexCount;
@@ -155,9 +155,9 @@ namespace sol
 		return result;
 	}
 
-	StaticMesh StaticMesh::Create(ModelResource* modelResouce)
+	StaticModel StaticModel::Create(ModelResource* modelResouce)
 	{
-		StaticMesh mesh = StaticMesh::Create(
+		StaticModel mesh = StaticModel::Create(
 			modelResouce->packedVertices.data, modelResouce->packedVertices.count,
 			modelResouce->indices.data, modelResouce->indices.count,
 			modelResouce->layout);
@@ -165,9 +165,9 @@ namespace sol
 		return mesh;
 	}
 
-	StaticMesh sol::StaticMesh::Create(const ModelResource& modelResouce)
+	StaticModel sol::StaticModel::Create(const ModelResource& modelResouce)
 	{
-		StaticMesh mesh = StaticMesh::Create(
+		StaticModel mesh = StaticModel::Create(
 			modelResouce.packedVertices.data, modelResouce.packedVertices.count,
 			modelResouce.indices.data, modelResouce.indices.count,
 			modelResouce.layout);
@@ -175,7 +175,7 @@ namespace sol
 		return mesh;
 	}
 
-	StaticMesh StaticMesh::CreateScreenSpaceQuad()
+	StaticModel StaticModel::CreateScreenSpaceQuad()
 	{
 		real32 vertexData[] = {
 			-1, 1, 0,	0, 0, -1,	0, 0,
@@ -188,7 +188,7 @@ namespace sol
 			0, 1, 2, 0, 3, 1
 		};
 
-		return StaticMesh::Create(vertexData, ArrayCount(vertexData), indexData, ArrayCount(indexData), VertexLayoutType::Value::PNT);
+		return StaticModel::Create(vertexData, ArrayCount(vertexData), indexData, ArrayCount(indexData), VertexLayoutType::Value::PNT);
 	}
 }
 #endif

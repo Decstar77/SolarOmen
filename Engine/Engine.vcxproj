@@ -133,8 +133,8 @@
     <ClCompile Include="src\renderer\dx11\DX11Program.cpp" />
     <ClCompile Include="src\renderer\dx11\DX11RenderCommands.cpp" />
     <ClCompile Include="src\renderer\dx11\DX11Renderer.cpp" />
-    <ClCompile Include="src\renderer\dx11\DX11StaticMesh.cpp" />
-    <ClCompile Include="src\renderer\dx11\DX11Texture.cpp" />
+    <ClCompile Include="src\renderer\dx11\DX11StaticModel.cpp" />
+    <ClCompile Include="src\renderer\dx11\DX11StaticTexture.cpp" />
     <ClCompile Include="src\resources\ModelGenerator.cpp" />
     <ClCompile Include="src\resources\SolarResources.cpp" />
   </ItemGroup>

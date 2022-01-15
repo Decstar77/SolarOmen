@@ -131,10 +131,10 @@
     <ClCompile Include="src\renderer\dx11\DX11Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\dx11\DX11StaticMesh.cpp">
+    <ClCompile Include="src\renderer\dx11\DX11StaticModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\dx11\DX11Texture.cpp">
+    <ClCompile Include="src\renderer\dx11\DX11StaticTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\resources\ModelGenerator.cpp">

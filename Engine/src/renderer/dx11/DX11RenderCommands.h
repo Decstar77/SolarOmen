@@ -17,11 +17,11 @@ namespace sol
 		static void SetDepthState(ID3D11DepthStencilState* depthState);
 
 		static void SetProgram(const ProgramInstance& progam);
-		static void SetStaticMesh(const StaticMesh& mesh);
-		static void DrawStaticMesh(const StaticMesh& mesh);
+		static void SetStaticMesh(const StaticModel& mesh);
+		static void DrawStaticMesh(const StaticModel& mesh);
 
 		static void SetSampler(const SamplerState& sampler, int32 slot);
-		static void SetTexture(const TextureInstance& texture, int32 slot);
+		static void SetTexture(const StaticTexture& texture, int32 slot);
 		static void SetCubeMap(const CubeMapInstance& cubeMap, int32 slot);
 
 		template<typename T>

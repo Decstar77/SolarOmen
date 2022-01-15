@@ -3,7 +3,7 @@
 #if SOLAR_PLATFORM_WINDOWS && USE_DIRECTX11
 namespace sol
 {
-	void TextureInstance::Release(TextureInstance* texture)
+	void StaticTexture::Release(StaticTexture* texture)
 	{
 		DXRELEASE(texture->shaderView);
 		DXRELEASE(texture->uavView);
@@ -14,9 +14,9 @@ namespace sol
 		GameMemory::ZeroStruct(texture);
 	}
 
-	TextureInstance TextureInstance::Create(int32 width, int32 height, TextureFormat format, void* pixels, bool8 mips, BindUsage* usage, ResourceCPUFlags cpuFlags)
+	StaticTexture StaticTexture::Create(int32 width, int32 height, TextureFormat format, void* pixels, bool8 mips, BindUsage* usage, ResourceCPUFlags cpuFlags)
 	{
-		TextureInstance result = {};
+		StaticTexture result = {};
 		result.width = width;
 		result.height = height;
 		result.format = format;
@@ -124,9 +124,9 @@ namespace sol
 		return result;
 	}
 
-	TextureInstance TextureInstance::Create(TextureResource* textureResource)
+	StaticTexture StaticTexture::Create(TextureResource* textureResource)
 	{
-		TextureInstance texture = TextureInstance::Create(
+		StaticTexture texture = StaticTexture::Create(
 			textureResource->width, textureResource->height, textureResource->format,
 			(void*)textureResource->pixels.data, false, textureResource->usage, textureResource->cpuFlags
 		);
