@@ -191,7 +191,7 @@ namespace sol
 		return worldTransfom;
 	}
 
-	MaterailComponent* Entity::GetMaterialomponent()
+	MaterialComponent* Entity::GetMaterialomponent()
 	{
 		Assert(IsValid(), "Entity invalid");
 		return &room->materialComponets[id.index];

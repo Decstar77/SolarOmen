@@ -337,6 +337,8 @@ namespace sol
 
 		StaticMesh quad;
 		StaticMesh cube;
+		TextureInstance invalidTexture;
+
 		HashMap<StaticMesh> staticMeshes;
 		HashMap<TextureInstance> textures;
 

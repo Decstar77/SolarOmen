@@ -211,22 +211,29 @@ namespace sol
 			}
 		}
 
+		static String ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
+
 		if (ImGui::Button("PackModels"))
 		{
-			static String ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
 
 			FileProcessor fileProcessor;
 			MetaProcessor metaProcessor;
 			metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
 
-			//for (int32 i = 0; i < metaProcessor.metaNames.size(); i++) { SOLTRACE(metaProcessor.metaNames[i].GetCStr()); }
-
-			auto models = LoadAndProcessModels(ASSET_PATH, fileProcessor, metaProcessor);
+			auto models = LoadAndProcessModels("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/gltf/", fileProcessor, metaProcessor);
 			SaveBinaryData(models, "../Assets/Packed/models.bin");
+		}
 
-			auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/BoomBox/", fileProcessor, metaProcessor);
+		if (ImGui::Button("PackTextures"))
+		{
+			FileProcessor fileProcessor;
+			MetaProcessor metaProcessor;
+			metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
+
+			auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/gltf/", fileProcessor, metaProcessor);
 			SaveBinaryData(textures, "../Assets/Packed/textures.bin");
 		}
+
 
 		ImGui::End();
 
@@ -273,7 +280,7 @@ namespace sol
 
 		if (es->selectedEntity.IsValid())
 		{
-			MaterailComponent* materialComp = es->selectedEntity.GetMaterialomponent();
+			MaterialComponent* materialComp = es->selectedEntity.GetMaterialomponent();
 			materialComp->material.modelId = ComboBoxOfAsset("Model", Resources::GetAllModelResources(), materialComp->material.modelId);
 			materialComp->material.albedoId = ComboBoxOfAsset("Abledo", Resources::GetAllTextureResources(), materialComp->material.albedoId);
 			materialComp->material.programId = ComboBoxOfAsset("Program", Resources::GetAllProgramResources(), materialComp->material.programId);

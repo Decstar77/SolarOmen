@@ -35,7 +35,7 @@ namespace sol
 		uint32 tag;
 	};
 
-	struct MaterailComponent
+	struct MaterialComponent
 	{
 		Material material;
 	};
@@ -59,7 +59,7 @@ namespace sol
 		SOL_API Transform GetLocalTransform() const;
 		SOL_API Transform GetWorldTransform() const;
 
-		SOL_API MaterailComponent* GetMaterialomponent();
+		SOL_API MaterialComponent* GetMaterialomponent();
 		SOL_API void SetMaterial(const String& modelName, const String& textureName);
 
 		SOL_API operator bool() const;
@@ -120,7 +120,7 @@ namespace sol
 		FixedArray<TransformComponent, ENTITY_STORAGE_COUNT>	transformComponents;
 		FixedArray<NameComponent, ENTITY_STORAGE_COUNT>			nameComponents;
 		FixedArray<TagComponent, ENTITY_STORAGE_COUNT>			tagComponents;
-		FixedArray<MaterailComponent, ENTITY_STORAGE_COUNT>		materialComponets;
+		FixedArray<MaterialComponent, ENTITY_STORAGE_COUNT>		materialComponets;
 
 		//FixedArray<ColliderComponent, ENTITY_STORAGE_COUNT> colliderComponents;
 		//FixedArray<BrainComponent, ENTITY_STORAGE_COUNT> brainComponents;

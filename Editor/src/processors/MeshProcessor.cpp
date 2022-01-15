@@ -24,7 +24,10 @@ namespace sol
 				ModelMetaFile metaFile = metaProcessor.ParseModelMetaFile(metaPath);
 				Assert(metaFile.id.IsValid(), "");
 
-				Model model = Model(modelPath, Util::StripFilePathAndExtentions(modelPath), metaFile);
+				String name = Util::StripFilePathAndExtentions(modelPath);
+				SOLTRACE(String("Packing: ").Add(name).GetCStr());
+
+				Model model = Model(modelPath, name, metaFile);
 				models.push_back(model);
 			}
 			else
@@ -90,7 +93,7 @@ namespace sol
 			vector.x = mesh->mVertices[i].x;
 			vector.y = mesh->mVertices[i].y;
 			vector.z = mesh->mVertices[i].z;
-			vertex.position = vector;
+			vertex.position = vector * scaleMatrix;
 
 			// normals
 			if (mesh->HasNormals())

@@ -34,7 +34,11 @@ namespace sol
 
 			es->room.Initliaze();
 			es->selectedEntity = es->room.CreateEntity("Test");
-			//es->selectedEntity.SetMaterial("cube", "");
+
+			MaterialComponent* materailComponent = es->selectedEntity.GetMaterialomponent();
+			materailComponent->material.albedoId = Resources::GetTextureResource("BoomBox_baseColor")->id;
+			materailComponent->material.modelId = Resources::GetModelResource("BoomBox")->id;
+
 
 			return true;
 		}
@@ -112,7 +116,6 @@ namespace sol
 		{
 			RenderEntry entry = {};
 			entry.worldTransform = es->selectedEntity.GetWorldTransform();
-			entry.worldTransform.scale = 50;
 			entry.material = es->selectedEntity.GetMaterialomponent()->material;
 
 			renderPacket->renderEntries.Add(entry);
