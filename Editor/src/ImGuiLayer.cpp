@@ -2,6 +2,7 @@
 #include <SolarEngine.h>
 #include <src/renderer/SolarRenderer.h>
 #include "src/SolarEntry.h"
+#include "processors/AssetPacking.h"
 
 #include "../vendor/imgui/imgui.h"
 #include "../vendor/imgui/imgui_impl_win32.h"
@@ -172,7 +173,6 @@ namespace sol
 
 	static void ShowAssetWindow(EditorState* es, real32 dt)
 	{
-
 		ImGui::Begin("Assets", &es->showAssetWindow);
 
 		if (ImGui::CollapsingHeader("Models"))
@@ -209,6 +209,23 @@ namespace sol
 				auto* res = &resources[i];
 				ImGui::Text(res->name.GetCStr());
 			}
+		}
+
+		if (ImGui::Button("PackModels"))
+		{
+			static String ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
+
+			FileProcessor fileProcessor;
+			MetaProcessor metaProcessor;
+			metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
+
+			//for (int32 i = 0; i < metaProcessor.metaNames.size(); i++) { SOLTRACE(metaProcessor.metaNames[i].GetCStr()); }
+
+			auto models = LoadAndProcessModels(ASSET_PATH, fileProcessor, metaProcessor);
+			SaveBinaryData(models, "../Assets/Packed/models.bin");
+
+			auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/BoomBox/", fileProcessor, metaProcessor);
+			SaveBinaryData(textures, "../Assets/Packed/textures.bin");
 		}
 
 		ImGui::End();

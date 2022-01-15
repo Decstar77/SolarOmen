@@ -1,5 +1,5 @@
 
-#include <SolarEngine.h>
+#include "Core.h"
 #include "ImGuiLayer.h"
 
 namespace sol
@@ -34,7 +34,7 @@ namespace sol
 
 			es->room.Initliaze();
 			es->selectedEntity = es->room.CreateEntity("Test");
-			es->selectedEntity.SetMaterial("cube", "");
+			//es->selectedEntity.SetMaterial("cube", "");
 
 			return true;
 		}
@@ -112,6 +112,7 @@ namespace sol
 		{
 			RenderEntry entry = {};
 			entry.worldTransform = es->selectedEntity.GetWorldTransform();
+			entry.worldTransform.scale = 50;
 			entry.material = es->selectedEntity.GetMaterialomponent()->material;
 
 			renderPacket->renderEntries.Add(entry);

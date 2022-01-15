@@ -118,11 +118,13 @@
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\;$(SolutionDir)SolarOmen\vendor\assimp\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)SolarOmen\vendor\assimp\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,13 +137,15 @@
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\;$(SolutionDir)SolarOmen\vendor\assimp\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)SolarOmen\vendor\assimp\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -151,7 +155,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Entry.cpp" />
+    <ClCompile Include="src\processors\AssetIdGenerator.cpp" />
+    <ClCompile Include="src\Processors\AssetPacking.cpp" />
+    <ClCompile Include="src\processors\BinaryFile.cpp" />
+    <ClCompile Include="src\processors\FileProcessor.cpp" />
     <ClCompile Include="src\ImGuiLayer.cpp" />
+    <ClCompile Include="src\processors\MaterialProcessor.cpp" />
+    <ClCompile Include="src\processors\MeshProcessor.cpp" />
+    <ClCompile Include="src\processors\MetaProcessor.cpp" />
+    <ClCompile Include="src\processors\TextFile.cpp" />
+    <ClCompile Include="src\processors\TextureProcessor.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
     <ClCompile Include="vendor\imgui\ImGuizmo.cpp" />
     <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
@@ -161,8 +174,18 @@
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Core.h" />
     <ClInclude Include="src\EditorTypes.h" />
+    <ClInclude Include="src\processors\AssetIdGenerator.h" />
+    <ClInclude Include="src\processors\AssetPacking.h" />
+    <ClInclude Include="src\processors\BinaryFile.h" />
+    <ClInclude Include="src\processors\FileProcessor.h" />
     <ClInclude Include="src\ImGuiLayer.h" />
+    <ClInclude Include="src\processors\MaterialProcessor.h" />
+    <ClInclude Include="src\processors\MeshProcessor.h" />
+    <ClInclude Include="src\processors\MetaProcessor.h" />
+    <ClInclude Include="src\processors\TextFile.h" />
+    <ClInclude Include="src\processors\TextureProcessor.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\ImGuizmo.h" />

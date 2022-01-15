@@ -1,5 +1,5 @@
 #pragma once
-#include "SolarDefines.h"
+#include "../SolarDefines.h"
 
 
 #define LOG_WARN_ENABLED 1

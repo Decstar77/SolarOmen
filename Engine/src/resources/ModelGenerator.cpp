@@ -11,6 +11,7 @@ namespace sol
 		Vec2f uv;
 
 		Vertex() {}
+		Vertex(const Vec3f& pos) { position = pos; }
 		Vertex(
 			real32 px, real32 py, real32 pz,
 			real32 nx, real32 ny, real32 nz,
@@ -238,5 +239,173 @@ namespace sol
 		return ConvertMeshDataIntoModelResource(&data, layout);
 	}
 
+	ModelResource ModelGenerator::CreateSphere(real32 radius, uint32 sliceCount, uint32 stackCount, VertexLayoutType layout)
+	{
+		MeshData meshData = {};
 
+		meshData.vertices.Allocate(stackCount * sliceCount + 2, MemoryType::TRANSIENT);
+		meshData.indices.Allocate((stackCount * sliceCount + 2) * (stackCount * sliceCount + 2), MemoryType::TRANSIENT);
+
+		// Poles: note that there will be texture coordinate distortion as there is
+		// not a unique point on the texture map to assign to the pole when mapping
+		// a rectangular texture onto a sphere.
+		Vertex topVertex = Vertex(0.0f, +radius, 0.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+		Vertex bottomVertex = Vertex(0.0f, -radius, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+
+		meshData.vertices.Add(topVertex);
+
+		real32 phiStep = PI / stackCount;
+		real32 thetaStep = 2.0f * PI / sliceCount;
+
+		// Compute vertices for each stack ring (do not count the poles as rings).
+		for (uint32 i = 1; i <= stackCount - 1; ++i)
+		{
+			real32 phi = i * phiStep;
+
+			// Vertices of ring.
+			for (uint32 j = 0; j <= sliceCount; ++j)
+			{
+				real32 theta = j * thetaStep;
+
+				Vertex v = {};
+
+				// spherical to cartesian
+				v.position.x = radius * sinf(phi) * cosf(theta);
+				v.position.y = radius * cosf(phi);
+				v.position.z = radius * sinf(phi) * sinf(theta);
+
+				// Partial derivative of P with respect to theta
+				v.tanget.x = -radius * sinf(phi) * sinf(theta);
+				v.tanget.y = 0.0f;
+				v.tanget.z = +radius * sinf(phi) * cosf(theta);
+
+				v.uv.x = theta / (2.0f * PI);
+				v.uv.y = phi / PI;
+
+				meshData.vertices.Add(v);
+			}
+		}
+
+		meshData.vertices.Add(bottomVertex);
+
+		//
+		// Compute indices for top stack.  The top stack was written first to the vertex buffer
+		// and connects the top pole to the first ring.
+		//
+
+		for (uint32 i = 1; i <= sliceCount; ++i)
+		{
+			meshData.indices.Add(0);
+			meshData.indices.Add(i + 1);
+			meshData.indices.Add(i);
+		}
+
+		//
+		// Compute indices for inner stacks (not connected to poles).
+		//
+
+		// Offset the indices to the index of the first vertex in the first ring.
+		// This is just skipping the top pole vertex.
+		uint32 baseIndex = 1;
+		uint32 ringVertexCount = sliceCount + 1;
+		for (uint32 i = 0; i < stackCount - 2; ++i)
+		{
+			for (uint32 j = 0; j < sliceCount; ++j)
+			{
+				meshData.indices.Add(baseIndex + i * ringVertexCount + j);
+				meshData.indices.Add(baseIndex + i * ringVertexCount + j + 1);
+				meshData.indices.Add(baseIndex + (i + 1) * ringVertexCount + j);
+
+				meshData.indices.Add(baseIndex + (i + 1) * ringVertexCount + j);
+				meshData.indices.Add(baseIndex + i * ringVertexCount + j + 1);
+				meshData.indices.Add(baseIndex + (i + 1) * ringVertexCount + j + 1);
+			}
+		}
+
+		//
+		// Compute indices for bottom stack.  The bottom stack was written last to the vertex buffer
+		// and connects the bottom pole to the bottom ring.
+		//
+
+		// South pole vertex was added last.
+		uint32 southPoleIndex = (uint32)meshData.vertices.count - 1;
+
+		// Offset the indices to the index of the first vertex in the last ring.
+		baseIndex = southPoleIndex - ringVertexCount;
+
+		for (uint32 i = 0; i < sliceCount; ++i)
+		{
+			meshData.indices.Add(southPoleIndex);
+			meshData.indices.Add(baseIndex + i);
+			meshData.indices.Add(baseIndex + i + 1);
+		}
+
+		return ConvertMeshDataIntoModelResource(&meshData, layout);
+	}
+
+	ModelResource ModelGenerator::CreateGeosphere(real32 radius, uint32 numSubdivisions, VertexLayoutType layout)
+	{
+		MeshData meshData = {};
+
+		numSubdivisions = Min<uint32>(numSubdivisions, 6);
+
+		// Approximate a sphere by tessellating an icosahedron.
+		const real32 X = 0.525731f;
+		const real32 Z = 0.850651f;
+
+		meshData.vertices.Allocate(12, MemoryType::TRANSIENT);
+		meshData.indices.Allocate(60, MemoryType::TRANSIENT);
+
+		meshData.vertices.Add(Vec3f(-X, 0.0f, Z));	meshData.vertices.Add(Vec3f(X, 0.0f, Z));
+		meshData.vertices.Add(Vec3f(-X, 0.0f, -Z)); meshData.vertices.Add(Vec3f(X, 0.0f, -Z));
+		meshData.vertices.Add(Vec3f(0.0f, Z, X));   meshData.vertices.Add(Vec3f(0.0f, Z, -X));
+		meshData.vertices.Add(Vec3f(0.0f, -Z, X));  meshData.vertices.Add(Vec3f(0.0f, -Z, -X));
+		meshData.vertices.Add(Vec3f(Z, X, 0.0f));   meshData.vertices.Add(Vec3f(-Z, X, 0.0f));
+		meshData.vertices.Add(Vec3f(Z, -X, 0.0f));  meshData.vertices.Add(Vec3f(-Z, -X, 0.0f));
+
+		uint32 k[60] =
+		{
+			1,4,0,  4,9,0,  4,5,9,  8,5,4,  1,8,4,
+			1,10,8, 10,3,8, 8,3,5,  3,2,5,  3,7,2,
+			3,10,7, 10,6,7, 6,11,7, 6,0,11, 6,1,0,
+			10,1,6, 11,0,9, 2,11,9, 5,2,9,  11,2,7
+		};
+
+		for (uint32 i = 0; i < ArrayCount(k); i++) { meshData.indices.Add(k[i]); }
+		for (uint32 i = 0; i < numSubdivisions; ++i) { meshData = Subdivide(&meshData); }
+
+		// Project vertices onto sphere and scale.
+		for (uint32 i = 0; i < meshData.vertices.count; ++i)
+		{
+			// Project onto unit sphere.
+			Vec3f n = Normalize(meshData.vertices[i].position);
+
+			// Project onto sphere.
+			Vec3f p = radius * n;
+
+			meshData.vertices[i].position = p;
+			meshData.vertices[i].normal = n;
+
+			// Derive texture coordinates from spherical coordinates.
+			real32 theta = atan2f(meshData.vertices[i].position.z, meshData.vertices[i].position.x);
+
+			// Put in [0, 2pi].
+			if (theta < 0.0f) { theta += 2.0f * PI; }
+
+			real32 phi = acosf(meshData.vertices[i].position.y / radius);
+
+			meshData.vertices[i].uv.x = theta / (2.0f * PI);
+			meshData.vertices[i].uv.y = phi / (PI);
+
+			// Partial derivative of P with respect to theta
+			meshData.vertices[i].tanget.x = -radius * sinf(phi) * sinf(theta);
+			meshData.vertices[i].tanget.y = 0.0f;
+			meshData.vertices[i].tanget.z = +radius * sinf(phi) * cosf(theta);
+
+			meshData.vertices[i].tanget = Normalize(meshData.vertices[i].tanget);
+
+		}
+
+		return ConvertMeshDataIntoModelResource(&meshData, layout);
+	}
 }

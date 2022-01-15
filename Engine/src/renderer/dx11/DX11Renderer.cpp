@@ -422,16 +422,16 @@ namespace sol
 			RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
 
 #if 1
-			//if (entry->material.albedoId.IsValid() && entry->material.modelId.IsValid())
-			//{
-			//	RenderCommand::SetTexture(*renderState.textures.Get(entry->material.albedoId), 0);
-			//	RenderCommand::SetProgram(renderState.phongProgram);
-			//	RenderCommand::DrawStaticMesh(*renderState.staticMeshes.Get(entry->material.modelId));
-			//}
+			if (entry->material.albedoId.IsValid() && entry->material.modelId.IsValid())
+			{
+				RenderCommand::SetTexture(*renderState.textures.Get(entry->material.albedoId), 0);
+				RenderCommand::SetProgram(renderState.phongProgram);
+				RenderCommand::DrawStaticMesh(*renderState.staticMeshes.Get(entry->material.modelId));
+			}
 
-			RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
-			RenderCommand::SetProgram(renderState.phongProgram);
-			RenderCommand::DrawStaticMesh(renderState.quad);
+			//RenderCommand::SetTexture(renderState.textures.GetValueSet()[0], 0);
+			//RenderCommand::SetProgram(renderState.phongProgram);
+			//RenderCommand::DrawStaticMesh(renderState.cube);
 
 #else
 			RenderCommand::SetTexture(renderState.textures.GetValueSet()[4], 0);
