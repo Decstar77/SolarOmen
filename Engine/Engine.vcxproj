@@ -98,7 +98,6 @@
     <ClInclude Include="src\core\SolarPrimitives.h" />
     <ClInclude Include="src\renderer\dx11\DX11RenderCommands.h" />
     <ClInclude Include="src\renderer\dx11\DX11Types.h" />
-    <ClInclude Include="src\resources\SolarResources.h" />
     <ClInclude Include="src\resources\SolarResourceTypes.h" />
     <ClInclude Include="src\core\SolarApplication.h" />
     <ClInclude Include="src\core\SolarClock.h" />

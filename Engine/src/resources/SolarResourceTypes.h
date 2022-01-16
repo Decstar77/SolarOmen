@@ -55,13 +55,21 @@ namespace sol
 		static ModelResource* GetModelResource(const ResourceId& id);
 		static ModelResource* GetModelResource(const String& name);
 
+		static bool8 LoadAllTextureResources();
 		static ManagedArray<TextureResource> GetAllTextureResources();
 		static TextureResource* GetTextureResource(const ResourceId& id);
 		static TextureResource* GetTextureResource(const String& name);
 
+		static bool8 LoadAllProgramResources();
 		static ManagedArray<ProgramResource> GetAllProgramResources();
 		static ProgramResource* GetProgramResource(const ResourceId& id);
 		static ProgramResource* GetProgramResource(const String& name);
+
+	private:
+		static bool8 Initialize();
+		static void Shutdown();
+
+		friend class Application;
 	};
 
 	class SOL_API ModelGenerator
