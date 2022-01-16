@@ -6,13 +6,21 @@
 
 namespace sol
 {
+	static constexpr uint32 MAX_MESHES_PER_MODEL = 128;
+
+	struct MeshResource
+	{
+		String name;
+		VertexLayoutType layout;
+		ManagedArray<real32> packedVertices;
+		ManagedArray<uint32> indices;
+	};
+
 	struct ModelResource
 	{
 		String name;
 		ResourceId id;
-		VertexLayoutType layout;
-		ManagedArray<real32> packedVertices;
-		ManagedArray<uint32> indices;
+		FixedArray<MeshResource, MAX_MESHES_PER_MODEL> meshes;
 	};
 
 	struct TextureResource
@@ -42,6 +50,7 @@ namespace sol
 	class SOL_API Resources
 	{
 	public:
+		static bool8 LoadAllModelResources();
 		static ManagedArray<ModelResource> GetAllModelResources();
 		static ModelResource* GetModelResource(const ResourceId& id);
 		static ModelResource* GetModelResource(const String& name);
@@ -58,11 +67,11 @@ namespace sol
 	class SOL_API ModelGenerator
 	{
 	public:
-		static ModelResource CreateQuad(real32 x, real32 y, real32 w, real32 h, real32 depth);
-		static ModelResource CreateGrid(real32 width, real32 depth, uint32 m, uint32 n);
-		static ModelResource CreateBox(real32 width, real32 height, real32 depth, uint32 numSubdivisions, VertexLayoutType layout);
-		static ModelResource CreateSphere(real32 radius, uint32 sliceCount, uint32 stackCount, VertexLayoutType layout);
-		static ModelResource CreateGeosphere(real32 radius, uint32 numSubdivisions, VertexLayoutType layout);
-		static ModelResource CreateCylinder(real32 bottomRadius, real32 topRadius, real32 height, uint32 sliceCount, uint32 stackCount, VertexLayoutType layout);
+		static MeshResource CreateQuad(real32 x, real32 y, real32 w, real32 h, real32 depth);
+		static MeshResource CreateGrid(real32 width, real32 depth, uint32 m, uint32 n);
+		static MeshResource CreateBox(real32 width, real32 height, real32 depth, uint32 numSubdivisions, VertexLayoutType layout);
+		static MeshResource CreateSphere(real32 radius, uint32 sliceCount, uint32 stackCount, VertexLayoutType layout);
+		static MeshResource CreateGeosphere(real32 radius, uint32 numSubdivisions, VertexLayoutType layout);
+		static MeshResource CreateCylinder(real32 bottomRadius, real32 topRadius, real32 height, uint32 sliceCount, uint32 stackCount, VertexLayoutType layout);
 	};
 }

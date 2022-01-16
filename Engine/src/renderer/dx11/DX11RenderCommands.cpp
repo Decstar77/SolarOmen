@@ -84,7 +84,7 @@ namespace sol
 		}
 	}
 
-	void RenderCommand::SetStaticMesh(const StaticModel& mesh)
+	void RenderCommand::SetStaticMesh(const StaticMesh& mesh)
 	{
 		uint32 offset = 0;
 		DeviceContext dc = GetDeviceContext();
@@ -92,7 +92,7 @@ namespace sol
 		DXINFO(dc.context->IASetIndexBuffer(mesh.indexBuffer, DXGI_FORMAT_R32_UINT, 0));
 	}
 
-	void RenderCommand::DrawStaticMesh(const StaticModel& mesh)
+	void RenderCommand::DrawStaticMesh(const StaticMesh& mesh)
 	{
 		SetStaticMesh(mesh);
 		DeviceContext dc = GetDeviceContext();

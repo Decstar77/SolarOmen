@@ -1,4 +1,4 @@
-#include "MeshProcessor.h"
+#include "ModelProcessor.h"
 
 
 namespace sol
@@ -78,6 +78,7 @@ namespace sol
 	{
 		Mesh resultingMesh;
 		resultingMesh.hasColours = mesh->GetNumColorChannels() > 0;
+		resultingMesh.name = mesh->mName.C_Str();
 
 		Assert(!resultingMesh.hasColours, "LOAD COLOURS");
 
@@ -158,23 +159,23 @@ namespace sol
 			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 			resultingMesh.material.name = material->GetName().C_Str();
 
-			//uint32 diffuseCount = material->GetTextureCount(aiTextureType_DIFFUSE);
-			//uint32 specularCount = material->GetTextureCount(aiTextureType_SPECULAR);
-			//uint32 ambientCount = material->GetTextureCount(aiTextureType_AMBIENT);
-			//uint32 emssiveCount = material->GetTextureCount(aiTextureType_EMISSIVE);
-			//uint32 normalCount = material->GetTextureCount(aiTextureType_NORMALS);
-			//uint32 heightCount = material->GetTextureCount(aiTextureType_HEIGHT);
-			//uint32 shininessCount = material->GetTextureCount(aiTextureType_SHININESS);
-			//uint32 opacityCount = material->GetTextureCount(aiTextureType_OPACITY);
-			//uint32 displacementCount = material->GetTextureCount(aiTextureType_DISPLACEMENT);
-			//normalCount = material->GetTextureCount(aiTextureType_LIGHTMAP);
-			//normalCount = material->GetTextureCount(aiTextureType_BASE_COLOR);
-			//normalCount = material->GetTextureCount(aiTextureType_NORMAL_CAMERA);
-			//normalCount = material->GetTextureCount(aiTextureType_EMISSION_COLOR);
-			//normalCount = material->GetTextureCount(aiTextureType_METALNESS);
-			//normalCount = material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS);
-			//normalCount = material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION);
-			//normalCount = material->GetTextureCount(aiTextureType_UNKNOWN);
+			uint32 diffuseCount = material->GetTextureCount(aiTextureType_DIFFUSE);
+			uint32 specularCount = material->GetTextureCount(aiTextureType_SPECULAR);
+			uint32 ambientCount = material->GetTextureCount(aiTextureType_AMBIENT);
+			uint32 emssiveCount = material->GetTextureCount(aiTextureType_EMISSIVE);
+			uint32 normalCount = material->GetTextureCount(aiTextureType_NORMALS);
+			uint32 heightCount = material->GetTextureCount(aiTextureType_HEIGHT);
+			uint32 shininessCount = material->GetTextureCount(aiTextureType_SHININESS);
+			uint32 opacityCount = material->GetTextureCount(aiTextureType_OPACITY);
+			uint32 displacementCount = material->GetTextureCount(aiTextureType_DISPLACEMENT);
+			normalCount = material->GetTextureCount(aiTextureType_LIGHTMAP);
+			normalCount = material->GetTextureCount(aiTextureType_BASE_COLOR);
+			normalCount = material->GetTextureCount(aiTextureType_NORMAL_CAMERA);
+			normalCount = material->GetTextureCount(aiTextureType_EMISSION_COLOR);
+			normalCount = material->GetTextureCount(aiTextureType_METALNESS);
+			normalCount = material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS);
+			normalCount = material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION);
+			normalCount = material->GetTextureCount(aiTextureType_UNKNOWN);
 		}
 
 		return resultingMesh;
@@ -182,38 +183,45 @@ namespace sol
 
 	void Model::SaveBinaryData(BinaryFile* file) const
 	{
-		if (meshes.size() > 1)
-			LOG("WARNING MESH SIZE MORE THAN ZERO: " << meshes.size() << " " << name.GetCStr());
+		if (meshes.size() > MAX_MESHES_PER_MODEL)
+		{
+			SOLERROR(String("Model: ").Add(name).Add(" has to many meshes").GetCStr());
+			return;
+		}
 
-		const Mesh& mesh = meshes[0];
 		file->Write(metaData.id);
 		file->Write(name);
-
-		if (mesh.hasColours)
+		file->Write((uint32)meshes.size());
+		for (uint32 meshIndex = 0; meshIndex < meshes.size(); meshIndex++)
 		{
-			file->Write((uint8)VertexLayoutType::Value::PNTC);
-			file->Write((uint32)mesh.vertices.size());
-			for (const FatVertex& v : mesh.vertices)
-			{
-				file->Write(v.position);
-				file->Write(v.normal);
-				file->Write(v.texCoords);
-				file->Write(v.colours);
-			}
-		}
-		else
-		{
-			file->Write((uint8)VertexLayoutType::Value::PNT);
-			file->Write((uint32)mesh.vertices.size());
-			for (const FatVertex& v : mesh.vertices)
-			{
-				file->Write(v.position);
-				file->Write(v.normal);
-				file->Write(v.texCoords);
-			}
-		}
+			const Mesh& mesh = meshes[meshIndex];
+			file->Write(mesh.name);
 
+			if (mesh.hasColours)
+			{
+				file->Write((uint8)VertexLayoutType::Value::PNTC);
+				file->Write((uint32)mesh.vertices.size());
+				for (const FatVertex& v : mesh.vertices)
+				{
+					file->Write(v.position);
+					file->Write(v.normal);
+					file->Write(v.texCoords);
+					file->Write(v.colours);
+				}
+			}
+			else
+			{
+				file->Write((uint8)VertexLayoutType::Value::PNT);
+				file->Write((uint32)mesh.vertices.size());
+				for (const FatVertex& v : mesh.vertices)
+				{
+					file->Write(v.position);
+					file->Write(v.normal);
+					file->Write(v.texCoords);
+				}
+			}
 
-		file->Write(mesh.indices);
+			file->Write(mesh.indices);
+		}
 	}
 }

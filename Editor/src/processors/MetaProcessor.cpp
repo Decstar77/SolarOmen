@@ -1,4 +1,4 @@
-#include "MeshProcessor.h"
+#include "ModelProcessor.h"
 
 namespace sol
 {

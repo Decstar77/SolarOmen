@@ -97,9 +97,9 @@ namespace sol
 		return result;
 	}
 
-	ModelResource ConvertMeshDataIntoModelResource(MeshData* meshData, VertexLayoutType layout)
+	MeshResource ConvertMeshDataIntoModelResource(MeshData* meshData, VertexLayoutType layout)
 	{
-		ModelResource result = {};
+		MeshResource result = {};
 
 		result.layout = layout;
 		switch (layout.Get())
@@ -129,7 +129,7 @@ namespace sol
 		return result;
 	}
 
-	ModelResource ModelGenerator::CreateQuad(real32 x, real32 y, real32 w, real32 h, real32 depth)
+	MeshResource ModelGenerator::CreateQuad(real32 x, real32 y, real32 w, real32 h, real32 depth)
 	{
 		MeshData meshData = {};
 
@@ -155,9 +155,9 @@ namespace sol
 		return ConvertMeshDataIntoModelResource(&meshData, VertexLayoutType::Value::PNT);
 	}
 
-	ModelResource ModelGenerator::CreateBox(real32 width, real32 height, real32 depth, uint32 numSubdivisions, VertexLayoutType layout)
+	MeshResource ModelGenerator::CreateBox(real32 width, real32 height, real32 depth, uint32 numSubdivisions, VertexLayoutType layout)
 	{
-		//ModelResource model = {};
+		//MeshResource model = {};
 		//model.id.number = 3;
 		//model.name = "Box";
 
@@ -239,7 +239,7 @@ namespace sol
 		return ConvertMeshDataIntoModelResource(&data, layout);
 	}
 
-	ModelResource ModelGenerator::CreateSphere(real32 radius, uint32 sliceCount, uint32 stackCount, VertexLayoutType layout)
+	MeshResource ModelGenerator::CreateSphere(real32 radius, uint32 sliceCount, uint32 stackCount, VertexLayoutType layout)
 	{
 		MeshData meshData = {};
 
@@ -343,7 +343,7 @@ namespace sol
 		return ConvertMeshDataIntoModelResource(&meshData, layout);
 	}
 
-	ModelResource ModelGenerator::CreateGeosphere(real32 radius, uint32 numSubdivisions, VertexLayoutType layout)
+	MeshResource ModelGenerator::CreateGeosphere(real32 radius, uint32 numSubdivisions, VertexLayoutType layout)
 	{
 		MeshData meshData = {};
 

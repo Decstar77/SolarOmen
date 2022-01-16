@@ -6,7 +6,7 @@
 
 namespace sol
 {
-	class ModelMaterial : Serializable
+	class MeshMaterial : Serializable
 	{
 	public:
 		ResourceId id;
@@ -25,7 +25,7 @@ namespace sol
 	class MaterialProcessor
 	{
 	public:
-		std::vector<ModelMaterial> LoadMTLMaterials(const std::vector<String>& paths);
+		std::vector<MeshMaterial> LoadMTLMaterials(const std::vector<String>& paths);
 
 	};
 }

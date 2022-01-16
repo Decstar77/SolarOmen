@@ -12,6 +12,14 @@ namespace sol
 	public:
 		static bool8 Initialize();
 		static void Render(RenderPacket* renderPacket);
+
+		static bool8 LoadAllModels();
+		//static bool8 LoadModel(ModelResource model);
+
+		static bool8 LoadAllTextures();
+		static bool8 LoadAllPrograms();
+
+
 		static void Shutdown();
 		static void* GetNativeDeviceContext();
 	};

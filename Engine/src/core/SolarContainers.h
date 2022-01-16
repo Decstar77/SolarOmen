@@ -404,6 +404,29 @@ namespace sol
 			Assert(0, "Could not place item in hashmap, it's full");
 		}
 
+		inline T* Create(uint64 key)
+		{
+			uint64 hash = Hash(key);
+			uint32 index = (uint32)(hash % entries.GetCapcity());
+
+			FixedArray<Entry, 25>* bucket = entries.Get(index);
+
+			for (uint32 i = 0; i < bucket->GetCapcity(); i++)
+			{
+				Entry* entry = bucket->Get(i);
+				if (!entry->valid)
+				{
+					entry->key = key;
+					entry->valid = true;
+					count++;
+					return &entry->t;
+				}
+			}
+
+			Assert(0, "Could not create item in hashmap, it's full");
+			return nullptr;
+		}
+
 		inline T* Get(uint64 key)
 		{
 			uint64 hash = Hash(key);
@@ -429,15 +452,15 @@ namespace sol
 
 			for (uint32 buckedIndex = 0; buckedIndex < entries.GetCapcity(); buckedIndex++)
 			{
-				const FixedArray<Entry, 25>& bucket = entries[buckedIndex];
+				const FixedArray<Entry, 25>* bucket = entries.Get(buckedIndex);
 
-				for (uint32 entryIndex = 0; entryIndex < bucket.GetCapcity(); entryIndex++)
+				for (uint32 entryIndex = 0; entryIndex < bucket->GetCapcity(); entryIndex++)
 				{
-					Entry entry = bucket[entryIndex];
+					const Entry* entry = bucket->Get(entryIndex);
 
-					if (entry.valid)
+					if (entry->valid)
 					{
-						result.Add(entry.t);
+						result.Add(entry->t);
 					}
 				}
 			}

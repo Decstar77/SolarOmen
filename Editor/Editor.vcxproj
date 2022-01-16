@@ -161,7 +161,7 @@
     <ClCompile Include="src\processors\FileProcessor.cpp" />
     <ClCompile Include="src\ImGuiLayer.cpp" />
     <ClCompile Include="src\processors\MaterialProcessor.cpp" />
-    <ClCompile Include="src\processors\MeshProcessor.cpp" />
+    <ClCompile Include="src\processors\ModelProcessor.cpp" />
     <ClCompile Include="src\processors\MetaProcessor.cpp" />
     <ClCompile Include="src\processors\TextFile.cpp" />
     <ClCompile Include="src\processors\TextureProcessor.cpp" />
@@ -182,7 +182,7 @@
     <ClInclude Include="src\processors\FileProcessor.h" />
     <ClInclude Include="src\ImGuiLayer.h" />
     <ClInclude Include="src\processors\MaterialProcessor.h" />
-    <ClInclude Include="src\processors\MeshProcessor.h" />
+    <ClInclude Include="src\processors\ModelProcessor.h" />
     <ClInclude Include="src\processors\MetaProcessor.h" />
     <ClInclude Include="src\processors\TextFile.h" />
     <ClInclude Include="src\processors\TextureProcessor.h" />

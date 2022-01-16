@@ -31,6 +31,12 @@ namespace sol
 		return GetResourcesFromName<ProgramResource>(programs.GetValueSet(), name);
 	}
 
+	bool8 Resources::LoadAllModelResources()
+	{
+		ResourceSystem::LoadAllModels();
+		return 1;
+	}
+
 	ManagedArray<ModelResource> Resources::GetAllModelResources()
 	{
 		return models.GetValueSet();
@@ -108,9 +114,9 @@ namespace sol
 
 	void ResourceSystem::LoadAllModels()
 	{
-		ModelResource invalid = {};
-		invalid.name = "NONE/INVALID";
-		models.Put(0, invalid);
+		models.Clear();
+
+		models.Create(0)->name = "NONE/INVALID";
 
 		BinaryAssetFile file = {};
 		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("models.bin"), false);
@@ -118,25 +124,34 @@ namespace sol
 		uint32 modelCount = file.Read<uint32>();
 		for (uint32 modelIndex = 0; modelIndex < modelCount; modelIndex++)
 		{
-			ModelResource model = {};
-			model.id = file.Read<ResourceId>();
-			model.name = file.Read<String>();
-			model.layout = file.Read<VertexLayoutType::Value>();
+			ResourceId modelId = file.Read<ResourceId>();
+			ModelResource* model = models.Create(modelId.number);
+			model->id = modelId;
+			model->name = file.Read<String>();
+			uint32 meshCount = file.Read<uint32>();
 
-			model.packedVertices.Allocate(file.Read<uint32>() * model.layout.GetStride(), MemoryType::PERMANENT);
-			for (uint32 i = 0; i < model.packedVertices.GetCapcity(); i++)
+			for (uint32 meshIndex = 0; meshIndex < meshCount; meshIndex++)
 			{
-				model.packedVertices.Add(file.Read<real32>());
+				MeshResource mesh = {};
+				mesh.name = file.Read<String>();
+				mesh.layout = file.Read<VertexLayoutType::Value>();
+
+				mesh.packedVertices.Allocate(file.Read<uint32>() * mesh.layout.GetStride(), MemoryType::PERMANENT);
+				for (uint32 i = 0; i < mesh.packedVertices.GetCapcity(); i++)
+				{
+					mesh.packedVertices.Add(file.Read<real32>());
+				}
+
+				mesh.indices.Allocate(file.Read<uint32>(), MemoryType::PERMANENT);
+				for (uint32 i = 0; i < mesh.indices.GetCapcity(); i++)
+				{
+					mesh.indices.Add(file.Read<uint32>());
+				}
+
+				model->meshes.Add(mesh);
 			}
 
-			model.indices.Allocate(file.Read<uint32>(), MemoryType::PERMANENT);
-			for (uint32 i = 0; i < model.indices.GetCapcity(); i++)
-			{
-				model.indices.Add(file.Read<uint32>());
-			}
-
-			SOLTRACE(String("Loaded model resource: ").Add(model.name).GetCStr());
-			models.Put(model.id.number, model);
+			SOLTRACE(String("Loaded model resource: ").Add(model->name).GetCStr());
 		}
 
 		SOLINFO("Model loading complete");

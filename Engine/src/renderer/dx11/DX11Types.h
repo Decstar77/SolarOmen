@@ -109,26 +109,33 @@ namespace sol
 		Value value;
 	};
 
-	struct StaticModel
+	struct StaticMesh
 	{
-		uint32 strideBytes; // @NOTE: Used for rendering
-		uint32 indexCount;  // @NOTE: Used for rendering
-		uint32 vertexCount;  // @NOTE: Used for rendering
+		uint32 strideBytes;					// @NOTE: Used for rendering
+		uint32 indexCount;					// @NOTE: Used for rendering
+		uint32 vertexCount;					// @NOTE: Used for rendering
 		VertexLayoutType vertexLayout;
 
 		ID3D11Buffer* vertexBuffer;
 		ID3D11Buffer* indexBuffer;
 
-		//void UpdateVertexBuffer(real32* vertices, uint32 sizeBytes);
-
 		//static StaticModel Create(const ModelAsset& modelAsset);
-		static void Release(StaticModel* mesh);
-		static StaticModel Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout);
-		static StaticModel Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
-		static StaticModel Create(ModelResource* modelResouce);
-		static StaticModel Create(const ModelResource& modelResouce);
-		static StaticModel CreateScreenSpaceQuad();
+		static void Release(StaticMesh* mesh);
+		static StaticMesh Create(real32* vertices, uint32 vertexCount, VertexLayoutType layout);
+		static StaticMesh Create(real32* vertices, uint32 vertexCount, uint32* indices, uint32 indexCount, VertexLayoutType layout);
+		static StaticMesh Create(MeshResource* meshResource);
+		static StaticMesh Create(const MeshResource& meshResource);
+		static StaticMesh CreateScreenSpaceQuad();
+	};
 
+	struct ModelInstance
+	{
+		ResourceId id;
+		String name;
+		FixedArray<StaticMesh, 128> staticMeshes;
+
+		static void Release(ModelInstance* model);
+		static void Create(ModelResource* modelResource);
 	};
 
 	struct StaticTexture
@@ -335,11 +342,11 @@ namespace sol
 		};
 
 
-		StaticModel quad;
-		StaticModel cube;
+		StaticMesh quad;
+		StaticMesh cube;
 		StaticTexture invalidTexture;
 
-		HashMap<StaticModel> staticMeshes;
+		HashMap<ModelInstance> modelInstances;
 		HashMap<StaticTexture> textures;
 
 		ShaderConstBuffer<ShaderConstBufferModel> modelConstBuffer;

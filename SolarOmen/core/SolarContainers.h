@@ -458,11 +458,11 @@ namespace cm
 
 			for (uint32 entryIndex = 0; entryIndex < bucket.GetCapcity(); entryIndex++)
 			{
-				Entry entry = bucket[entryIndex];
+				const Entry* entry = bucket.Get(entryIndex);
 
-				if (entry.valid)
+				if (entry->valid)
 				{
-					result.Add(entry.t);
+					result.Add(entry->t);
 				}
 			}
 		}

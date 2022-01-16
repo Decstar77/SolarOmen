@@ -235,6 +235,32 @@ namespace sol
 		}
 	}
 
+	static void ShutdownModels()
+	{
+		ManagedArray<ModelInstance> models = renderState.modelInstances.GetValueSet();
+		for (uint32 i = 0; i < models.count; i++) { ModelInstance::Release(&models[i]); }
+		models.Clear();
+	}
+
+	bool8 Renderer::LoadAllModels()
+	{
+		ShutdownModels();
+
+		ManagedArray<ModelResource> models = Resources::GetAllModelResources();
+		for (uint32 i = 1; i < models.count; i++)
+		{
+			ModelResource* model = &models[i];
+			ModelInstance* instance = renderState.modelInstances.Create(model->id);
+
+			for (uint32 j = 0; j < model->meshes.count; j++)
+			{
+				MeshResource* mesh = &model->meshes[j];
+				instance->staticMeshes.Add(StaticMesh::Create(mesh));
+			}
+		}
+		return bool8();
+	}
+
 	bool8 OnWindowResizeCallback(uint16 eventCode, void* sender, void* listener, EventContext context)
 	{
 		EventWindowResize* resizeEvent = (EventWindowResize*)&context;
@@ -342,16 +368,10 @@ namespace sol
 							RenderCommand::UploadShaderConstBuffer(&renderState.lightingConstBuffer);
 							RenderCommand::UploadShaderConstBuffer(&renderState.uiConstBuffer);
 
-							renderState.quad = StaticModel::Create(ModelGenerator::CreateQuad(-1, 1, 2, 2, 0));
-							renderState.cube = StaticModel::Create(ModelGenerator::CreateBox(1, 1, 1, 1, VertexLayoutType::Value::PNT));
+							renderState.quad = StaticMesh::Create(ModelGenerator::CreateQuad(-1, 1, 2, 2, 0));
+							renderState.cube = StaticMesh::Create(ModelGenerator::CreateBox(1, 1, 1, 1, VertexLayoutType::Value::PNT));
 
-							ManagedArray<ModelResource> models = Resources::GetAllModelResources();
-							for (uint32 i = 1; i < models.count; i++)
-							{
-								StaticModel mesh = StaticModel::Create(&models[i]);
-								renderState.staticMeshes.Put(models[i].id, mesh);
-							}
-
+							LoadAllModels();
 
 							ManagedArray<TextureResource> textures = Resources::GetAllTextureResources();
 							{
@@ -436,12 +456,24 @@ namespace sol
 			StaticTexture* texture = renderState.textures.Get(entry->material.albedoId);
 			texture = texture ? texture : &renderState.invalidTexture;
 
-			StaticModel* mesh = renderState.staticMeshes.Get(entry->material.modelId);
-			mesh = mesh ? mesh : &renderState.cube;
+			ModelInstance* model = renderState.modelInstances.Get(entry->material.modelId);
 
-			RenderCommand::SetTexture(*texture, 0);
-			RenderCommand::SetProgram(renderState.phongProgram);
-			RenderCommand::DrawStaticMesh(*mesh);
+			if (model)
+			{
+				RenderCommand::SetProgram(renderState.phongProgram);
+				RenderCommand::SetTexture(*texture, 0);
+
+				for (uint32 meshIndex = 0; meshIndex < model->staticMeshes.count; meshIndex++)
+				{
+					RenderCommand::DrawStaticMesh(model->staticMeshes[meshIndex]);
+				}
+			}
+			else
+			{
+				RenderCommand::SetProgram(renderState.phongProgram);
+				RenderCommand::SetTexture(*texture, 0);
+				RenderCommand::DrawStaticMesh(renderState.cube);
+			}
 
 			//RenderCommand::SetTexture(renderState.textures.GetValueSet()[0], 0);
 			//RenderCommand::SetProgram(renderState.phongProgram);
@@ -461,16 +493,16 @@ namespace sol
 					RenderCommand::SetProgram(renderState.phongKenneyProgram);
 				}
 				RenderCommand::DrawStaticMesh(*mesh);
-			}
-#endif
 		}
+#endif
+	}
 
 		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDER_END, nullptr, {});
 		DeviceContext dc = renderState.deviceContext;
 
 		DXGI_PRESENT_PARAMETERS parameters = { 0 };
 		DXCHECK(renderState.swapChain.swapChain->Present1(1, 0, &parameters));
-	}
+}
 
 	void Renderer::Shutdown()
 	{
@@ -479,12 +511,10 @@ namespace sol
 		RenderCommand::SetStaticMesh({});
 		for (int32 i = 0; i < 10; i++) { RenderCommand::SetTexture({}, i); }
 
-		StaticModel::Release(&renderState.quad);
-		StaticModel::Release(&renderState.cube);
+		StaticMesh::Release(&renderState.quad);
+		StaticMesh::Release(&renderState.cube);
 
-		ManagedArray<StaticModel> meshes = renderState.staticMeshes.GetValueSet();
-		for (uint32 i = 0; i < meshes.count; i++) { StaticModel::Release(&meshes[i]); }
-		meshes.Clear();
+		ShutdownModels();
 
 		ManagedArray<StaticTexture> textures = renderState.textures.GetValueSet();
 		for (uint32 i = 0; i < textures.count; i++) { StaticTexture::Release(&textures[i]); }
@@ -510,5 +540,5 @@ namespace sol
 		DXRELEASE(renderState.deviceContext.context);
 		DXRELEASE(renderState.deviceContext.device);
 	}
-}
+	}
 #endif

@@ -57,7 +57,7 @@
     <ClCompile Include="src\processors\BinaryFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\processors\MeshProcessor.cpp">
+    <ClCompile Include="src\processors\ModelProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Processors\AssetPacking.cpp">
@@ -125,7 +125,7 @@
     <ClInclude Include="src\processors\BinaryFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\processors\MeshProcessor.h">
+    <ClInclude Include="src\processors\ModelProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\processors\MaterialProcessor.h">

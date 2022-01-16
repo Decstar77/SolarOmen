@@ -2,7 +2,7 @@
 #include "../Core.h"
 #include "FileProcessor.h"
 #include "MetaProcessor.h"
-#include "MeshProcessor.h"
+#include "ModelProcessor.h"
 #include "TextureProcessor.h"
 
 namespace sol

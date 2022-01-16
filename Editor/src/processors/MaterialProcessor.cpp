@@ -37,16 +37,16 @@ namespace sol
 		return result;
 	}
 
-	void ModelMaterial::SaveBinaryData(BinaryFile* file) const
+	void MeshMaterial::SaveBinaryData(BinaryFile* file) const
 	{
 		file->Write(id);
 		file->Write(name);
 		file->Write(colourKd);
 	}
 
-	std::vector<ModelMaterial> MaterialProcessor::LoadMTLMaterials(const std::vector<String>& paths)
+	std::vector<MeshMaterial> MaterialProcessor::LoadMTLMaterials(const std::vector<String>& paths)
 	{
-		std::vector<ModelMaterial> materials;
+		std::vector<MeshMaterial> materials;
 
 		for (const String& path : paths)
 		{
@@ -58,7 +58,7 @@ namespace sol
 			{
 				if (line.StartsWith("newmtl"))
 				{
-					ModelMaterial material;
+					MeshMaterial material;
 					line = line.SubStr(line.FindFirstOf(' ') + 1);
 					material.name = line;
 
@@ -75,7 +75,7 @@ namespace sol
 					}
 
 					bool add = true;
-					for (const ModelMaterial& mat : materials)
+					for (const MeshMaterial& mat : materials)
 					{
 						if (mat.name == material.name)
 						{

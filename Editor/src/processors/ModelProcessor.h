@@ -54,8 +54,8 @@ namespace sol
 		bool hasTangets;
 		bool hastBitangets;
 
-		ModelMaterial material;
-
+		String name;
+		MeshMaterial material;
 		std::vector<FatVertex> vertices;
 		std::vector<uint32> indices;
 	};

@@ -213,9 +213,8 @@ namespace sol
 
 		static String ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
 
-		if (ImGui::Button("PackModels"))
+		if (ImGui::Button("Pack Models"))
 		{
-
 			FileProcessor fileProcessor;
 			MetaProcessor metaProcessor;
 			metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
@@ -224,7 +223,15 @@ namespace sol
 			SaveBinaryData(models, "../Assets/Packed/models.bin");
 		}
 
-		if (ImGui::Button("PackTextures"))
+		ImGui::SameLine();
+
+		if (ImGui::Button("Reload Models"))
+		{
+			Resources::LoadAllModelResources();
+			Renderer::LoadAllModels();
+		}
+
+		if (ImGui::Button("Pack Textures"))
 		{
 			FileProcessor fileProcessor;
 			MetaProcessor metaProcessor;
