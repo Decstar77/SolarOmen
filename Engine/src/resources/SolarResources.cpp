@@ -118,7 +118,7 @@ namespace sol
 		models->Clear();
 
 		models->Create(0)->name = "NONE/INVALID";
-
+		return 1;
 		BinaryAssetFile file = {};
 		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("models.bin"), false);
 

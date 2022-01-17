@@ -239,7 +239,7 @@ namespace sol
 	{
 		ManagedArray<ModelInstance> models = renderState.modelInstances.GetValueSet();
 		for (uint32 i = 0; i < models.count; i++) { ModelInstance::Release(&models[i]); }
-		models.Clear();
+		renderState.modelInstances.Clear();
 	}
 
 	bool8 Renderer::LoadAllModels()
@@ -312,6 +312,14 @@ namespace sol
 				hr = tempContext->QueryInterface(__uuidof(ID3D11DeviceContext), (void**)&renderState.deviceContext.context);
 				if (SUCCEEDED(hr))
 				{
+#if SOL_DEBUG_RENDERING
+					hr = tempDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&renderState.deviceContext.debug.debug));
+					if (FAILED(hr))
+					{
+						SOLFATAL("Could not find ID3D11Debug interface");
+						return false;
+					}
+#endif
 					IDXGIFactory2* dxgiFactory = nullptr;
 					hr = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
 					if (SUCCEEDED(hr))
@@ -333,8 +341,14 @@ namespace sol
 						hr = dxgiFactory->CreateSwapChainForHwnd(renderState.deviceContext.device, window,
 							&swapChainDesc, NULL, NULL, &renderState.swapChain.swapChain);
 
+						DXRELEASE(dxgiFactory);
+
 						if (SUCCEEDED(hr))
 						{
+							DXNAME(renderState.deviceContext.device, "Main device");
+							DXNAME(renderState.deviceContext.context, "Main context");
+							DXNAME(renderState.swapChain.swapChain, "Swap chain");
+
 							CreateSwapChainBuffers();
 							SOLINFO("DX11 Swapchain and device created");
 
@@ -493,23 +507,24 @@ namespace sol
 					RenderCommand::SetProgram(renderState.phongKenneyProgram);
 				}
 				RenderCommand::DrawStaticMesh(*mesh);
-		}
+			}
 #endif
-	}
+		}
 
 		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDER_END, nullptr, {});
 		DeviceContext dc = renderState.deviceContext;
 
 		DXGI_PRESENT_PARAMETERS parameters = { 0 };
 		DXCHECK(renderState.swapChain.swapChain->Present1(1, 0, &parameters));
-}
+	}
 
 	void Renderer::Shutdown()
 	{
 		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDERER_SHUTDOWN, nullptr, {});
 
-		RenderCommand::SetStaticMesh({});
-		for (int32 i = 0; i < 10; i++) { RenderCommand::SetTexture({}, i); }
+		DeviceContext dc = GetDeviceContext();
+
+		DXINFO(renderState.deviceContext.context->ClearState());
 
 		StaticMesh::Release(&renderState.quad);
 		StaticMesh::Release(&renderState.cube);
@@ -528,17 +543,24 @@ namespace sol
 		for (uint32 i = 0; i < ArrayCount(renderState.allSampleStates); i++) { SamplerState::Release(&renderState.allSampleStates[i]); }
 		for (uint32 i = 0; i < ArrayCount(renderState.allRastersStates); i++) { DXRELEASE(renderState.allRastersStates[i]); }
 		for (uint32 i = 0; i < ArrayCount(renderState.allDepthStates); i++) { DXRELEASE(renderState.allDepthStates[i]); }
+		for (uint32 i = 0; i < ArrayCount(renderState.allBlendStates); i++) { DXRELEASE(renderState.allBlendStates[i]); }
 		for (uint32 i = 0; i < ArrayCount(renderState.programs); i++) { ProgramInstance::Release(&renderState.programs[i]); }
-
-		DXRELEASE(renderState.blendNormal);
 
 		DXRELEASE(renderState.swapChain.depthView);
 		DXRELEASE(renderState.swapChain.depthShaderView);
 		DXRELEASE(renderState.swapChain.renderView);
 		DXRELEASE(renderState.swapChain.depthTexture);
 		DXRELEASE(renderState.swapChain.swapChain);
+		DXINFO(renderState.deviceContext.context->Flush());
 		DXRELEASE(renderState.deviceContext.context);
 		DXRELEASE(renderState.deviceContext.device);
+
+
+#if SOL_DEBUG_RENDERING
+		renderState.deviceContext.debug.debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+		renderState.deviceContext.debug.info_queue->Release();
+		renderState.deviceContext.debug.debug->Release();
+#endif
 	}
-	}
+}
 #endif

@@ -63,8 +63,16 @@ namespace sol
 	void BinaryFile::SaveToDisk(const String& path)
 	{
 		std::ofstream file(path.GetCStr(), std::ios::out | std::ios::binary);
-		file.write((const char*)fileBytes.data(), fileBytes.size());
-		file.close();
+		if (file.is_open())
+		{
+			file.write((const char*)fileBytes.data(), fileBytes.size());
+			file.close();
+			SOLINFO(String("Saved file: ").Add(path).GetCStr());
+		}
+		else
+		{
+			SOLERROR(String("Could not save file:").Add(path).GetCStr());
+		}
 	}
 
 	BinaryFileReader::BinaryFileReader()

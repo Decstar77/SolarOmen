@@ -69,7 +69,7 @@ namespace sol
 			LoadModel(path);
 		}
 
-		virtual void SaveBinaryData(BinaryFile* file) const override;
+		virtual bool8 SaveBinaryData(BinaryFile* file) const override;
 
 
 		String name;

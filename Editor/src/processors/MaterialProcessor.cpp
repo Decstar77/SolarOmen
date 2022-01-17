@@ -37,11 +37,12 @@ namespace sol
 		return result;
 	}
 
-	void MeshMaterial::SaveBinaryData(BinaryFile* file) const
+	bool8 MeshMaterial::SaveBinaryData(BinaryFile* file) const
 	{
 		file->Write(id);
 		file->Write(name);
 		file->Write(colourKd);
+		return true;
 	}
 
 	std::vector<MeshMaterial> MaterialProcessor::LoadMTLMaterials(const std::vector<String>& paths)

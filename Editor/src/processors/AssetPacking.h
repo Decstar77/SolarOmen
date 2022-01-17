@@ -12,9 +12,13 @@ namespace sol
 	{
 		BinaryFile file;
 		file.Write((uint32)data.size());
+
+		bool8 allFine = true;
+
 		for (const T& d : data)
 		{
-			d.SaveBinaryData(&file);
+			allFine = d.SaveBinaryData(&file);
+			if (!allFine) { SOLERROR("Could not save file due to Seriziable failure"); return; }
 		}
 		file.SaveToDisk(path);
 	}

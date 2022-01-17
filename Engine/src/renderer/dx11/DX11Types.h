@@ -32,12 +32,12 @@
 		(call);                                              \
         LogDirectXDebugGetMessages(&dc.debug);		 \
     }
+#define DXNAME(obj, name) (obj->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(name) - 1, name))
 #else 
 #define DXCHECK(call) {(call);}
 #define DXINFO(call) {(call);}
 #endif
 
-//@NOTE: This is not a debug thing, it will be used in release !!!
 #define DXRELEASE(object)  \
     if ((object))          \
     {                      \
@@ -61,6 +61,7 @@ namespace sol
 	{
 		uint64 next;
 		struct IDXGIInfoQueue* info_queue;
+		ID3D11Debug* debug;
 		//ShaderInstance shader;
 		//ID3D11Buffer* vertex_buffer;
 	};
@@ -309,7 +310,7 @@ namespace sol
 
 		union
 		{
-			ID3D11RasterizerState* allDepthStates[8];
+			ID3D11DepthStencilState* allDepthStates[8];
 			struct
 			{
 				ID3D11DepthStencilState* depthLessState;
@@ -317,6 +318,16 @@ namespace sol
 				ID3D11DepthStencilState* depthLessEqualState;
 			};
 		};
+
+		union
+		{
+			ID3D11BlendState* allBlendStates[8];
+			struct
+			{
+				ID3D11BlendState* blendNormal;
+			};
+		};
+
 
 		union
 		{
@@ -354,7 +365,6 @@ namespace sol
 		ShaderConstBuffer<ShaderConstBufferLightingInfo> lightingConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferUIData> uiConstBuffer;
 
-		ID3D11BlendState* blendNormal;
 	};
 
 

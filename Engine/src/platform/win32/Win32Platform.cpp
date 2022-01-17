@@ -273,6 +273,7 @@ namespace sol
 			if (RegisterRawInputDevices(&mouseRID, 1, sizeof(mouseRID)))
 			{
 				winState.rawInput = true;
+				SOLINFO("Intialized raw input for mouse");
 			}
 			else
 			{
@@ -301,6 +302,7 @@ namespace sol
 			if (RegisterRawInputDevices(&keebRid, 1, sizeof(keebRid)))
 			{
 				winState.rawInput = true;
+				SOLINFO("Intialized raw input for keep");
 			}
 			else
 			{

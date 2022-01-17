@@ -12,14 +12,21 @@ namespace sol
 		ResourceId id;
 		String name;
 
+		ResourceId abledoTexture;
 		String abledoTextureName;
+
+		ResourceId occlusionRoughnessMetallicTexture;
 		String occlusionRoughnessMetallicTextureName;
+
+		ResourceId normalTexture;
 		String normalTextureName;
+
+		ResourceId emssiveTexture;
 		String emssiveTextureName;
 
 		Vec3f colourKd;
 
-		virtual void SaveBinaryData(BinaryFile* file) const override;
+		virtual bool8 SaveBinaryData(BinaryFile* file) const override;
 	};
 
 	class MaterialProcessor

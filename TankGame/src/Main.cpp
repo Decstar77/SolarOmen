@@ -26,6 +26,7 @@ namespace sol
 
 	static bool8 GameInitialze(Game* game)
 	{
+		return true;
 		Room* room = &gameState->room;
 
 		room->Initliaze();
@@ -144,6 +145,7 @@ namespace sol
 
 	static bool8 GameUpdate(Game* game, RenderPacket* renderPacket, real32 dt)
 	{
+		return true;
 		Room* room = &gameState->room;
 
 		Input* input = Input::Get();

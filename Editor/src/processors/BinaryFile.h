@@ -58,7 +58,7 @@ namespace sol
 	class Serializable
 	{
 	public:
-		virtual void SaveBinaryData(BinaryFile* file) const = 0;
+		virtual bool8 SaveBinaryData(BinaryFile* file) const = 0;
 	};
 
 	class BinaryFileReader

@@ -219,8 +219,8 @@ namespace sol
 			MetaProcessor metaProcessor;
 			metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
 
-			auto models = LoadAndProcessModels("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/gltf/", fileProcessor, metaProcessor);
-			SaveBinaryData(models, "../Assets/Packed/models.bin");
+			auto models = LoadAndProcessModels("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/obj/", fileProcessor, metaProcessor);
+			SaveBinaryData(models, "Assets/Packed/models.bin");
 		}
 
 		ImGui::SameLine();
@@ -237,8 +237,8 @@ namespace sol
 			MetaProcessor metaProcessor;
 			metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
 
-			auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/gltf/", fileProcessor, metaProcessor);
-			SaveBinaryData(textures, "../Assets/Packed/textures.bin");
+			auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/obj/", fileProcessor, metaProcessor);
+			SaveBinaryData(textures, "Assets/Packed/textures.bin");
 		}
 
 

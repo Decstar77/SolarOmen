@@ -163,30 +163,60 @@ namespace sol
 			uint32 specularCount = material->GetTextureCount(aiTextureType_SPECULAR);
 			uint32 ambientCount = material->GetTextureCount(aiTextureType_AMBIENT);
 			uint32 emssiveCount = material->GetTextureCount(aiTextureType_EMISSIVE);
-			uint32 normalCount = material->GetTextureCount(aiTextureType_NORMALS);
 			uint32 heightCount = material->GetTextureCount(aiTextureType_HEIGHT);
+			uint32 normalCount = material->GetTextureCount(aiTextureType_NORMALS);
 			uint32 shininessCount = material->GetTextureCount(aiTextureType_SHININESS);
 			uint32 opacityCount = material->GetTextureCount(aiTextureType_OPACITY);
 			uint32 displacementCount = material->GetTextureCount(aiTextureType_DISPLACEMENT);
-			normalCount = material->GetTextureCount(aiTextureType_LIGHTMAP);
-			normalCount = material->GetTextureCount(aiTextureType_BASE_COLOR);
-			normalCount = material->GetTextureCount(aiTextureType_NORMAL_CAMERA);
-			normalCount = material->GetTextureCount(aiTextureType_EMISSION_COLOR);
-			normalCount = material->GetTextureCount(aiTextureType_METALNESS);
-			normalCount = material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS);
-			normalCount = material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION);
-			normalCount = material->GetTextureCount(aiTextureType_UNKNOWN);
+			uint32 lightmapCount = material->GetTextureCount(aiTextureType_LIGHTMAP);
+			uint32 baseColourCount = material->GetTextureCount(aiTextureType_BASE_COLOR);
+			uint32 normalCameraCount = material->GetTextureCount(aiTextureType_NORMAL_CAMERA);
+			uint32 emissionColourCount = material->GetTextureCount(aiTextureType_EMISSION_COLOR);
+			uint32 metalnessCount = material->GetTextureCount(aiTextureType_METALNESS);
+			uint32 diffuseRoughtnessCount = material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS);
+			uint32 ambientOccCount = material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION);
+			uint32 unknownCount = material->GetTextureCount(aiTextureType_UNKNOWN);
+
+			//for (uint32 j = 0; j <= (uint32)aiTextureType_UNKNOWN; j++)
+			//{
+			//	SOLTRACE(String("").Add(j).GetCStr());
+			//	for (uint32 i = 0; i < material->GetTextureCount((aiTextureType)j); i++) {
+			//		aiString name;
+			//		material->GetTexture((aiTextureType)j, i, &name);
+			//		SOLTRACE(name.C_Str());
+			//	}
+			//}
+
+			if (diffuseCount > 0) {
+				aiString name; material->GetTexture(aiTextureType_DIFFUSE, 0, &name);
+				resultingMesh.material.abledoTextureName = name.C_Str();
+			}
+
+			if (specularCount > 0) {
+				aiString name; material->GetTexture(aiTextureType_SPECULAR, 0, &name);
+				resultingMesh.material.occlusionRoughnessMetallicTextureName = name.C_Str();
+			}
+
+			if (emssiveCount > 0) {
+				aiString name; material->GetTexture(aiTextureType_EMISSIVE, 0, &name);
+				resultingMesh.material.emssiveTextureName = name.C_Str();
+			}
+
+			if (normalCount > 0) {
+				aiString name; material->GetTexture(aiTextureType_NORMALS, 0, &name);
+				resultingMesh.material.normalTextureName = name.C_Str();
+			}
 		}
 
 		return resultingMesh;
 	}
 
-	void Model::SaveBinaryData(BinaryFile* file) const
+	bool8 Model::SaveBinaryData(BinaryFile* file) const
 	{
 		if (meshes.size() > MAX_MESHES_PER_MODEL)
 		{
 			SOLERROR(String("Model: ").Add(name).Add(" has to many meshes").GetCStr());
-			return;
+			return false;
 		}
 
 		file->Write(metaData.id);
@@ -223,5 +253,7 @@ namespace sol
 
 			file->Write(mesh.indices);
 		}
+
+		return true;
 	}
 }

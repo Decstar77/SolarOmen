@@ -32,7 +32,7 @@ namespace sol
 
 		void LoadTexture(const String& path);
 
-		virtual void SaveBinaryData(BinaryFile* file) const override;
+		virtual bool8 SaveBinaryData(BinaryFile* file) const override;
 	};
 
 	class TextureProcessor

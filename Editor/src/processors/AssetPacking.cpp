@@ -3,9 +3,8 @@
 
 namespace sol
 {
-	std::vector<Model> LoadAndProcessModels(String path, FileProcessor& fileProcessor, MetaProcessor& metaProcessor)
+	void CreateMissingModelMetaFiles(const std::vector<String>& paths, FileProcessor& fileProcessor, MetaProcessor& metaProcessor)
 	{
-		std::vector<String> paths = fileProcessor.GetFilePaths(path, "gltf");
 		std::vector<String> missingMetaFiles = metaProcessor.FindMissing(paths);
 
 		for (const String& path : missingMetaFiles)
@@ -18,20 +17,10 @@ namespace sol
 			metaProcessor.SaveMetaData(newPath, metaData);
 			SOLTRACE(String("Creating meta file for: ").Add(path.GetCStr()).GetCStr());
 		}
-
-		metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(path, "slo"));
-
-		SOLTRACE("PROCESSING MODELS");
-		ModelProcessor modelProcessor;
-		std::vector<Model> models = modelProcessor.LoadModels(paths, metaProcessor);
-		SOLTRACE("COMPLETE");
-
-		return models;
 	}
 
-	std::vector<Texture> LoadAndProcessTextures(String path, FileProcessor& fileProcessor, MetaProcessor& metaProcessor)
+	void CreateMissingTextureMetaFiles(std::vector<String> paths, FileProcessor& fileProcessor, MetaProcessor& metaProcessor)
 	{
-		std::vector<String> paths = fileProcessor.GetFilePaths(path, "png");
 		std::vector<String> missingMetaFiles = metaProcessor.FindMissing(paths);
 
 		for (const String& path : missingMetaFiles)
@@ -46,7 +35,49 @@ namespace sol
 
 			SOLTRACE(String("Creating meta file for: ").Add(path.GetCStr()).GetCStr());
 		}
+	}
 
+	std::vector<Model> LoadAndProcessModels(String path, FileProcessor& fileProcessor, MetaProcessor& metaProcessor)
+	{
+		std::vector<String> meshPaths = fileProcessor.GetFilePaths(path, "obj");
+		std::vector<String> texturePaths = CombineStdVectors(fileProcessor.GetFilePaths(path, "jpg"), fileProcessor.GetFilePaths(path, "png"));
+
+		CreateMissingModelMetaFiles(meshPaths, fileProcessor, metaProcessor);
+		CreateMissingTextureMetaFiles(texturePaths, fileProcessor, metaProcessor);
+
+		metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(path, "slo"));
+
+		SOLTRACE("PROCESSING MODELS");
+		ModelProcessor modelProcessor;
+		std::vector<Model> models = modelProcessor.LoadModels(meshPaths, metaProcessor);
+
+		for (Model& model : models)
+		{
+			for (uint32 i = 0; i < model.meshes.size(); i++)
+			{
+				for (uint32 j = i + 1; j < model.meshes.size(); j++)
+				{
+					Mesh* a = &model.meshes[i];
+					Mesh* b = &model.meshes[j];
+
+					if (a->material.abledoTextureName == b->material.abledoTextureName)
+					{
+						int ea = 2;
+					}
+				}
+			}
+		}
+
+
+		SOLTRACE("COMPLETE");
+
+		return models;
+	}
+
+	std::vector<Texture> LoadAndProcessTextures(String path, FileProcessor& fileProcessor, MetaProcessor& metaProcessor)
+	{
+		std::vector<String> paths = CombineStdVectors(fileProcessor.GetFilePaths(path, "jpg"), fileProcessor.GetFilePaths(path, "png"));
+		CreateMissingTextureMetaFiles(paths, fileProcessor, metaProcessor);
 		metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(path, "slo"));
 
 		SOLTRACE("PROCESSING TEXTURES");

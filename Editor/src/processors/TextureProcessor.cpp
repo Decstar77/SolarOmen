@@ -74,7 +74,7 @@ namespace sol
 		}
 	}
 
-	void Texture::SaveBinaryData(BinaryFile* file) const
+	bool8 Texture::SaveBinaryData(BinaryFile* file) const
 	{
 		file->Write(id);
 		file->Write(name);
@@ -93,6 +93,8 @@ namespace sol
 		file->Write((uint8)cpuFlags.Get());
 
 		file->Write(pixels);
+
+		return true;
 	}
 
 }
