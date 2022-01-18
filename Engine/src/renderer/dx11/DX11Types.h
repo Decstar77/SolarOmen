@@ -133,10 +133,10 @@ namespace sol
 	{
 		ResourceId id;
 		String name;
-		FixedArray<StaticMesh, 128> staticMeshes;
+		ManagedArray<StaticMesh> staticMeshes;
+		ManagedArray<MeshTextures> textures;
 
 		static void Release(ModelInstance* model);
-		static void Create(ModelResource* modelResource);
 	};
 
 	struct StaticTexture

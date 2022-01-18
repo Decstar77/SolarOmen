@@ -205,7 +205,7 @@ namespace sol
 	static void CreateAllSamplerState()
 	{
 		renderState.pointRepeat = SamplerState::Create(TextureFilterMode::Value::POINT, TextureWrapMode::Value::REPEAT);
-		renderState.bilinearRepeat = SamplerState::Create(TextureFilterMode::Value::BILINEAR, TextureWrapMode::Value::CLAMP_EDGE);
+		renderState.bilinearRepeat = SamplerState::Create(TextureFilterMode::Value::BILINEAR, TextureWrapMode::Value::REPEAT);
 		renderState.trilinearRepeat = SamplerState::Create(TextureFilterMode::Value::TRILINEAR, TextureWrapMode::Value::REPEAT);
 		renderState.shadowPFC = SamplerState::CreateShadowPFC();
 
@@ -252,13 +252,19 @@ namespace sol
 			ModelResource* model = &models[i];
 			ModelInstance* instance = renderState.modelInstances.Create(model->id);
 
+			instance->staticMeshes.Allocate(model->meshes.count, MemoryType::PERMANENT);
+			instance->textures.Allocate(model->meshes.count, MemoryType::PERMANENT);
+
 			for (uint32 j = 0; j < model->meshes.count; j++)
 			{
 				MeshResource* mesh = &model->meshes[j];
 				instance->staticMeshes.Add(StaticMesh::Create(mesh));
+				MeshTextures* textures = &model->textures[j];
+				instance->textures.Add(*textures);
 			}
 		}
-		return bool8();
+
+		return true;
 	}
 
 	bool8 OnWindowResizeCallback(uint16 eventCode, void* sender, void* listener, EventContext context)
@@ -467,25 +473,26 @@ namespace sol
 			RenderCommand::UploadShaderConstBuffer(&renderState.modelConstBuffer);
 
 #if 1
-			StaticTexture* texture = renderState.textures.Get(entry->material.albedoId);
-			texture = texture ? texture : &renderState.invalidTexture;
 
 			ModelInstance* model = renderState.modelInstances.Get(entry->material.modelId);
+			RenderCommand::SetProgram(renderState.phongProgram);
 
 			if (model)
 			{
-				RenderCommand::SetProgram(renderState.phongProgram);
-				RenderCommand::SetTexture(*texture, 0);
 
 				for (uint32 meshIndex = 0; meshIndex < model->staticMeshes.count; meshIndex++)
 				{
+					StaticTexture* texture = renderState.textures.Get(model->textures[meshIndex].abledoTexture);
+					texture = texture ? texture : &renderState.invalidTexture;
+
+					RenderCommand::SetTexture(*texture, 0);
 					RenderCommand::DrawStaticMesh(model->staticMeshes[meshIndex]);
 				}
 			}
 			else
 			{
 				RenderCommand::SetProgram(renderState.phongProgram);
-				RenderCommand::SetTexture(*texture, 0);
+				RenderCommand::SetTexture(renderState.invalidTexture, 0);
 				RenderCommand::DrawStaticMesh(renderState.cube);
 			}
 

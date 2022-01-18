@@ -118,7 +118,7 @@ namespace sol
 		models->Clear();
 
 		models->Create(0)->name = "NONE/INVALID";
-		return 1;
+
 		BinaryAssetFile file = {};
 		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("models.bin"), false);
 
@@ -131,12 +131,21 @@ namespace sol
 				ModelResource* model = models->Create(modelId.number);
 				model->id = modelId;
 				model->name = file.Read<String>();
+
 				uint32 meshCount = file.Read<uint32>();
+				model->meshes.Allocate(meshCount, MemoryType::PERMANENT);
+				model->textures.Allocate(meshCount, MemoryType::PERMANENT);
 
 				for (uint32 meshIndex = 0; meshIndex < meshCount; meshIndex++)
 				{
 					MeshResource mesh = {};
 					mesh.name = file.Read<String>();
+
+					model->textures[meshIndex].abledoTexture = file.Read<ResourceId>();
+					model->textures[meshIndex].occlusionRoughnessMetallicTexture = file.Read<ResourceId>();
+					model->textures[meshIndex].normalTexture = file.Read<ResourceId>();
+					model->textures[meshIndex].emssiveTexture = file.Read<ResourceId>();
+
 					mesh.layout = file.Read<VertexLayoutType::Value>();
 
 					mesh.packedVertices.Allocate(file.Read<uint32>() * mesh.layout.GetStride(), MemoryType::PERMANENT);

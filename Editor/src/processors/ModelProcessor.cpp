@@ -71,7 +71,6 @@ namespace sol
 		{
 			ProcessNode(node->mChildren[i], scene);
 		}
-
 	}
 
 	Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
@@ -189,22 +188,22 @@ namespace sol
 
 			if (diffuseCount > 0) {
 				aiString name; material->GetTexture(aiTextureType_DIFFUSE, 0, &name);
-				resultingMesh.material.abledoTextureName = name.C_Str();
+				resultingMesh.material.abledoTextureName = Util::StripFilePathAndExtentions(name.C_Str());
 			}
 
 			if (specularCount > 0) {
 				aiString name; material->GetTexture(aiTextureType_SPECULAR, 0, &name);
-				resultingMesh.material.occlusionRoughnessMetallicTextureName = name.C_Str();
+				resultingMesh.material.occlusionRoughnessMetallicTextureName = Util::StripFilePathAndExtentions(name.C_Str());
 			}
 
 			if (emssiveCount > 0) {
 				aiString name; material->GetTexture(aiTextureType_EMISSIVE, 0, &name);
-				resultingMesh.material.emssiveTextureName = name.C_Str();
+				resultingMesh.material.emssiveTextureName = Util::StripFilePathAndExtentions(name.C_Str());
 			}
 
 			if (normalCount > 0) {
 				aiString name; material->GetTexture(aiTextureType_NORMALS, 0, &name);
-				resultingMesh.material.normalTextureName = name.C_Str();
+				resultingMesh.material.normalTextureName = Util::StripFilePathAndExtentions(name.C_Str());
 			}
 		}
 
@@ -213,11 +212,7 @@ namespace sol
 
 	bool8 Model::SaveBinaryData(BinaryFile* file) const
 	{
-		if (meshes.size() > MAX_MESHES_PER_MODEL)
-		{
-			SOLERROR(String("Model: ").Add(name).Add(" has to many meshes").GetCStr());
-			return false;
-		}
+		SOLTRACE(String("Saving: ").Add(name).Add(" with: ").Add((uint32)meshes.size()).Add(" meshes").GetCStr());
 
 		file->Write(metaData.id);
 		file->Write(name);
@@ -226,6 +221,11 @@ namespace sol
 		{
 			const Mesh& mesh = meshes[meshIndex];
 			file->Write(mesh.name);
+
+			file->Write(mesh.material.abledoTexture);
+			file->Write(mesh.material.occlusionRoughnessMetallicTexture);
+			file->Write(mesh.material.normalTexture);
+			file->Write(mesh.material.emssiveTexture);
 
 			if (mesh.hasColours)
 			{

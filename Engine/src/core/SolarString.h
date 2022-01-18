@@ -77,7 +77,10 @@ namespace sol
 	{
 		inline String StripFilePath(const String& str)
 		{
-			String result = str.SubStr(str.FindLastOf('/') + 1);
+			int32 f = str.FindLastOf('/');
+			int32 b = str.FindLastOf('\\');
+			int32 index = f > b ? f : b;
+			String result = str.SubStr(index + 1);
 			return result;
 		}
 

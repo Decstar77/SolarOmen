@@ -6,7 +6,13 @@
 
 namespace sol
 {
-	static constexpr uint32 MAX_MESHES_PER_MODEL = 128;
+	struct MeshTextures
+	{
+		ResourceId abledoTexture;
+		ResourceId occlusionRoughnessMetallicTexture;
+		ResourceId normalTexture;
+		ResourceId emssiveTexture;
+	};
 
 	struct MeshResource
 	{
@@ -20,7 +26,8 @@ namespace sol
 	{
 		String name;
 		ResourceId id;
-		FixedArray<MeshResource, MAX_MESHES_PER_MODEL> meshes;
+		ManagedArray<MeshResource> meshes;
+		ManagedArray<MeshTextures> textures;
 	};
 
 	struct TextureResource

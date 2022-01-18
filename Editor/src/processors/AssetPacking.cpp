@@ -39,7 +39,7 @@ namespace sol
 
 	std::vector<Model> LoadAndProcessModels(String path, FileProcessor& fileProcessor, MetaProcessor& metaProcessor)
 	{
-		std::vector<String> meshPaths = fileProcessor.GetFilePaths(path, "obj");
+		std::vector<String> meshPaths = fileProcessor.GetFilePaths(path, "gltf");
 		std::vector<String> texturePaths = CombineStdVectors(fileProcessor.GetFilePaths(path, "jpg"), fileProcessor.GetFilePaths(path, "png"));
 
 		CreateMissingModelMetaFiles(meshPaths, fileProcessor, metaProcessor);
@@ -53,21 +53,25 @@ namespace sol
 
 		for (Model& model : models)
 		{
-			for (uint32 i = 0; i < model.meshes.size(); i++)
+			for (Mesh& mesh : model.meshes)
 			{
-				for (uint32 j = i + 1; j < model.meshes.size(); j++)
-				{
-					Mesh* a = &model.meshes[i];
-					Mesh* b = &model.meshes[j];
+				if (mesh.material.abledoTextureName.GetLength() > 0) {
+					mesh.material.abledoTexture = metaProcessor.ParseTextureMetaFile(metaProcessor.Find(mesh.material.abledoTextureName)).id;
+				}
 
-					if (a->material.abledoTextureName == b->material.abledoTextureName)
-					{
-						int ea = 2;
-					}
+				if (mesh.material.occlusionRoughnessMetallicTextureName.GetLength() > 0) {
+					mesh.material.occlusionRoughnessMetallicTexture = metaProcessor.ParseTextureMetaFile(metaProcessor.Find(mesh.material.occlusionRoughnessMetallicTextureName)).id;
+				}
+
+				if (mesh.material.normalTextureName.GetLength() > 0) {
+					mesh.material.normalTexture = metaProcessor.ParseTextureMetaFile(metaProcessor.Find(mesh.material.normalTextureName)).id;
+				}
+
+				if (mesh.material.emssiveTextureName.GetLength() > 0) {
+					mesh.material.emssiveTexture = metaProcessor.ParseTextureMetaFile(metaProcessor.Find(mesh.material.emssiveTextureName)).id;
 				}
 			}
 		}
-
 
 		SOLTRACE("COMPLETE");
 
