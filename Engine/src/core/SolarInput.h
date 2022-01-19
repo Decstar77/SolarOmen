@@ -7,7 +7,7 @@ namespace sol
 #define IsKeyJustDown(input, key) (input->##key && !input->oldInput->##key)
 #define IsKeyJustUp(input, key) (!input->##key && input->oldInput->##key)
 
-	struct SOL_API Input
+	struct Input
 	{
 		Input* oldInput;
 
@@ -93,9 +93,9 @@ namespace sol
 			};
 		};
 
-		static bool8 Initailize();
-		static void Shutdown();
-		static void Flip();
-		static Input* Get();
+		static SOL_API bool8 Initailize();
+		static SOL_API void Shutdown();
+		static SOL_API void Flip();
+		static SOL_API Input* Get();
 	};
 }

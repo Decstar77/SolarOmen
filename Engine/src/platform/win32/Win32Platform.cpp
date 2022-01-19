@@ -98,14 +98,24 @@ namespace sol
 		winState.running = false;
 	}
 
+	uint32 Platform::GetSurfaceWidth()
+	{
+		return winState.surfaceWidth;
+	}
+
+	uint32 Platform::GetSurfaceHeight()
+	{
+		return winState.surfaceHeight;
+	}
+
 	uint32 Platform::GetWindowWidth()
 	{
-		return winState.width;
+		return winState.windowWidth;
 	}
 
 	uint32 Platform::GetWindowHeight()
 	{
-		return winState.height;
+		return winState.windowHeight;
 	}
 
 	void Platform::ConsoleWrite(const char* message, uint8 colour)
@@ -148,8 +158,8 @@ namespace sol
 		real32 mx = (real32)mousep.x;
 		real32 my = (real32)mousep.y;
 
-		mx = Clamp<real32>(mx, 0.0f, (real32)winState.width);
-		my = Clamp<real32>(my, 0.0f, (real32)winState.height);
+		mx = Clamp<real32>(mx, 0.0f, (real32)winState.windowWidth);
+		my = Clamp<real32>(my, 0.0f, (real32)winState.windowHeight);
 
 		input->mousePositionPixelCoords.x = mx;
 		input->mousePositionPixelCoords.y = my;
@@ -158,20 +168,20 @@ namespace sol
 		{
 			SetCursor(FALSE);
 
-			input->oldInput->mousePositionPixelCoords = Vec2f((real32)(winState.width / 2),
-				(real32)(winState.height / 2));
+			input->oldInput->mousePositionPixelCoords = Vec2f((real32)(winState.windowWidth / 2),
+				(real32)(winState.windowHeight / 2));
 
 			POINT p = {};
-			p.x = winState.width / 2;
-			p.y = winState.height / 2;
+			p.x = winState.windowWidth / 2;
+			p.y = winState.windowHeight / 2;
 
 			ClientToScreen((HWND)winState.window, &p);
 
 			SetCursorPos(p.x, p.y);
 		}
 
-		input->mouseNorm.x = mx / (real32)winState.width;
-		input->mouseNorm.y = my / (real32)winState.height;
+		input->mouseNorm.x = mx / (real32)winState.windowWidth;
+		input->mouseNorm.y = my / (real32)winState.windowHeight;
 
 		input->shift = (GetKeyState(VK_SHIFT) & (1 << 15));
 		input->alt = (GetKeyState(VK_MENU) & (1 << 15));
@@ -194,8 +204,8 @@ namespace sol
 		real32 mx = (real32)mousep.x;
 		real32 my = (real32)mousep.y;
 
-		mx = Clamp<real32>(mx, 0.0f, (real32)winState.width);
-		my = Clamp<real32>(my, 0.0f, (real32)winState.height);
+		mx = Clamp<real32>(mx, 0.0f, (real32)winState.windowWidth);
+		my = Clamp<real32>(my, 0.0f, (real32)winState.windowHeight);
 
 		input->mousePositionPixelCoords.x = mx;
 		input->mousePositionPixelCoords.y = my;
@@ -204,12 +214,12 @@ namespace sol
 		{
 			SetCursor(FALSE);
 
-			input->oldInput->mousePositionPixelCoords = Vec2f((real32)(winState.width / 2),
-				(real32)(winState.height / 2));
+			input->oldInput->mousePositionPixelCoords = Vec2f((real32)(winState.windowWidth / 2),
+				(real32)(winState.windowHeight / 2));
 
 			POINT p = {};
-			p.x = winState.width / 2;
-			p.y = winState.height / 2;
+			p.x = winState.windowWidth / 2;
+			p.y = winState.windowHeight / 2;
 
 			ClientToScreen((HWND)winState.window, &p);
 
@@ -218,8 +228,8 @@ namespace sol
 
 		input->del = (GetKeyState(VK_DELETE) & (1 << 15));
 
-		input->mouseNorm.x = mx / (real32)winState.width;
-		input->mouseNorm.y = my / (real32)winState.height;
+		input->mouseNorm.x = mx / (real32)winState.windowWidth;
+		input->mouseNorm.y = my / (real32)winState.windowHeight;
 
 		input->mb1 = GetKeyState(VK_LBUTTON) & (1 << 15);
 		input->mb2 = GetKeyState(VK_RBUTTON) & (1 << 15);
@@ -370,8 +380,14 @@ namespace sol
 				SOLINFO("Win32 Window created and running");
 				ShowWindow(winState.window, SW_SHOW);
 				winState.running = true;
-				winState.width = windowWidth;
-				winState.height = windowHeight;
+
+				winState.windowWidth = windowWidth;
+				winState.windowHeight = windowHeight;
+
+				RECT cleintRect = {};
+				GetClientRect(winState.window, &cleintRect);
+				winState.surfaceWidth = cleintRect.right - cleintRect.left;
+				winState.surfaceHeight = cleintRect.bottom - cleintRect.top;
 
 				InitializeRawInput();
 				InitializeClock();
@@ -487,13 +503,22 @@ namespace sol
 		} break;
 		case WM_SIZE:
 		{
-			RECT r = {};
-			GetClientRect(hwnd, &r);
+			RECT cleintRect = {};
+			GetClientRect(hwnd, &cleintRect);
 			EventWindowResize eventResize = {};
-			eventResize.width = r.right - r.left;
-			eventResize.height = r.bottom - r.top;
-			winState.width = eventResize.width;
-			winState.height = eventResize.height;
+			eventResize.surfaceWidth = cleintRect.right - cleintRect.left;
+			eventResize.surfaceHeight = cleintRect.bottom - cleintRect.top;
+
+			RECT windowRect = {};
+			GetWindowRect(hwnd, &windowRect);
+			eventResize.windowWidth = windowRect.right - windowRect.left;
+			eventResize.windowHeight = windowRect.bottom - windowRect.top;
+
+			winState.surfaceWidth = eventResize.surfaceWidth;
+			winState.surfaceHeight = eventResize.surfaceHeight;
+
+			winState.windowWidth = eventResize.windowWidth;
+			winState.windowHeight = eventResize.windowHeight;
 
 			EventSystem::Fire<EventWindowResize>((uint16)EngineEvent::Value::WINDOW_RESIZED, 0, eventResize);
 		} break;

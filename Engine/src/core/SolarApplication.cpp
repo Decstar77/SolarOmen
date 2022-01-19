@@ -98,18 +98,18 @@ namespace sol
 
 	uint32 Application::GetSurfaceWidth()
 	{
-		return Platform::GetWindowWidth();
+		return Platform::GetSurfaceWidth();
 	}
 
 	uint32 Application::GetSurfaceHeight()
 	{
-		return Platform::GetWindowHeight();
+		return Platform::GetSurfaceHeight();
 	}
 
 	real32 Application::GetSurfaceAspectRatio()
 	{
-		real32 w = (real32)Platform::GetWindowWidth();
-		real32 h = (real32)Platform::GetWindowHeight();
+		real32 w = (real32)Platform::GetSurfaceWidth();
+		real32 h = (real32)Platform::GetSurfaceHeight();
 		real32 aspect = w / h;
 
 		return aspect;

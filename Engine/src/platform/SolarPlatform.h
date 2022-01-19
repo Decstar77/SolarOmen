@@ -45,6 +45,8 @@ namespace sol
 		static void Quit();
 		static uint32 GetWindowWidth();
 		static uint32 GetWindowHeight();
+		static uint32 GetSurfaceWidth();
+		static uint32 GetSurfaceHeight();
 		static void SetWindowPosition(int32 x, int32 y);
 
 		static void DisplayError(const char* message);

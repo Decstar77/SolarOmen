@@ -319,7 +319,7 @@ namespace sol
 		DXRELEASE(renderState.swapChain.depthShaderView);
 		DXRELEASE(renderState.swapChain.depthTexture);
 
-		SOLINFO(String("Recreating swap chain").Add(resizeEvent->width).Add(":").Add(resizeEvent->height).GetCStr());
+		SOLINFO(String("Recreating swap chain").Add(resizeEvent->surfaceWidth).Add(":").Add(resizeEvent->surfaceHeight).GetCStr());
 
 		DeviceContext dc = renderState.deviceContext;
 		DXCHECK(renderState.swapChain.swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
@@ -479,8 +479,8 @@ namespace sol
 
 	void Renderer::Render(RenderPacket* renderPacket)
 	{
-		real32 windowWidth = (real32)Platform::GetWindowWidth();
-		real32 windowHeight = (real32)Platform::GetWindowHeight();
+		real32 windowWidth = (real32)Platform::GetSurfaceWidth();
+		real32 windowHeight = (real32)Platform::GetSurfaceHeight();
 
 		RenderCommand::ClearRenderTarget(renderState.swapChain.renderView, Vec4f(0.2f, 0.2f, 0.2f, 1.0f));
 		RenderCommand::ClearDepthBuffer(renderState.swapChain.depthView);
@@ -528,11 +528,13 @@ namespace sol
 
 					if (entry->material.albedoTexture.dynamicIndex > 0)
 						texture = renderState.dynamicTextures.Get(entry->material.albedoTexture.dynamicIndex);
+					if (entry->material.albedoId.IsValid())
+						texture = renderState.staticTextures.Get(entry->material.albedoId);
 
 					texture = texture ? texture : &renderState.invalidTexture;
 
 					RenderCommand::SetTexture(*texture, 0);
-					RenderCommand::DrawStaticMesh(model->staticMeshes[meshIndex]);
+					RenderCommand::DrawStaticMesh(renderState.quad);
 				}
 			}
 			else

@@ -127,8 +127,8 @@ cbuffer LightingConstants : register(b0)
 float4 PSmain(VS_OUTPUT input) : SV_TARGET
 {
 	float4 fragColour = float4(0.0f, 0.0f, 0.0f, 1.0f);
-	float3 colour = pow(texture0.Sample(linearSamplerRepeat, input.uv).rgb, float3(2.2, 2.2, 2.2));
-
+	//float3 colour = pow(texture0.Sample(linearSamplerRepeat, input.uv).rgb, float3(2.2, 2.2, 2.2));
+	float3 colour = texture0.Sample(pointSamplerRepeat, input.uv).rgb;
 
 
 	fragColour = float4(colour, 1.0f);

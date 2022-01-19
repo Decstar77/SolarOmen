@@ -96,8 +96,11 @@ namespace sol
 
 	struct SOL_API EventWindowResize
 	{
-		uint32 width;
-		uint32 height;
+		uint32 windowWidth;
+		uint32 windowHeight;
+
+		uint32 surfaceWidth;
+		uint32 surfaceHeight;
 	};
 
 	struct SOL_API EventContext

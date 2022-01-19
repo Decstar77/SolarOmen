@@ -15,8 +15,10 @@ namespace sol
 		bool8 active;
 		bool8 rawInput;
 
-		uint32 width;
-		uint32 height;
+		uint32 windowWidth;
+		uint32 windowHeight;
+		uint32 surfaceWidth;
+		uint32 surfaceHeight;
 
 		real64 clockFrequency;
 		LARGE_INTEGER startTime;

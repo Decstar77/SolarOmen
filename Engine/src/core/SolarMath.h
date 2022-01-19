@@ -17,6 +17,9 @@
 #include <math.h>
 #include <random>
 
+#pragma warning( push )
+#pragma warning( disable : 4251 )
+
 namespace sol
 {
 	//************************************
@@ -362,7 +365,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct SOL_API PolarCoord
+	struct PolarCoord
 	{
 		T r;
 		T theta;
@@ -374,7 +377,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct SOL_API Vec2
+	struct Vec2
 	{
 		union
 		{
@@ -638,7 +641,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct SOL_API Vec3
+	struct Vec3
 	{
 		union
 		{
@@ -722,6 +725,7 @@ namespace sol
 	};
 
 	typedef Vec3<real32> Vec3f;
+	typedef Vec3<real64> Vec3d;
 	typedef Vec3<int32> Vec3i;
 
 	template <typename T>
@@ -1017,7 +1021,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct SOL_API Vec4
+	struct Vec4
 	{
 		union
 		{
@@ -1217,7 +1221,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct SOL_API Quat
+	struct Quat
 	{
 		union
 		{
@@ -1624,7 +1628,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct SOL_API Mat2
+	struct Mat2
 	{
 		union
 		{
@@ -1726,7 +1730,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct SOL_API Mat3
+	struct Mat3
 	{
 		union
 		{
@@ -2188,7 +2192,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct SOL_API Mat4
+	struct Mat4
 	{
 		union
 		{
@@ -3029,7 +3033,7 @@ namespace sol
 	//************************************
 
 	template <typename T>
-	struct SOL_API Basis
+	struct Basis
 	{
 		union
 		{
@@ -3086,7 +3090,7 @@ namespace sol
 	// Transform
 	//************************************
 
-	class SOL_API Transform
+	class Transform
 	{
 	public:
 		Vec3f position = Vec3f(0, 0, 0);
@@ -3271,3 +3275,5 @@ namespace sol
 	}
 
 } // namespace cm
+
+#pragma warning( pop )

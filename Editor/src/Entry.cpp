@@ -1,6 +1,7 @@
 
 #include "Core.h"
 #include "ImGuiLayer.h"
+#include "lightmapper/LightMapping.h"
 
 namespace sol
 {
@@ -8,9 +9,7 @@ namespace sol
 
 	bool8 OnWindowResizeCallback(uint16 eventCode, void* sender, void* listener, EventContext context)
 	{
-		uint32 w = Platform::GetWindowWidth();
-		uint32 h = Platform::GetWindowHeight();
-		es->camera.aspect = (real32)w / (real32)h;
+		es->camera.aspect = Application::GetSurfaceAspectRatio();
 
 		return 0;
 	}
@@ -19,16 +18,13 @@ namespace sol
 	{
 		if (InitialzieImGui())
 		{
-			uint32 w = Platform::GetWindowWidth();
-			uint32 h = Platform::GetWindowHeight();
-
 			es->camera.transform = Transform();
 			es->camera.transform.position.z = -3;
 			es->camera.yaw = 90.0f;
 			es->camera.far_ = 250.0f;
 			es->camera.near_ = 0.3f;
 			es->camera.yfov = 45.0f;
-			es->camera.aspect = (real32)w / (real32)h;
+			es->camera.aspect = Application::GetSurfaceAspectRatio();
 
 			EventSystem::Register((uint16)EngineEvent::Value::WINDOW_RESIZED, nullptr, OnWindowResizeCallback);
 
@@ -113,15 +109,11 @@ namespace sol
 
 			if (es->isLightMapping)
 			{
-				int32 w = (int32)Platform::GetWindowWidth();
-				int32 h = (int32)Platform::GetWindowHeight();
-				TextureFormat format = TextureFormat::Value::R32G32B32A32_FLOAT;
-				es->raytracedTexture = Renderer::CreateTexture(w, h, format, ResourceCPUFlags::Value::WRITE);
-				es->raytracePixels.resize(w * h * format.GetPitchBytes());
+				es->referenceRayTracer.Initialize(100);
 			}
 			if (!es->isLightMapping)
 			{
-				Renderer::DestroyTexture(&es->raytracedTexture);
+				es->referenceRayTracer.Shutdown();
 			}
 		}
 
@@ -144,27 +136,20 @@ namespace sol
 		}
 		else
 		{
-			es->raytraceUpdateCounter++;
-			if (es->raytraceUpdateCounter == 30)
-			{
-				es->raytraceUpdateCounter = 0;
-				for (Vec4f& pixel : es->raytracePixels)
-				{
-					pixel.r = 1.0f;
-				}
+
+			es->referenceRayTracer.Trace();
 
 
-				Renderer::UpdateWholeTexture(es->raytracedTexture, es->raytracePixels.data());
-			}
-
+			//renderPacket->viewMatrix = es->camera.GetViewMatrix();
+			//renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
 
 			renderPacket->viewMatrix = Mat4f(1);
 			renderPacket->projectionMatrix = Mat4f(1);
 
 			RenderEntry entry = {};
 			entry.material.modelId.number = 1;
-			entry.material.albedoTexture = es->raytracedTexture;
-
+			//entry.material.albedoTexture = es->referenceRayTracer.textureHandle;
+			entry.material = es->selectedEntity.GetMaterialomponent()->material;
 			renderPacket->renderEntries.Add(entry);
 		}
 

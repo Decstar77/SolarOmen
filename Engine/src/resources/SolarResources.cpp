@@ -203,6 +203,7 @@ namespace sol
 
 		textures->Create(0)->name = "NONE/INVALID";
 		return 1;
+
 		BinaryAssetFile file = {};
 		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("textures.bin"), false);
 

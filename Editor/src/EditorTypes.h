@@ -1,5 +1,6 @@
 #pragma once
 #include <SolarEngine.h>
+#include "lightmapper/LightMapping.h"
 
 namespace sol
 {
@@ -15,9 +16,7 @@ namespace sol
 
 		bool8 isLightMapping;
 
-		uint32 raytraceUpdateCounter;
-		std::vector<Vec4f> raytracePixels;
-		TextureHandle raytracedTexture;
+		ReferenceRayTracer referenceRayTracer;
 
 		real32 frameTimes[256] = {};
 		real32 minTime = REAL_MAX;
