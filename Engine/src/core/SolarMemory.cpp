@@ -44,6 +44,11 @@ namespace sol
 		instance = nullptr;
 	}
 
+	void GameMemory::Copy(void* dst, void* src, uint64 size)
+	{
+		memcpy(dst, src, size);
+	}
+
 	GameMemory::GameMemory(void* permanentStorageData, uint64 permanentStorageSize, void* transientStorageData, uint64 transientStorageSize)
 	{
 		permanentStorage.size = permanentStorageSize;

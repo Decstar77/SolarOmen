@@ -107,16 +107,63 @@ namespace sol
 			return false;
 		}
 
-		OperateCamera(&es->camera, dt);
-
-		renderPacket->viewMatrix = es->camera.GetViewMatrix();
-		renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
-
-		if (es->selectedEntity.IsValid())
+		if (IsKeyJustDown(input, f5))
 		{
+			es->isLightMapping = !es->isLightMapping;
+
+			if (es->isLightMapping)
+			{
+				int32 w = (int32)Platform::GetWindowWidth();
+				int32 h = (int32)Platform::GetWindowHeight();
+				TextureFormat format = TextureFormat::Value::R32G32B32A32_FLOAT;
+				es->raytracedTexture = Renderer::CreateTexture(w, h, format, ResourceCPUFlags::Value::WRITE);
+				es->raytracePixels.resize(w * h * format.GetPitchBytes());
+			}
+			if (!es->isLightMapping)
+			{
+				Renderer::DestroyTexture(&es->raytracedTexture);
+			}
+		}
+
+		if (!es->isLightMapping)
+		{
+			OperateCamera(&es->camera, dt);
+
+			renderPacket->cameraPos = es->camera.transform.position;
+			renderPacket->viewMatrix = es->camera.GetViewMatrix();
+			renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
+
+			if (es->selectedEntity.IsValid())
+			{
+				RenderEntry entry = {};
+				entry.worldTransform = es->selectedEntity.GetWorldTransform();
+				entry.material = es->selectedEntity.GetMaterialomponent()->material;
+
+				renderPacket->renderEntries.Add(entry);
+			}
+		}
+		else
+		{
+			es->raytraceUpdateCounter++;
+			if (es->raytraceUpdateCounter == 30)
+			{
+				es->raytraceUpdateCounter = 0;
+				for (Vec4f& pixel : es->raytracePixels)
+				{
+					pixel.r = 1.0f;
+				}
+
+
+				Renderer::UpdateWholeTexture(es->raytracedTexture, es->raytracePixels.data());
+			}
+
+
+			renderPacket->viewMatrix = Mat4f(1);
+			renderPacket->projectionMatrix = Mat4f(1);
+
 			RenderEntry entry = {};
-			entry.worldTransform = es->selectedEntity.GetWorldTransform();
-			entry.material = es->selectedEntity.GetMaterialomponent()->material;
+			entry.material.modelId.number = 1;
+			entry.material.albedoTexture = es->raytracedTexture;
 
 			renderPacket->renderEntries.Add(entry);
 		}
@@ -134,7 +181,7 @@ namespace sol
 		game->Initialize = GameInitialze;
 		game->Update = GameUpdate;
 
-		es = GameMemory::PushPermanentStruct<EditorState>();
+		es = GameMemory::PushPermanentClass<EditorState>();
 
 		return true;
 	}

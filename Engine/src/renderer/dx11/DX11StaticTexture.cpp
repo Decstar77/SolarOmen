@@ -3,6 +3,11 @@
 #if SOLAR_PLATFORM_WINDOWS && USE_DIRECTX11
 namespace sol
 {
+	uint32 StaticTexture::GetSizeBytes() const
+	{
+		return  width * height * format.GetPitchBytes();
+	}
+
 	void StaticTexture::Release(StaticTexture* texture)
 	{
 		DXRELEASE(texture->shaderView);
@@ -10,6 +15,8 @@ namespace sol
 		DXRELEASE(texture->depthView);
 		DXRELEASE(texture->renderView);
 		DXRELEASE(texture->texture);
+
+		SOLTRACE(String("Released textured: ").Add((texture->GetSizeBytes() / 1024)).Add(" kbs").GetCStr());
 
 		GameMemory::ZeroStruct(texture);
 	}
@@ -40,7 +47,7 @@ namespace sol
 		desc.Format = GetTextureFormatToD3D(format);
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
-		desc.Usage = cpuFlags == ResourceCPUFlags::Value::NONE ? D3D11_USAGE_DEFAULT : D3D11_USAGE_STAGING;
+		desc.Usage = cpuFlags == ResourceCPUFlags::Value::NONE ? D3D11_USAGE_DEFAULT : D3D11_USAGE_DYNAMIC;
 		desc.BindFlags = bind_flags;
 		desc.CPUAccessFlags = GetCPUFlagsToD3DFlags(cpuFlags);
 		desc.MiscFlags = 0;
@@ -49,7 +56,7 @@ namespace sol
 		{
 			D3D11_SUBRESOURCE_DATA sd = {};
 			sd.pSysMem = pixels;
-			sd.SysMemPitch = width * GetTextureFormatElementSizeBytes(format) * GetTextureFormatElementCount(format);
+			sd.SysMemPitch = width * format.GetPitchBytes();
 			DXCHECK(dc.device->CreateTexture2D(&desc, &sd, &result.texture));
 
 		}
@@ -58,8 +65,7 @@ namespace sol
 			DXCHECK(dc.device->CreateTexture2D(&desc, NULL, &result.texture));
 		}
 
-		SOLTRACE(String("Created textured: ").Add((width * height *
-			GetTextureFormatElementSizeBytes(format) * GetTextureFormatElementCount(format) / 1024)).Add(" kbs").GetCStr());
+		SOLTRACE(String("Created textured: ").Add((result.GetSizeBytes() / 1024)).Add(" kbs").GetCStr());
 
 		Assert(result.texture, "Could not create texture");
 

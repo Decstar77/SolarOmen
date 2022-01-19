@@ -113,11 +113,31 @@ namespace sol
 		}
 	};
 
+	void CreateBuiltInModels()
+	{
+		ModelResource* invalid = models->Create(0);
+		invalid->name = "NONE/INVALID";
+		invalid->id.number = 0;
+
+		ModelResource* plane = models->Create(1);
+		plane->name = "Plane";
+		plane->id.number = 1;
+		plane->meshes.Allocate(1, MemoryType::PERMANENT);
+		plane->meshes.Add(ModelGenerator::CreateQuad(-1, 1, 2, 2, 0));
+
+		ModelResource* cube = models->Create(2);
+		cube->name = "Cube";
+		cube->id.number = 2;
+		cube->meshes.Allocate(1, MemoryType::PERMANENT);
+		cube->meshes.Add(ModelGenerator::CreateBox(1, 1, 1, 1, VertexLayoutType::Value::PNT));
+	}
+
 	bool8 Resources::LoadAllModelResources()
 	{
 		models->Clear();
+		CreateBuiltInModels();
 
-		models->Create(0)->name = "NONE/INVALID";
+		return 1;
 
 		BinaryAssetFile file = {};
 		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("models.bin"), false);
@@ -182,7 +202,7 @@ namespace sol
 		textures->Clear();
 
 		textures->Create(0)->name = "NONE/INVALID";
-
+		return 1;
 		BinaryAssetFile file = {};
 		file.file = Platform::LoadEntireFile(String(PACKED_ASSET_PATH).Add("textures.bin"), false);
 

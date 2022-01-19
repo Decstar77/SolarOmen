@@ -47,6 +47,9 @@ namespace sol
 		inline static T* PushTransientStruct() { return (T*)instance->TransientPushSize(sizeof(T)); }
 
 		template<typename T>
+		inline static T* PushPermanentClass() { void* storage = instance->PermanentPushSize(sizeof(T));	return new (storage) T(); }
+
+		template<typename T>
 		inline static T* PushTransientClass() { void* storage = instance->TransientPushSize(sizeof(T));	return new (storage) T(); }
 
 		inline static uint64 GetTheAmountOfTransientMemoryUsed() { return instance->transientStorage.used; }
@@ -60,6 +63,8 @@ namespace sol
 
 		template<typename T>
 		inline static void ZeroStruct(T* t) { ZeroOut(t, sizeof(T)); }
+
+		static void Copy(void* dst, void* src, uint64 size);
 
 	private:
 		GameMemory(void* permanentStorageData, uint64 permanentStorageSize, void* transientStorageData, uint64 transientStorageSize);

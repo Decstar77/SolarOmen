@@ -5,13 +5,19 @@ namespace sol
 {
 	struct EditorState
 	{
-		bool showPerformanceWindow;
-		bool showConsoleWindow;
-		bool showRoomWindow;
-		bool showInspectorWindow;
-		bool showAssetWindow;
-		bool showRenderSettingsWindow;
-		bool showBuildWindow;
+		bool8 showPerformanceWindow;
+		bool8 showConsoleWindow;
+		bool8 showRoomWindow;
+		bool8 showInspectorWindow;
+		bool8 showAssetWindow;
+		bool8 showRenderSettingsWindow;
+		bool8 showBuildWindow;
+
+		bool8 isLightMapping;
+
+		uint32 raytraceUpdateCounter;
+		std::vector<Vec4f> raytracePixels;
+		TextureHandle raytracedTexture;
 
 		real32 frameTimes[256] = {};
 		real32 minTime = REAL_MAX;

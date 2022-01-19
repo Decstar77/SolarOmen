@@ -154,6 +154,8 @@ namespace sol
 		ID3D11DepthStencilView* depthView;
 		ID3D11RenderTargetView* renderView;
 
+		uint32 GetSizeBytes() const;
+
 		static void Release(StaticTexture* texture);
 		static StaticTexture Create(int32 width, int32 height, TextureFormat format, void* pixels, bool8 mips, BindUsage* usage, ResourceCPUFlags cpuFlags);
 		static StaticTexture Create(TextureResource* textureResource);
@@ -197,6 +199,7 @@ namespace sol
 
 		static void Release(ProgramInstance* program);
 		static ProgramInstance CreateGraphics(const ProgramResource& programResource);
+		static ProgramInstance DEBUGCompileFromFile(const String& path, VertexLayoutType vertexLayout);
 	};
 
 	template<typename T>
@@ -358,7 +361,10 @@ namespace sol
 		StaticTexture invalidTexture;
 
 		HashMap<ModelInstance> modelInstances;
-		HashMap<StaticTexture> textures;
+		HashMap<StaticTexture> staticTextures;
+
+		FixedArray<StaticTexture, 16> dynamicTextures;
+
 
 		ShaderConstBuffer<ShaderConstBufferModel> modelConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferView> viewConstBuffer;
@@ -389,52 +395,6 @@ namespace sol
 		}
 
 		return DXGI_FORMAT_UNKNOWN;
-	}
-
-	inline uint32 GetTextureFormatElementSizeBytes(const TextureFormat& format)
-	{
-		switch (format.Get())
-		{
-		case TextureFormat::Value::R8G8B8A8_UNORM: return sizeof(uint8);
-		case TextureFormat::Value::R16G16_UNORM: return sizeof(uint16);
-		case TextureFormat::Value::R8_BYTE: return sizeof(uint8);
-		case TextureFormat::Value::R32_FLOAT: return sizeof(real32);
-		case TextureFormat::Value::D32_FLOAT: return sizeof(real32);
-		case TextureFormat::Value::R32_TYPELESS: return sizeof(real32);
-		case TextureFormat::Value::R16_UNORM: return sizeof(uint16);
-		case TextureFormat::Value::D16_UNORM: return sizeof(uint16);
-		case TextureFormat::Value::R16_TYPELESS: return sizeof(uint16);
-		case TextureFormat::Value::R32G32_FLOAT: return sizeof(real32);
-		case TextureFormat::Value::R32G32B32_FLOAT: return sizeof(real32);
-		case TextureFormat::Value::R32G32B32A32_FLOAT: return sizeof(real32);
-		case TextureFormat::Value::R16G16B16A16_FLOAT: return sizeof(uint16);
-		default: Assert(0, "TextureFormatToD3D ??");
-		}
-
-		return 0;
-	}
-
-	inline uint32 GetTextureFormatElementCount(const TextureFormat& format)
-	{
-		switch (format.Get())
-		{
-		case TextureFormat::Value::R8G8B8A8_UNORM: return 4;
-		case TextureFormat::Value::R16G16_UNORM: return 2;
-		case TextureFormat::Value::R8_BYTE: return 1;
-		case TextureFormat::Value::R32_FLOAT: return 1;
-		case TextureFormat::Value::D32_FLOAT: return 1;
-		case TextureFormat::Value::R32_TYPELESS: return 1;
-		case TextureFormat::Value::R16_UNORM: return 1;
-		case TextureFormat::Value::D16_UNORM: return 1;
-		case TextureFormat::Value::R16_TYPELESS: return 1;
-		case TextureFormat::Value::R32G32_FLOAT: return 2;
-		case TextureFormat::Value::R32G32B32_FLOAT: return 3;
-		case TextureFormat::Value::R32G32B32A32_FLOAT: return 4;
-		case TextureFormat::Value::R16G16B16A16_FLOAT: return 4;
-		default: Assert(0, "TextureFormatToD3D ??");
-		}
-
-		return 0;
 	}
 
 	inline D3D11_TEXTURE_ADDRESS_MODE GetTextureWrapModeToD3D(const TextureWrapMode& wrap)

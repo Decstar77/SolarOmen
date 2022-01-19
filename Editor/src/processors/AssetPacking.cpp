@@ -39,7 +39,7 @@ namespace sol
 
 	std::vector<Model> LoadAndProcessModels(String path, FileProcessor& fileProcessor, MetaProcessor& metaProcessor)
 	{
-		std::vector<String> meshPaths = fileProcessor.GetFilePaths(path, "gltf");
+		std::vector<String> meshPaths = fileProcessor.GetFilePaths(path, "obj");
 		std::vector<String> texturePaths = CombineStdVectors(fileProcessor.GetFilePaths(path, "jpg"), fileProcessor.GetFilePaths(path, "png"));
 
 		CreateMissingModelMetaFiles(meshPaths, fileProcessor, metaProcessor);

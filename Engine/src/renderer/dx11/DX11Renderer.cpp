@@ -49,6 +49,43 @@ namespace sol
 		}
 	}
 
+	TextureHandle Renderer::CreateTexture(int32 width, int32 height, TextureFormat format, ResourceCPUFlags cpuFlags)
+	{
+		BindUsage usage[4] = {};
+		usage[0] = BindUsage::Value::SHADER_RESOURCE;
+		StaticTexture texture = StaticTexture::Create(width, height, format, nullptr, false, usage, cpuFlags);
+
+		if (renderState.dynamicTextures.count == 0)
+			renderState.dynamicTextures.count++;
+
+		TextureHandle handle = {};
+		handle.dynamicIndex = renderState.dynamicTextures.count;
+
+		renderState.dynamicTextures.Add(texture);
+
+		return handle;
+	}
+
+	void Renderer::DestroyTexture(TextureHandle* handle)
+	{
+		StaticTexture::Release(renderState.dynamicTextures.Get(handle->dynamicIndex));
+		renderState.dynamicTextures.Remove(handle->dynamicIndex);
+		handle->dynamicIndex = -1;
+	}
+
+	void Renderer::UpdateWholeTexture(const TextureHandle& handle, void* pixelData)
+	{
+		DeviceContext dc = GetDeviceContext();
+
+		StaticTexture texture = renderState.dynamicTextures[handle.dynamicIndex];
+		D3D11_MAPPED_SUBRESOURCE data = {};
+		DXCHECK(dc.context->Map(texture.texture, 0, D3D11_MAP_WRITE_DISCARD, 0, &data));
+
+		uint32 sizeBytes = texture.GetSizeBytes();
+		GameMemory::Copy(data.pData, pixelData, sizeBytes);
+		DXINFO(dc.context->Unmap(texture.texture, 0));
+	}
+
 	void LogDirectXDebugGetMessages(RenderDebug* debug)
 	{
 		uint64 end = debug->info_queue->GetNumStoredMessages(DXGI_DEBUG_ALL);
@@ -259,8 +296,12 @@ namespace sol
 			{
 				MeshResource* mesh = &model->meshes[j];
 				instance->staticMeshes.Add(StaticMesh::Create(mesh));
-				MeshTextures* textures = &model->textures[j];
-				instance->textures.Add(*textures);
+
+				if (model->textures.count > 0)
+				{
+					MeshTextures* textures = &model->textures[j];
+					instance->textures.Add(*textures);
+				}
 			}
 		}
 
@@ -366,12 +407,8 @@ namespace sol
 							EventSystem::Register((uint16)EngineEvent::Value::WINDOW_RESIZED, 0, OnWindowResizeCallback);
 
 							renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("post_processing"));
-							renderState.phongProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("phong"));
-							{
-								ProgramResource* res = Resources::GetProgramResource("phongKenney");
-								res->vertexLayout = VertexLayoutType::Value::PNTC;
-								renderState.phongKenneyProgram = ProgramInstance::CreateGraphics(*res);
-							}
+
+							renderState.phongProgram = ProgramInstance::DEBUGCompileFromFile("Engine/src/renderer/shaders/phong.hlsl", VertexLayoutType::Value::PNT);
 
 							renderState.modelConstBuffer = ShaderConstBuffer<ShaderConstBufferModel>::Create();
 							renderState.viewConstBuffer = ShaderConstBuffer<ShaderConstBufferView>::Create();
@@ -401,13 +438,13 @@ namespace sol
 								renderState.invalidTexture = StaticTexture::Create(1, 1,
 									TextureFormat::Value::R32G32B32A32_FLOAT, invalidTextureColour.ptr,
 									false, invalidTextureBindUsage, ResourceCPUFlags::Value::NONE);
-								renderState.textures.Put(0, renderState.invalidTexture);
+								renderState.staticTextures.Put(0, renderState.invalidTexture);
 							}
 
 							for (uint32 i = 1; i < textures.count; i++)
 							{
 								StaticTexture texture = StaticTexture::Create(&textures[i]);
-								renderState.textures.Put(textures[i].id, texture);
+								renderState.staticTextures.Put(textures[i].id, texture);
 							}
 
 							return true;
@@ -463,6 +500,12 @@ namespace sol
 		RenderCommand::UploadShaderConstBuffer(&renderState.viewConstBuffer);
 
 
+		renderState.lightingConstBuffer.data.viewPos = Vec4f(renderPacket->cameraPos, 1.0f);
+		renderState.lightingConstBuffer.data.dirLightCount = 0;
+		renderState.lightingConstBuffer.data.spotLightCount = 0;
+		renderState.lightingConstBuffer.data.pointLightCount = 0;
+		RenderCommand::UploadShaderConstBuffer(&renderState.lightingConstBuffer);
+
 		for (uint32 i = 0; i < renderPacket->renderEntries.count; i++)
 		{
 			RenderEntry* entry = &renderPacket->renderEntries[i];
@@ -479,10 +522,13 @@ namespace sol
 
 			if (model)
 			{
-
 				for (uint32 meshIndex = 0; meshIndex < model->staticMeshes.count; meshIndex++)
 				{
-					StaticTexture* texture = renderState.textures.Get(model->textures[meshIndex].abledoTexture);
+					StaticTexture* texture = renderState.staticTextures.Get(model->textures[meshIndex].abledoTexture);
+
+					if (entry->material.albedoTexture.dynamicIndex > 0)
+						texture = renderState.dynamicTextures.Get(entry->material.albedoTexture.dynamicIndex);
+
 					texture = texture ? texture : &renderState.invalidTexture;
 
 					RenderCommand::SetTexture(*texture, 0);
@@ -538,7 +584,7 @@ namespace sol
 
 		ShutdownModels();
 
-		ManagedArray<StaticTexture> textures = renderState.textures.GetValueSet();
+		ManagedArray<StaticTexture> textures = renderState.staticTextures.GetValueSet();
 		for (uint32 i = 0; i < textures.count; i++) { StaticTexture::Release(&textures[i]); }
 		textures.Clear();
 

@@ -10,6 +10,8 @@
 #include "src/core/SolarEvent.h"
 #include "src/core/SolarClock.h"
 #include "src/platform/SolarPlatform.h"
+#include "src/renderer/RendererTypes.h"
+#include "src/renderer/SolarRenderer.h"
 #include "src/game/SolarGameTypes.h"
 #include "src/resources/SolarResourceTypes.h"
 

@@ -53,6 +53,57 @@ namespace sol
 
 		inline Value Get() const { return value; }
 
+		inline uint32 GetElementSizeBytes() const
+		{
+			switch (value)
+			{
+			case TextureFormat::Value::R8G8B8A8_UNORM: return sizeof(uint8);
+			case TextureFormat::Value::R16G16_UNORM: return sizeof(uint16);
+			case TextureFormat::Value::R8_BYTE: return sizeof(uint8);
+			case TextureFormat::Value::R32_FLOAT: return sizeof(real32);
+			case TextureFormat::Value::D32_FLOAT: return sizeof(real32);
+			case TextureFormat::Value::R32_TYPELESS: return sizeof(real32);
+			case TextureFormat::Value::R16_UNORM: return sizeof(uint16);
+			case TextureFormat::Value::D16_UNORM: return sizeof(uint16);
+			case TextureFormat::Value::R16_TYPELESS: return sizeof(uint16);
+			case TextureFormat::Value::R32G32_FLOAT: return sizeof(real32);
+			case TextureFormat::Value::R32G32B32_FLOAT: return sizeof(real32);
+			case TextureFormat::Value::R32G32B32A32_FLOAT: return sizeof(real32);
+			case TextureFormat::Value::R16G16B16A16_FLOAT: return sizeof(uint16);
+			default: Assert(0, "TextureFormatToD3D ??");
+			}
+
+			return 0;
+		}
+
+		inline uint32 GetElementCount() const
+		{
+			switch (value)
+			{
+			case TextureFormat::Value::R8G8B8A8_UNORM: return 4;
+			case TextureFormat::Value::R16G16_UNORM: return 2;
+			case TextureFormat::Value::R8_BYTE: return 1;
+			case TextureFormat::Value::R32_FLOAT: return 1;
+			case TextureFormat::Value::D32_FLOAT: return 1;
+			case TextureFormat::Value::R32_TYPELESS: return 1;
+			case TextureFormat::Value::R16_UNORM: return 1;
+			case TextureFormat::Value::D16_UNORM: return 1;
+			case TextureFormat::Value::R16_TYPELESS: return 1;
+			case TextureFormat::Value::R32G32_FLOAT: return 2;
+			case TextureFormat::Value::R32G32B32_FLOAT: return 3;
+			case TextureFormat::Value::R32G32B32A32_FLOAT: return 4;
+			case TextureFormat::Value::R16G16B16A16_FLOAT: return 4;
+			default: Assert(0, "TextureFormatToD3D ??");
+			}
+
+			return 0;
+		}
+
+		inline uint32 GetPitchBytes() const
+		{
+			return GetElementSizeBytes() * GetElementCount();
+		}
+
 		inline static TextureFormat ValueOf(const uint32& v)
 		{
 			Assert(v < (uint32)Value::COUNT, "Invalid model id");
@@ -584,9 +635,20 @@ namespace sol
 		inline operator uint64() const { return number; }
 	};
 
+	struct TextureHandle
+	{
+		union
+		{
+			ResourceId resourceId;
+			uint32 dynamicIndex;
+		};
+	};
+
 	struct Material
 	{
 		ResourceId modelId;
+		TextureHandle albedoTexture;
+
 		ResourceId albedoId;
 		ResourceId ormId;
 		ResourceId normalId;
@@ -602,6 +664,7 @@ namespace sol
 
 	struct RenderPacket
 	{
+		Vec3f cameraPos;
 		Mat4f viewMatrix;
 		Mat4f projectionMatrix;
 

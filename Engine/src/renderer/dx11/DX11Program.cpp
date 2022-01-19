@@ -2,6 +2,8 @@
 #include "core/SolarLogging.h"
 #if SOLAR_PLATFORM_WINDOWS && USE_DIRECTX11
 
+#include <d3dcompiler.h>
+
 namespace sol
 {
 	void ProgramInstance::Release(ProgramInstance* program)
@@ -179,6 +181,62 @@ namespace sol
 		Assert(0, "ShaderInstance::CreateGraphics unkown format");
 
 		return {};
+	}
+
+	inline std::wstring AnsiToWString(const std::string& str)
+	{
+		WCHAR buffer[512];
+		MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, buffer, 512);
+		return std::wstring(buffer);
+	}
+
+	static ID3DBlob* CompileShader(const String& path, const char* entry, const char* target)
+	{
+		ID3DBlob* shader = nullptr;
+		ID3DBlob* errorBuff = nullptr;
+
+		HRESULT hr = D3DCompileFromFile(
+			AnsiToWString(path.GetCStr()).c_str(),
+			nullptr, nullptr,
+			entry, target,
+			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+			0, &shader, &errorBuff);
+
+		if (FAILED(hr))
+		{
+			OutputDebugStringA((char*)errorBuff->GetBufferPointer());
+			SOLERROR((char*)errorBuff->GetBufferPointer());
+			return nullptr;
+		}
+
+		return shader;
+	}
+
+	ProgramInstance ProgramInstance::DEBUGCompileFromFile(const String& path, VertexLayoutType vertexLayout)
+	{
+		ID3DBlob* vertexShader = CompileShader(path, "VSmain", "vs_5_0");
+		ID3DBlob* pixelShader = CompileShader(path, "PSmain", "ps_5_0");
+
+		if (!(vertexShader && pixelShader))
+		{
+			SOLERROR("Could not compile program");
+			return {};
+		}
+
+		ProgramResource resource = {};
+		resource.id.number = 0;
+		resource.name = Util::StripFilePathAndExtentions(path);
+		resource.vertexLayout = vertexLayout;
+
+		resource.vertexData.count = (uint32)vertexShader->GetBufferSize();
+		resource.vertexData.capcity = (uint32)vertexShader->GetBufferSize();
+		resource.vertexData.data = (char*)vertexShader->GetBufferPointer();
+
+		resource.pixelData.count = (uint32)pixelShader->GetBufferSize();
+		resource.pixelData.capcity = (uint32)pixelShader->GetBufferSize();
+		resource.pixelData.data = (char*)pixelShader->GetBufferPointer();
+
+		return CreateGraphics(resource);
 	}
 }
 
