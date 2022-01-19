@@ -340,6 +340,11 @@ namespace sol
 				SamplerState pointRepeat;
 				SamplerState bilinearRepeat;
 				SamplerState trilinearRepeat;
+
+				SamplerState pointClamp;
+				SamplerState bilinearClamp;
+				SamplerState trilinearClamp;
+
 				SamplerState shadowPFC;
 			};
 		};

@@ -244,12 +244,22 @@ namespace sol
 		renderState.pointRepeat = SamplerState::Create(TextureFilterMode::Value::POINT, TextureWrapMode::Value::REPEAT);
 		renderState.bilinearRepeat = SamplerState::Create(TextureFilterMode::Value::BILINEAR, TextureWrapMode::Value::REPEAT);
 		renderState.trilinearRepeat = SamplerState::Create(TextureFilterMode::Value::TRILINEAR, TextureWrapMode::Value::REPEAT);
+
+		renderState.pointClamp = SamplerState::Create(TextureFilterMode::Value::POINT, TextureWrapMode::Value::CLAMP_EDGE);
+		renderState.bilinearClamp = SamplerState::Create(TextureFilterMode::Value::BILINEAR, TextureWrapMode::Value::CLAMP_EDGE);
+		renderState.trilinearClamp = SamplerState::Create(TextureFilterMode::Value::TRILINEAR, TextureWrapMode::Value::CLAMP_EDGE);
+
 		renderState.shadowPFC = SamplerState::CreateShadowPFC();
 
 		RenderCommand::SetSampler(renderState.pointRepeat, 0);
 		RenderCommand::SetSampler(renderState.bilinearRepeat, 1);
 		RenderCommand::SetSampler(renderState.trilinearRepeat, 2);
-		RenderCommand::SetSampler(renderState.shadowPFC, 3);
+
+		RenderCommand::SetSampler(renderState.pointClamp, 3);
+		RenderCommand::SetSampler(renderState.bilinearClamp, 4);
+		RenderCommand::SetSampler(renderState.trilinearClamp, 5);
+
+		RenderCommand::SetSampler(renderState.shadowPFC, 7);
 	}
 
 	static void CreateAllBlendState()
@@ -534,7 +544,7 @@ namespace sol
 					texture = texture ? texture : &renderState.invalidTexture;
 
 					RenderCommand::SetTexture(*texture, 0);
-					RenderCommand::DrawStaticMesh(renderState.quad);
+					RenderCommand::DrawStaticMesh(model->staticMeshes[meshIndex]);
 				}
 			}
 			else
@@ -562,16 +572,16 @@ namespace sol
 					RenderCommand::SetProgram(renderState.phongKenneyProgram);
 				}
 				RenderCommand::DrawStaticMesh(*mesh);
-			}
-#endif
 		}
+#endif
+	}
 
 		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDER_END, nullptr, {});
 		DeviceContext dc = renderState.deviceContext;
 
 		DXGI_PRESENT_PARAMETERS parameters = { 0 };
 		DXCHECK(renderState.swapChain.swapChain->Present1(1, 0, &parameters));
-	}
+}
 
 	void Renderer::Shutdown()
 	{

@@ -4,12 +4,16 @@ namespace sol
 {
 	void ReferenceRayTracer::Initialize(uint32 samples)
 	{
+		*this = ReferenceRayTracer();
+
 		imageWidth = (int32)Application::GetSurfaceWidth();
 		imageHeight = (int32)Application::GetSurfaceHeight();
 		aspectRatio = (real64)Application::GetSurfaceAspectRatio();
 
 		TextureFormat format = TextureFormat::Value::R32G32B32A32_FLOAT;
 		textureHandle = Renderer::CreateTexture(imageWidth, imageHeight, format, ResourceCPUFlags::Value::WRITE);
+
+		pixels.clear();
 		pixels.resize(imageWidth * imageHeight);
 
 		pixelsProcessed = 0;
@@ -17,6 +21,8 @@ namespace sol
 		complete = false;
 		camera.Initialize(Vec3d(0, 0, 3), Vec3d(0, 0, -1), Vec3d(0, 1, 0), 45.0, aspectRatio);
 		samplesPerPixel = samples;
+
+		world.objects.clear();
 		world.objects.push_back(PreciseSphere::Create(Vec3d(0, 0, -1), 0.5f));
 		world.objects.push_back(PreciseSphere::Create(Vec3d(0, -100.5, -1), 100.0f));
 	}
@@ -72,12 +78,31 @@ namespace sol
 		return hitAnything;
 	}
 
-	Vec3d TraceRay(const PreciseRay& r, const RayTracerWorld& world)
+	Vec3d RandomPointInUnitSphere()
 	{
-		PreciseHitRecord record = {};
-		if (world.Trace(r, 0.0, 100000.0, &record))
+		while (true)
 		{
-			return 0.5 * (record.normal + Vec3d(1, 1, 1));
+			Vec3d p = {};
+			p.x = RandomBillateral<real64>();
+			p.y = RandomBillateral<real64>();
+			p.z = RandomBillateral<real64>();
+
+			if (MagSqrd(p) >= 1) { continue; }
+
+			return p;
+		}
+	}
+
+	Vec3d TraceRay(const PreciseRay& r, const RayTracerWorld& world, int32 depth)
+	{
+		if (depth <= 0) { return Vec3d(0, 0, 0); }
+
+
+		PreciseHitRecord record = {};
+		if (world.Trace(r, 0.0001, 100000.0, &record))
+		{
+			Vec3d target = record.p + record.normal + RandomPointInUnitSphere();
+			return 0.5 * TraceRay(PreciseRay::Create(record.p, target - record.p), world, depth - 1);
 		}
 
 		Vec3d unit_direction = Normalize(r.direction);
@@ -101,21 +126,27 @@ namespace sol
 				Vec3d colour = Vec3d();
 
 				int32 samples = 0;
+				int32 depth = 1;
 				for (; samples < 1; samples++)
 				{
-					auto u = real64(i + RandomBillateral<real64>()) / (real64)(imageWidth - 1);
-					auto v = real64(j + RandomBillateral<real64>()) / (real64)(imageHeight - 1);
+					auto u = (real64(i) + RandomUnillateral<real64>()) / (real64)(imageWidth - 1);
+					auto v = (real64(j) + RandomUnillateral<real64>()) / (real64)(imageHeight - 1);
 					PreciseRay ray = camera.GetRay(u, v);
-					colour += TraceRay(ray, world);
+					colour += TraceRay(ray, world, depth);
 				}
 
 				colour = colour / (real64)samples;
 
 				int32 index = (-j + imageHeight - 1) * imageWidth + i;
-				pixels.at(index) = Vec4f((real32)colour.x, (real32)colour.y, (real32)colour.z, 1.0f);
+
+				real32 r = Sqrt((real32)colour.x);
+				real32 g = Sqrt((real32)colour.y);
+				real32 b = Sqrt((real32)colour.z);
+
+				pixels.at(index) = Vec4f(r, g, b, 1.0f);
 
 				pixelsProcssedThisUpdate++;
-				if (pixelsProcssedThisUpdate == 5) { return; }
+				if (pixelsProcssedThisUpdate == 1000000 / (samples * depth)) { return; }
 			}
 
 			//for (int32 j = imageHeight - 1; j >= 0; j--)
@@ -128,12 +159,12 @@ namespace sol
 			//			auto u = real64(i + RandomBillateral<real64>()) / (real64)(imageWidth - 1);
 			//			auto v = real64(j + RandomBillateral<real64>()) / (real64)(imageHeight - 1);
 			//			PreciseRay ray = camera.GetRay(u, v);
-			//			colour += TraceRay(ray, world);
+			//			colour += TraceRay(ray, world, 1);
 			//		}
 
 			//		colour = colour / (real64)1;
 
-			//		int32 index = (-j + imageHeight) * imageWidth + i;
+			//		int32 index = (-j + imageHeight - 1) * imageWidth + i;
 			//		pixels.at(index) = Vec4f((real32)colour.x, (real32)colour.y, (real32)colour.z, 1.0f);
 			//	}
 			//}
