@@ -534,7 +534,8 @@ namespace sol
 			{
 				for (uint32 meshIndex = 0; meshIndex < model->staticMeshes.count; meshIndex++)
 				{
-					StaticTexture* texture = renderState.staticTextures.Get(model->textures[meshIndex].abledoTexture);
+					MeshTextures* meshTextures = &model->textures[meshIndex];
+					StaticTexture* texture = renderState.staticTextures.Get(meshTextures->abledoTexture);
 
 					if (entry->material.albedoTexture.dynamicIndex > 0)
 						texture = renderState.dynamicTextures.Get(entry->material.albedoTexture.dynamicIndex);
@@ -572,16 +573,16 @@ namespace sol
 					RenderCommand::SetProgram(renderState.phongKenneyProgram);
 				}
 				RenderCommand::DrawStaticMesh(*mesh);
-		}
+			}
 #endif
-	}
+		}
 
 		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDER_END, nullptr, {});
 		DeviceContext dc = renderState.deviceContext;
 
 		DXGI_PRESENT_PARAMETERS parameters = { 0 };
 		DXCHECK(renderState.swapChain.swapChain->Present1(1, 0, &parameters));
-}
+	}
 
 	void Renderer::Shutdown()
 	{

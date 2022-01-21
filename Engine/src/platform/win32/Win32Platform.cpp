@@ -148,6 +148,11 @@ namespace sol
 		return (real64)nowTime.QuadPart * winState.clockFrequency;
 	}
 
+	void Platform::SleepThread(uint32 ms)
+	{
+		Sleep(ms);
+	}
+
 	static void ProcessMouseInput()
 	{
 		Input* input = Input::Get();

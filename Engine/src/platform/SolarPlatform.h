@@ -53,7 +53,7 @@ namespace sol
 		static void ConsoleWrite(const char* mssage, uint8 colour);
 
 		static real64 GetAbsoluteTime();
-		static void Sleep(real64 ms);
+		static void SleepThread(uint32 ms);
 
 		static constexpr uint32 MAX_NETWORK_PACKET_SIZE = 256;
 		static PlatformNetworkAddress NetworkStart(uint16 port);

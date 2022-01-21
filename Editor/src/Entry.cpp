@@ -163,6 +163,10 @@ namespace sol
 		game->appConfig.startPosY = 400;
 		game->appConfig.startWidth = 400;
 		game->appConfig.startHeight = 255;
+		//game->appConfig.startPosX = 100;
+		//game->appConfig.startPosY = 100;
+		//game->appConfig.startWidth = 1280;
+		//game->appConfig.startHeight = 720;
 		game->appConfig.name = "Engine Editor";
 		game->Initialize = GameInitialze;
 		game->Update = GameUpdate;

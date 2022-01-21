@@ -136,7 +136,6 @@ namespace sol
 	{
 		models->Clear();
 		CreateBuiltInModels();
-
 		return 1;
 
 		BinaryAssetFile file = {};
@@ -161,10 +160,12 @@ namespace sol
 					MeshResource mesh = {};
 					mesh.name = file.Read<String>();
 
-					model->textures[meshIndex].abledoTexture = file.Read<ResourceId>();
-					model->textures[meshIndex].occlusionRoughnessMetallicTexture = file.Read<ResourceId>();
-					model->textures[meshIndex].normalTexture = file.Read<ResourceId>();
-					model->textures[meshIndex].emssiveTexture = file.Read<ResourceId>();
+					MeshTextures meshTextures = {};
+
+					meshTextures.abledoTexture = file.Read<ResourceId>();
+					meshTextures.occlusionRoughnessMetallicTexture = file.Read<ResourceId>();
+					meshTextures.normalTexture = file.Read<ResourceId>();
+					meshTextures.emssiveTexture = file.Read<ResourceId>();
 
 					mesh.layout = file.Read<VertexLayoutType::Value>();
 
@@ -180,6 +181,7 @@ namespace sol
 						mesh.indices.Add(file.Read<uint32>());
 					}
 
+					model->textures.Add(meshTextures);
 					model->meshes.Add(mesh);
 				}
 

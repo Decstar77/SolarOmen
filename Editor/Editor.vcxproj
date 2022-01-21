@@ -119,6 +119,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine\;$(SolutionDir)SolarOmen\vendor\assimp\include</AdditionalIncludeDirectories>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,6 +139,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine\;$(SolutionDir)SolarOmen\vendor\assimp\include</AdditionalIncludeDirectories>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

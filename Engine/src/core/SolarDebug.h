@@ -6,21 +6,11 @@
 
 namespace sol
 {
-	class SOL_API ProfilerClock
+	class ProfilerClock
 	{
 	public:
-		ProfilerClock(const char* name)
-		{
-			this->functionName = String(name);
-			clock.Start();
-		}
-
-		~ProfilerClock()
-		{
-			clock.Update();
-			SOLINFO(functionName.Add(" took: ").Add((real32)clock.elapsed * 1000.0f).Add(" ms").GetCStr());
-		}
-
+		SOL_API  ProfilerClock(const char* name);
+		SOL_API  ~ProfilerClock();
 	private:
 		String functionName;
 		Clock clock;

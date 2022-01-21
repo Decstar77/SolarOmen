@@ -70,12 +70,12 @@ namespace sol
 		return res;
 	}
 
-	template <typename T>
-	inline constexpr T RandomReal(const T& min, const T& max) // @NOTE: min to max - 1
-	{
-		T c = max - min;
-		return c == 0 ? min : min + static_cast<T>(rand()) / (static_cast<T>(RAND_MAX / c));
-	}
+	//template <typename T>
+	//inline constexpr T RandomReal(const T& min, const T& max) // @NOTE: min to max - 1
+	//{
+	//	T c = max - min;
+	//	return c == 0 ? min : min + static_cast<T>(rand()) / (static_cast<T>(RAND_MAX / c));
+	//}
 
 	template <typename T>
 	inline constexpr T RandomUInt(const T& min, const T& max) // @NOTE: min to max - 1
@@ -845,7 +845,7 @@ namespace sol
 	template <typename T>
 	inline Vec3<T> Reflect(const Vec3<T>& r, const Vec3<T>& normal)
 	{
-		real32 d = Dot(r, normal);
+		T d = Dot(r, normal);
 
 		Vec3<T> result = r - static_cast<T>(2.0) * d * normal;
 
@@ -853,13 +853,12 @@ namespace sol
 	}
 
 	template <typename T>
-	inline Vec3<T> Refract(const Vec3<T>& r, const Vec3<T>& normal, const T& eta)
+	inline Vec3<T> Refract(const Vec3<T>& uv, const Vec3<T>& n, const T& etai_over_etat)
 	{
-		T cos_theta = Dot(r * static_cast<T>(-1.0), normal);
-
-		Vec3<T> parallel = eta * (r + cos_theta * normal);
-		Vec3<T> perpendic = -Sqrt(static_cast<T>(1.0) - Mag(parallel)) * normal;
-		Vec3<T> result = parallel + perpendic;
+		auto cos_theta = Min(Dot(static_cast<T>(-1.0) * uv, n), static_cast<T>(1.0));
+		Vec3<T> r_out_perp = etai_over_etat * (uv + cos_theta * n);
+		Vec3<T> r_out_parallel = -Sqrt(Abs(static_cast<T>(1.0) - MagSqrd(r_out_perp))) * n;
+		Vec3<T> result = r_out_perp + r_out_parallel;
 
 		return result;
 	}

@@ -120,6 +120,7 @@
   <ItemGroup>
     <ClCompile Include="src\core\SolarApplication.cpp" />
     <ClCompile Include="src\core\SolarClock.cpp" />
+    <ClCompile Include="src\core\SolarDebug.cpp" />
     <ClCompile Include="src\core\SolarEvent.cpp" />
     <ClCompile Include="src\core\SolarInput.cpp" />
     <ClCompile Include="src\core\SolarLogging.cpp" />

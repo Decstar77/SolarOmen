@@ -25,17 +25,46 @@ namespace sol
 		}
 	};
 
-	typedef ImplicitSphere<real64> Sphere;
+	typedef ImplicitSphere<real32> Sphere;
 	typedef ImplicitSphere<real64> PreciseSphere;
 
-	struct PreciseRay
+	template<typename T>
+	struct ImplicitAABB
+	{
+		Vec3<T> min;
+		Vec3<T> max;
+
+		inline static ImplicitAABB<T> Create(const Vec3<T>& min, const Vec3<T>& max)
+		{
+			ImplicitAABB<T> aabb = {};
+			aabb.min = min;
+			aabb.max = max;
+			return aabb;
+		}
+	};
+
+	typedef ImplicitAABB<real32> AABB;
+	typedef ImplicitAABB<real64> PreciseAABB;
+
+	template<typename T>
+	inline ImplicitAABB<T> SurroundingAABB(const ImplicitAABB<T>& box1, const ImplicitAABB<T>& box2)
+	{
+		ImplicitAABB<T> result = {};
+
+		result.min = Min(box1.min, box2.min);
+		result.max = Max(box1.max, box2.max);
+
+		return result;
+	}
+
+	struct RayTracingRay
 	{
 		Vec3d origin;
 		Vec3d direction;
-
-		inline static PreciseRay Create(const Vec3d& origin, const Vec3d& direction)
+		real64 time;
+		inline static RayTracingRay Create(const Vec3d& origin, const Vec3d& direction)
 		{
-			PreciseRay ray = {};
+			RayTracingRay ray = {};
 			ray.origin = origin;
 			ray.direction = direction;
 			return ray;
@@ -46,6 +75,7 @@ namespace sol
 		}
 	};
 
+
 	template<typename T>
 	struct HitRecord
 	{
@@ -54,8 +84,9 @@ namespace sol
 		T t;
 
 		bool8 frontFace;
+		std::shared_ptr<class RayTracingMaterial> material;
 
-		inline void SetFaceNormal(const PreciseRay& r, const Vec3<T>& outward_normal) {
+		inline void SetFaceNormal(const RayTracingRay& r, const Vec3<T>& outward_normal) {
 			frontFace = Dot(r.direction, outward_normal) < 0;
 			normal = frontFace ? outward_normal : static_cast<T>(-1.0) * outward_normal;
 		}
@@ -63,45 +94,118 @@ namespace sol
 
 	typedef HitRecord<real64> PreciseHitRecord;
 
-	class RayTracerCamera
+	class RayTracingCamera
 	{
 	public:
-		RayTracerCamera() {};
+		RayTracingCamera() {};
 
-		void Initialize(Vec3d lookfrom, Vec3d lookat, Vec3d vup, real64 yFovDeg, real64 aspectRatio)
-		{
-			auto theta = DegToRad(yFovDeg);
-			auto h = Tan(theta / 2);
-			auto viewport_height = 2.0 * h;
-			auto viewport_width = aspectRatio * viewport_height;
+		void Initialize(Vec3d lookfrom, Vec3d lookat, Vec3d   vup, real64 vfov, real64 aspect_ratio, real64 aperture, real64 focus_dist);
+		RayTracingRay GetRay(double s, double t) const;
 
-			auto w = Normalize(lookfrom - lookat);
-			auto u = Normalize(Cross(vup, w));
-			auto v = Cross(w, u);
-
-			origin = lookfrom;
-			horizontal = viewport_width * u;
-			vertical = viewport_height * v;
-			lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
-		}
-
-		PreciseRay GetRay(real64 s, real64 t) const {
-			return PreciseRay::Create(origin, lower_left_corner + s * horizontal + t * vertical - origin);
-		}
+		inline void SetTime(real64 t1, real64 t2) { time0 = t1; time1 = t2; };
 
 	private:
 		Vec3d origin;
 		Vec3d lower_left_corner;
 		Vec3d horizontal;
 		Vec3d vertical;
+		Vec3d u, v, w;
+		real64 lens_radius;
+		real64 time0;
+		real64 time1;
 	};
 
-	class RayTracerWorld
+
+
+	class RayTracingMaterial
 	{
 	public:
-		std::vector<PreciseSphere> objects;
+		virtual bool8 Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const = 0;
+	};
 
-		bool8 Trace(const PreciseRay& r, real64 tMin, real64 tMax, PreciseHitRecord* hitrecord)const;
+	class Lambertian : public RayTracingMaterial
+	{
+	public:
+		Vec3d albedo;
+	public:
+		Lambertian(const Vec3d& a) : albedo(a) {}
+		virtual bool8 Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override;
+	};
+
+	class MetalMaterial : public RayTracingMaterial
+	{
+	public:
+		Vec3d albedo;
+		real64 fuzz;
+	public:
+		MetalMaterial(const Vec3d& a, real64 f) : albedo(a), fuzz(f < 1 ? f : 1) {}
+		virtual bool8 Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override;
+	};
+
+	class DielectricMaterial : public RayTracingMaterial
+	{
+	public:
+		real64 ir;
+
+	public:
+		DielectricMaterial(real64 index_of_refraction) : ir(index_of_refraction) {}
+		virtual bool8 Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override;
+
+	private:
+		inline real64 Reflectance(real64 cosine, real64 ref_idx) const {
+			real64 r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
+			r0 = r0 * r0;
+			return r0 + (1.0 - r0) * Pow<real64>((1.0 - cosine), 5.0);
+		}
+	};
+
+
+
+	class RayTracingObject
+	{
+	public:
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* rec) const = 0;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const = 0;
+	};
+
+	class RayTracingSphere : public RayTracingObject
+	{
+	public:
+		PreciseSphere sphere;
+		std::shared_ptr<RayTracingMaterial> material;
+
+	public:
+		RayTracingSphere() {};
+		RayTracingSphere(Vec3d origin, real64 r, std::shared_ptr<RayTracingMaterial> m) : sphere(PreciseSphere::Create(origin, r)), material(m) {};
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+	};
+
+	class RayTracingBVHNode : public RayTracingObject
+	{
+	public:
+		RayTracingBVHNode() {};
+
+		bool8 Build(const std::vector<std::shared_ptr<RayTracingObject>>& srcObjects, uint64 start, uint64 end, real64 time0, real64 time1);
+
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* hitrecord) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+
+	public:
+		std::shared_ptr<RayTracingObject> left;
+		std::shared_ptr<RayTracingObject> right;
+		PreciseAABB nodeBox;
+	};
+
+	class RayTracingWorld : public RayTracingObject
+	{
+	public:
+		std::vector<std::shared_ptr<RayTracingObject>> objects;
+		RayTracingBVHNode bvhTree;
+
+		void MakeRandomSphereWorld();
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* hitrecord) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
 	};
 
 	class ReferenceRayTracer
@@ -118,10 +222,10 @@ namespace sol
 		TextureHandle textureHandle;
 		bool8 complete;
 
-		RayTracerCamera camera;
+		RayTracingCamera camera;
 		std::vector<Vec4f> pixels;
 
-		RayTracerWorld world;
+		RayTracingWorld world;
 
 		void Initialize(uint32 samples);
 		void Shutdown();

@@ -44,6 +44,12 @@ STATIC_ASSERT(sizeof(real64) == 8, "Expected real64 to be 8 bytes.");
 #define SOL_DEBUG 1
 #define SOL_DEBUG_RENDERING 1
 
+#define LOG_WARN_ENABLED 1
+#define LOG_INFO_ENABLED 1
+#define LOG_DEBUG_ENABLED 1
+#define LOG_TRACE_ENABLED 1
+
+
 #define REAL_MAX FLT_MAX
 #define REAL_MIN -FLT_MAX
 
