@@ -5,11 +5,6 @@
 
 namespace sol
 {
-	class LightMapper
-	{
-
-	};
-
 	template<typename T>
 	struct ImplicitSphere
 	{
@@ -76,23 +71,22 @@ namespace sol
 	};
 
 
-	template<typename T>
 	struct HitRecord
 	{
-		Vec3<T> p;
-		Vec3<T> normal;
-		T t;
-
+		Vec3d p;
+		Vec3d normal;
+		real64 t;
+		real64 u;
+		real64 v;
 		bool8 frontFace;
+
 		std::shared_ptr<class RayTracingMaterial> material;
 
-		inline void SetFaceNormal(const RayTracingRay& r, const Vec3<T>& outward_normal) {
+		inline void SetFaceNormal(const RayTracingRay& r, const Vec3d& outward_normal) {
 			frontFace = Dot(r.direction, outward_normal) < 0;
-			normal = frontFace ? outward_normal : static_cast<T>(-1.0) * outward_normal;
+			normal = frontFace ? outward_normal : -1.0 * outward_normal;
 		}
 	};
-
-	typedef HitRecord<real64> PreciseHitRecord;
 
 	class RayTracingCamera
 	{
@@ -117,19 +111,54 @@ namespace sol
 
 
 
+	class RayTracingTexture
+	{
+	public:
+		virtual Vec3d Value(real64 u, real64 v, const Vec3d& p) const = 0;
+	};
+
+	class SolidColour : public RayTracingTexture
+	{
+	public:
+		SolidColour() {};
+		SolidColour(const Vec3d& colour) : colour(colour) {}
+		SolidColour(real64 r, real64 g, real64 b) : colour(r, g, b) {};
+
+		virtual Vec3d Value(real64 u, real64 v, const Vec3d& p) const override { return colour; };
+
+	private:
+		Vec3d colour;
+	};
+
+	class CheckerTexture : public RayTracingTexture
+	{
+	public:
+		CheckerTexture() {};
+		CheckerTexture(const Vec3d& colour1, const Vec3d& colour2)
+			: even(std::make_shared<SolidColour>(colour1)), odd(std::make_shared<SolidColour>(colour2)) {}
+
+		virtual Vec3d Value(real64 u, real64 v, const Vec3d& p) const override;
+	public:
+		std::shared_ptr<SolidColour> odd;
+		std::shared_ptr<SolidColour> even;
+	};
+
+
+
 	class RayTracingMaterial
 	{
 	public:
-		virtual bool8 Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const = 0;
+		virtual bool8 Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const = 0;
 	};
 
 	class Lambertian : public RayTracingMaterial
 	{
 	public:
-		Vec3d albedo;
-	public:
-		Lambertian(const Vec3d& a) : albedo(a) {}
-		virtual bool8 Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override;
+		Lambertian(const Vec3d& a) : albedo(std::make_shared<SolidColour>(a)) {}
+		Lambertian(std::shared_ptr<RayTracingTexture> a) : albedo(a) {};
+		virtual bool8 Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override;
+	private:
+		std::shared_ptr<RayTracingTexture> albedo;
 	};
 
 	class MetalMaterial : public RayTracingMaterial
@@ -139,7 +168,7 @@ namespace sol
 		real64 fuzz;
 	public:
 		MetalMaterial(const Vec3d& a, real64 f) : albedo(a), fuzz(f < 1 ? f : 1) {}
-		virtual bool8 Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override;
+		virtual bool8 Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override;
 	};
 
 	class DielectricMaterial : public RayTracingMaterial
@@ -149,7 +178,7 @@ namespace sol
 
 	public:
 		DielectricMaterial(real64 index_of_refraction) : ir(index_of_refraction) {}
-		virtual bool8 Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override;
+		virtual bool8 Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override;
 
 	private:
 		inline real64 Reflectance(real64 cosine, real64 ref_idx) const {
@@ -164,7 +193,7 @@ namespace sol
 	class RayTracingObject
 	{
 	public:
-		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* rec) const = 0;
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const = 0;
 		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const = 0;
 	};
 
@@ -177,8 +206,9 @@ namespace sol
 	public:
 		RayTracingSphere() {};
 		RayTracingSphere(Vec3d origin, real64 r, std::shared_ptr<RayTracingMaterial> m) : sphere(PreciseSphere::Create(origin, r)), material(m) {};
-		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* rec) const override;
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
 		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+		void GetUV(const Vec3d& p, real64* u, real64* v) const;
 	};
 
 	class RayTracingBVHNode : public RayTracingObject
@@ -188,7 +218,7 @@ namespace sol
 
 		bool8 Build(const std::vector<std::shared_ptr<RayTracingObject>>& srcObjects, uint64 start, uint64 end, real64 time0, real64 time1);
 
-		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* hitrecord) const override;
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* hitrecord) const override;
 		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
 
 	public:
@@ -204,7 +234,7 @@ namespace sol
 		RayTracingBVHNode bvhTree;
 
 		void MakeRandomSphereWorld();
-		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* hitrecord) const override;
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* hitrecord) const override;
 		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
 	};
 

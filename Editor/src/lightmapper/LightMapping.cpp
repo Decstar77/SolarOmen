@@ -108,7 +108,7 @@ namespace sol
 
 	void sol::RayTracingWorld::MakeRandomSphereWorld()
 	{
-		auto ground_material = std::make_shared<Lambertian>(Vec3d(0.5, 0.5, 0.5));
+		auto ground_material = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(Vec3d(0.2, 0.3, 0.1), Vec3d(0.9, 0.9, 0.9)));
 		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -1000, 0), 1000, ground_material));
 
 		for (int a = -11; a < 11; a++) {
@@ -189,7 +189,13 @@ namespace sol
 		return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
 	}
 
-	bool8 Lambertian::Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const
+	Vec3d CheckerTexture::Value(real64 u, real64 v, const Vec3d& p) const
+	{
+		real64 sines = Sin(10 * p.x) * Sin(10 * p.y) * Sin(10 * p.z);
+		return sines < 0 ? odd->Value(u, v, p) : even->Value(u, v, p);
+	}
+
+	bool8 Lambertian::Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const
 	{
 		Vec3d scatterDir = rec.normal + Normalize(RandomPointInUnitSphere());
 
@@ -197,11 +203,11 @@ namespace sol
 
 
 		*scattered = RayTracingRay::Create(rec.p, scatterDir);
-		*attenuation = albedo;
+		*attenuation = albedo->Value(rec.u, rec.v, rec.p);
 		return true;
 	}
 
-	bool8 MetalMaterial::Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const
+	bool8 MetalMaterial::Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const
 	{
 		Vec3d reflected = Reflect(Normalize(r.direction), rec.normal);
 		*scattered = RayTracingRay::Create(rec.p, reflected + fuzz * RandomPointInUnitSphere());
@@ -209,7 +215,7 @@ namespace sol
 		return (Dot(scattered->direction, rec.normal) > 0);
 	}
 
-	bool8 sol::DielectricMaterial::Scatter(const RayTracingRay& r, const PreciseHitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const
+	bool8 sol::DielectricMaterial::Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const
 	{
 		*attenuation = Vec3d(1.0, 1.0, 1.0);
 		real64 refraction_ratio = rec.frontFace ? (1.0 / ir) : ir;
@@ -247,7 +253,16 @@ namespace sol
 		return true;
 	}
 
-	bool8 RayTracingSphere::Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* rec) const
+	void RayTracingSphere::GetUV(const Vec3d& p, real64* u, real64* v) const
+	{
+		auto theta = acos(-p.y);
+		auto phi = atan2(-p.z, p.x) + PI;
+
+		*u = phi / (2.0 * PI);
+		*v = theta / PI;
+	}
+
+	bool8 RayTracingSphere::Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const
 	{
 		Vec3d oc = r.origin - sphere.origin;
 		auto a = MagSqrd(r.direction);
@@ -271,6 +286,7 @@ namespace sol
 		Vec3d outward_normal = (rec->p - sphere.origin) / sphere.radius;
 		rec->SetFaceNormal(r, outward_normal);
 		rec->material = material;
+		GetUV(outward_normal, &rec->u, &rec->v);
 
 		return true;
 	}
@@ -283,7 +299,7 @@ namespace sol
 		return true;
 	}
 
-	bool8 RayTracingBVHNode::Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* hitrecord) const
+	bool8 RayTracingBVHNode::Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* hitrecord) const
 	{
 		if (!RaycastAABB(r, nodeBox, tMin, tMax)) { return false; }
 
@@ -376,9 +392,9 @@ namespace sol
 		return true;
 	}
 
-	bool8 RayTracingWorld::Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, PreciseHitRecord* hitRecord) const
+	bool8 RayTracingWorld::Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* hitRecord) const
 	{
-		PreciseHitRecord tempRec = {};
+		HitRecord tempRec = {};
 		bool8 hitAnything = false;
 		real64 closest = tMax;
 
@@ -432,7 +448,7 @@ namespace sol
 	{
 		if (depth <= 0) { return Vec3d(0, 0, 0); }
 
-		PreciseHitRecord record = {};
+		HitRecord record = {};
 		if (world.Raycast(r, 0.0001, 100000.0, &record))
 		{
 			RayTracingRay scatterd = {};
@@ -470,7 +486,7 @@ namespace sol
 				Vec3d colour = Vec3d();
 
 				int32 samples = 0;
-				int32 depth = 5;
+				int32 depth = 10;
 
 				for (; samples < 10; samples++)
 				{
