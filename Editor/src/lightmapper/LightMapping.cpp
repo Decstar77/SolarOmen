@@ -176,7 +176,8 @@ namespace sol
 		world.objects.clear();
 		//world.MakeRandomSphereWorld(&camera, aspectRatio);
 		//world.MakeTwoSphereWorld(&camera, aspectRatio);
-		world.MakeTwoPerlineSpheres(&camera, aspectRatio);
+		//world.MakeTwoPerlineSpheres(&camera, aspectRatio);
+		world.MakeTextureWorld(&camera, aspectRatio);
 	}
 	void ReferenceRayTracer::Shutdown()
 	{
@@ -276,6 +277,25 @@ namespace sol
 		camera->Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
 	}
 
+	void sol::RayTracingWorld::MakeTextureWorld(RayTracingCamera* camera, real64 aspectRatio)
+	{
+		auto earth_texture = std::make_shared<ImageTexture>("MenuBackground");
+		auto earth_surface = std::make_shared<Lambertian>(earth_texture);
+
+		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, 0, 0), 2, earth_surface));
+
+		bvhTree.Build(objects, 0, objects.size(), 0, 0);
+		SOLINFO("Raytracing BVH built");
+
+		Vec3d lookfrom(13, 2, 3);
+		Vec3d lookat(0, 0, 0);
+		Vec3d vup(0, 1, 0);
+		auto dist_to_focus = 10.0;
+		auto aperture = 0.1;
+
+		camera->Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
+	}
+
 	void RayTracingCamera::Initialize(Vec3d lookfrom, Vec3d lookat, Vec3d vup, real64 vfov, real64 aspect_ratio, real64 aperture, real64 focus_dist)
 	{
 		real64 theta = DegToRad(vfov);
@@ -316,6 +336,37 @@ namespace sol
 	{
 		real64 sines = Sin(10 * p.x) * Sin(10 * p.y) * Sin(10 * p.z);
 		return sines < 0 ? odd->Value(u, v, p) : even->Value(u, v, p);
+	}
+
+	ImageTexture::ImageTexture(const String& name)
+	{
+		TextureResource* res = Resources::GetTextureResource(name);
+		width = res->width;
+		height = res->height;
+		data = (uint8*)res->pixels.data;
+
+		Assert(res->format == TextureFormat::Value::R8G8B8A8_UNORM, "Texture format not supported for ray tracing");
+		bytesPerPixel = res->format.GetPitchBytes();
+		rowBytes = res->format.GetPitchBytes() * width;
+	}
+
+	Vec3d ImageTexture::Value(real64 u, real64 v, const Vec3d& p) const
+	{
+		if (!data) { return Vec3d(0, 1, 1); }
+
+		u = Clamp(u, 0.0, 1.0);
+		v = 1.0 - Clamp(v, 0.0, 1.0);
+
+		int32 i = int32(u * width);
+		int32 j = int32(v * height);
+
+		if (i >= width) { i = width - 1; }
+		if (j >= height) { j = height - 1; }
+
+		const real64 color_scale = 1.0 / 255.0;
+
+		uint8* pixel = &data[j * rowBytes + i * bytesPerPixel];
+		return Vec3d(color_scale * pixel[0], color_scale * pixel[1], color_scale * pixel[2]);
 	}
 
 	bool8 Lambertian::Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const
@@ -609,7 +660,7 @@ namespace sol
 				Vec3d colour = Vec3d();
 
 				int32 samples = 0;
-				int32 depth = 10;
+				int32 depth = 2;
 
 				for (; samples < 10; samples++)
 				{
@@ -631,7 +682,7 @@ namespace sol
 				pixels.at(index) = Vec4f(r, g, b, 1.0f);
 
 				pixelsProcssedThisUpdate++;
-				if (pixelsProcssedThisUpdate == 500000 / (samples * depth)) { return; }
+				if (pixelsProcssedThisUpdate == 5000000 / (samples * depth)) { return; }
 			}
 
 			complete = true;

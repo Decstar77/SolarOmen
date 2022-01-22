@@ -179,7 +179,19 @@ namespace sol
 		PerlinNoise noise;
 	};
 
-
+	class ImageTexture : public RayTracingTexture
+	{
+	public:
+		ImageTexture() :data(nullptr), width(0), height(0), rowBytes(0), bytesPerPixel(0) {}
+		ImageTexture(const String& name);
+		virtual Vec3d Value(real64 u, real64 v, const Vec3d& p) const override;
+	private:
+		uint8* data;
+		int32 width;
+		int32 height;
+		int32 bytesPerPixel;
+		int32 rowBytes;
+	};
 
 
 	class RayTracingMaterial
@@ -277,6 +289,7 @@ namespace sol
 		void MakeRandomSphereWorld(RayTracingCamera* camera, real64 aspectRatio);
 		void MakeTwoSphereWorld(RayTracingCamera* camera, real64 aspectRatio);
 		void MakeTwoPerlineSpheres(RayTracingCamera* camera, real64 aspectRatio);
+		void MakeTextureWorld(RayTracingCamera* camera, real64 aspectRatio);
 	};
 
 	class ReferenceRayTracer

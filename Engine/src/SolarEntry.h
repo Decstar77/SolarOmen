@@ -6,7 +6,7 @@
 
 int main(int argc, const char* argv[])
 {
-	if (sol::GameMemory::Initialize(Gigabytes(1), Gigabytes(2)))
+	if (sol::GameMemory::Initialize(Gigabytes(1), Gigabytes(1), Gigabytes(1)))
 	{
 		sol::Game game = {};
 		if (sol::CreateGame(&game))

@@ -31,6 +31,13 @@ namespace sol
 		}
 	};
 
+	struct MemoryNode
+	{
+		uint64 offset; // @NOTE: In bytes
+		uint64 size;   // @NOTE: In bytes
+		MemoryNode* next;
+	};
+
 	class SOL_API GameMemory
 	{
 	public:
@@ -52,13 +59,15 @@ namespace sol
 		template<typename T>
 		inline static T* PushTransientClass() { void* storage = instance->TransientPushSize(sizeof(T));	return new (storage) T(); }
 
-		inline static uint64 GetTheAmountOfTransientMemoryUsed() { return instance->transientStorage.used; }
-		inline static uint64 GetTheTotalAmountOfTransientMemoryAllocated() { return instance->transientStorage.size; }
 		inline static uint64 GetTheAmountOfPermanentMemoryUsed() { return instance->permanentStorage.used; }
 		inline static uint64 GetTheTotalAmountOfPermanentMemoryAllocated() { return instance->permanentStorage.size; }
+
+		inline static uint64 GetTheAmountOfTransientMemoryUsed() { return instance->transientStorage.used; }
+		inline static uint64 GetTheTotalAmountOfTransientMemoryAllocated() { return instance->transientStorage.size; }
+
 		inline static void ReleaseAllTransientMemory() { instance->transientStorage.used = 0; }
 
-		static bool8 Initialize(uint64 permanentStorageSize, uint64 transientStorageSize);
+		static bool8 Initialize(uint64 permanentStorageSize, uint64 transientStorageSize, uint64 dynamicStorageSize);
 		static void Shutdown();
 
 		template<typename T>
@@ -67,14 +76,23 @@ namespace sol
 		static void Copy(void* dst, void* src, uint64 size);
 
 	private:
-		GameMemory(void* permanentStorageData, uint64 permanentStorageSize, void* transientStorageData, uint64 transientStorageSize);
+		GameMemory(void* permanentStorageData, uint64 permanentStorageSize,
+			void* transientStorageData, uint64 transientStorageSize,
+			void* dynamicStorageData, uint64 dynamicStorageSize);
+
 		inline static GameMemory* instance = nullptr;
 
 		MemoryArena permanentStorage;
 		MemoryArena transientStorage;
+		MemoryArena dynamicStorage;
+
+		MemoryNode dynamicHead;
 
 		void* TransientPushSize(uint64 size);
 		void* PermanentPushSize(uint64 size);
+
+		void* DynamicPushSize(uint64 size);
+		void* DynamicFree(uint64 size);
 
 		static void ZeroOut(void* dst, uint64 size);
 	};

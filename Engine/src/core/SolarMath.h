@@ -53,7 +53,6 @@ namespace sol
 		return t < static_cast<T>(0.0) ? static_cast<T>(-1.0) * t : t;
 	}
 
-
 	real64 SOL_API RandomReal64();
 	real32 SOL_API RandomReal32();
 
@@ -95,7 +94,6 @@ namespace sol
 
 	real32 SOL_API Sqrt(const real32& x);
 	real64 SOL_API Sqrt(const real64& x);
-
 
 	template <typename T>
 	inline constexpr T Normalize(const T& value, const T& min, const T& max)

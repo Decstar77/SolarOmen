@@ -15,17 +15,20 @@ namespace sol
 {
 	static std::mutex lock;
 
-	bool8 GameMemory::Initialize(uint64 permanentStorageSize, uint64 transientStorageSize)
+	bool8 GameMemory::Initialize(uint64 permanentStorageSize, uint64 transientStorageSize, uint64 dynamicStorageSize)
 	{
 		void* permanentStorageData = (uint8*)malloc(permanentStorageSize);
 		void* transientStorageData = (uint8*)malloc(transientStorageSize);
+		void* dynamicStorageData = (uint8*)malloc(dynamicStorageSize);
 
-		Assert(permanentStorageData && transientStorageData, "Could not allocate memory !!");
+		Assert(permanentStorageData && transientStorageData && dynamicStorageData, "Could not allocate memory !!");
 
 		if (permanentStorageData && transientStorageData)
 		{
-			GameMemory* memory = new GameMemory(permanentStorageData, permanentStorageSize,
-				transientStorageData, transientStorageSize);
+			GameMemory* memory = new GameMemory(
+				permanentStorageData, permanentStorageSize,
+				transientStorageData, transientStorageSize,
+				dynamicStorageData, dynamicStorageSize);
 
 			SOLINFO("Memory initialized");
 			return true;
@@ -38,6 +41,7 @@ namespace sol
 	{
 		if (instance->permanentStorage.base) { free(instance->permanentStorage.base); }
 		if (instance->transientStorage.base) { free(instance->transientStorage.base); }
+		if (instance->dynamicStorage.base) { free(instance->dynamicStorage.base); }
 
 		delete instance;
 
@@ -49,27 +53,30 @@ namespace sol
 		memcpy(dst, src, size);
 	}
 
-	GameMemory::GameMemory(void* permanentStorageData, uint64 permanentStorageSize, void* transientStorageData, uint64 transientStorageSize)
+	GameMemory::GameMemory(void* permanentStorageData, uint64 permanentStorageSize,
+		void* transientStorageData, uint64 transientStorageSize,
+		void* dynamicStorageData, uint64 dynamicStorageSize)
 	{
-		permanentStorage.size = permanentStorageSize;
-		transientStorage.size = transientStorageSize;
 		permanentStorage.base = (uint8*)permanentStorageData;
+		permanentStorage.size = permanentStorageSize;
+
 		transientStorage.base = (uint8*)transientStorageData;
+		transientStorage.size = transientStorageSize;
 
-		Assert(permanentStorage.base, "Could alloc permanent storage");
-		if (permanentStorage.base)
-		{
-			memset(permanentStorage.base, 0, permanentStorageSize);
-		}
+		dynamicStorage.base = (uint8*)dynamicStorageData;
+		dynamicStorage.size = dynamicStorageSize;
 
-		Assert(transientStorage.base, "Could alloc transient storage");
-		if (transientStorage.base)
-		{
-			memset(transientStorage.base, 0, transientStorageSize);
-		}
+		if (permanentStorage.base) { memset(permanentStorage.base, 0, permanentStorageSize); }
+		if (transientStorage.base) { memset(transientStorage.base, 0, transientStorageSize); }
+		if (dynamicStorage.base) { memset(dynamicStorage.base, 0, dynamicStorageSize); }
 
 		permanentStorage.used = 0;
 		transientStorage.used = 0;
+		dynamicStorage.used = 0;
+
+		dynamicHead.size = dynamicStorageSize;
+		dynamicHead.offset = 0;
+		dynamicHead.next = nullptr;
 
 		instance = this;
 	}
@@ -100,4 +107,36 @@ namespace sol
 	{
 		memset(dst, 0, size);
 	}
+
+	void* GameMemory::DynamicPushSize(uint64 size)
+	{
+		uint64 pushOffset = 0;
+
+		MemoryNode* currentNode = &dynamicHead;
+		MemoryNode* previousNode = nullptr;
+
+		while (currentNode)
+		{
+			if (currentNode->size == size)
+			{
+
+			}
+			else if (currentNode->size > size)
+			{
+				pushOffset = currentNode->offset;
+				currentNode->size -= size;
+				currentNode->offset += size;
+
+				uint8* data = &dynamicStorage.base[currentNode->offset];
+
+			}
+
+			previousNode = currentNode;
+			Assert(currentNode->next, "DynamicPushSize next node was null");
+			currentNode = currentNode->next;
+		}
+
+		return nullptr;
+	}
+
 }

@@ -237,7 +237,8 @@ namespace sol
 			MetaProcessor metaProcessor;
 			metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
 
-			auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/obj/", fileProcessor, metaProcessor);
+			//auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/obj/", fileProcessor, metaProcessor);
+			auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Textures/", fileProcessor, metaProcessor);
 			SaveBinaryData(textures, "Assets/Packed/textures.bin");
 		}
 
