@@ -124,6 +124,7 @@
     <ClCompile Include="src\core\SolarEvent.cpp" />
     <ClCompile Include="src\core\SolarInput.cpp" />
     <ClCompile Include="src\core\SolarLogging.cpp" />
+    <ClCompile Include="src\core\SolarMath.cpp" />
     <ClCompile Include="src\core\SolarMemory.cpp" />
     <ClCompile Include="src\core\SolarPrimitives.cpp" />
     <ClCompile Include="src\core\SolarString.cpp" />

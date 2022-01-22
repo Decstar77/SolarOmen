@@ -1,6 +1,8 @@
 #pragma once
 #include <SolarEngine.h>
 
+#include <vector>
+
 #ifndef DISABLE_COPY
 #define DISABLE_COPY(T)                     \
             explicit T(const T&) = delete;  \

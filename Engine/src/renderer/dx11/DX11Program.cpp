@@ -4,6 +4,8 @@
 
 #include <d3dcompiler.h>
 
+#include <string>
+
 namespace sol
 {
 	void ProgramInstance::Release(ProgramInstance* program)

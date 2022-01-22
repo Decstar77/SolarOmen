@@ -14,9 +14,6 @@
 #include "SolarString.h"
 #include "SolarContainers.h"
 
-#include <math.h>
-#include <random>
-
 #pragma warning( push )
 #pragma warning( disable : 4251 )
 
@@ -50,39 +47,55 @@ namespace sol
 		return result;
 	}
 
-	template <typename T>
-	inline constexpr T Abs(const T& a)
+	template<typename T>
+	inline constexpr T Abs(const T& t)
 	{
-		return std::abs(a);
+		return t < static_cast<T>(0.0) ? static_cast<T>(-1.0) * t : t;
 	}
 
-	template <typename T>
-	inline T RandomUnillateral() // @NOTE: 0 to 1
-	{
-		T res = (T)rand() / (T)RAND_MAX;
-		return res;
-	}
 
-	template <typename T>
-	inline constexpr T RandomBillateral() // @NOTE: -1 to 1
-	{
-		T res = static_cast<T>(2.0) * RandomUnillateral<T>() - static_cast<T>(1.0);
-		return res;
-	}
+	real64 SOL_API RandomReal64();
+	real32 SOL_API RandomReal32();
 
-	//template <typename T>
-	//inline constexpr T RandomReal(const T& min, const T& max) // @NOTE: min to max - 1
-	//{
-	//	T c = max - min;
-	//	return c == 0 ? min : min + static_cast<T>(rand()) / (static_cast<T>(RAND_MAX / c));
-	//}
+	real64 SOL_API RandomReal64(real64 min, real64 max);
+	real32 SOL_API RandomReal32(real32 min, real32 max);
 
-	template <typename T>
-	inline constexpr T RandomUInt(const T& min, const T& max) // @NOTE: min to max - 1
-	{
-		T c = max - min;
-		return c == 0 ? min : rand() % (max - min) + min;
-	}
+	int64  SOL_API RandomInt64(int64 min, int64 max);
+	int32  SOL_API RandomInt32(int32 min, int32 max);
+
+	real32 SOL_API Sin(const real32& rad);
+	real64 SOL_API Sin(const real64& rad);
+
+	real32 SOL_API ArcSin(const real32& rad);
+	real64 SOL_API ArcSin(const real64& rad);
+
+	real32 SOL_API Cos(const real32& rad);
+	real64 SOL_API Cos(const real64& rad);
+
+	real32 SOL_API ArcCos(const real32& rad);
+	real64 SOL_API ArcCos(const real64& rad);
+
+	real32 SOL_API Tan(const real32& rad);
+	real64 SOL_API Tan(const real64& rad);
+
+	real32 SOL_API ATan2(const real32& y, const real32& x);
+	real64 SOL_API ATan2(const real64& y, const real64& x);
+
+	real32 SOL_API Round(const real32& x);
+	real64 SOL_API Round(const real64& x);
+
+	real32 SOL_API Floor(const real32& x);
+	real64 SOL_API Floor(const real64& x);
+
+	real32 SOL_API Ceil(const real32& x);
+	real64 SOL_API Ceil(const real64& x);
+
+	real32 SOL_API Pow(const real32& base, const real32& exp);
+	real64 SOL_API Pow(const real64& base, const real64& exp);
+
+	real32 SOL_API Sqrt(const real32& x);
+	real64 SOL_API Sqrt(const real64& x);
+
 
 	template <typename T>
 	inline constexpr T Normalize(const T& value, const T& min, const T& max)
@@ -109,89 +122,9 @@ namespace sol
 	}
 
 	template <typename T>
-	inline constexpr T Sin(const T& rads)
-	{
-		return std::sin(rads);
-	}
-
-	template <typename T>
-	inline constexpr T Asin(const T& rads)
-	{
-		return std::asin(rads);
-	}
-
-	template <typename T>
-	inline constexpr T Cos(const T& rads)
-	{
-		return std::cos(rads);
-	}
-
-	template <typename T>
-	inline constexpr T Acos(const T& rads)
-	{
-		return std::acos(rads);
-	}
-
-	template <typename T>
-	inline constexpr T Tan(const T& rads)
-	{
-		return std::tan(rads);
-	}
-
-	template <typename T>
-	inline constexpr T Tan(const T& y, const T& x)
-	{
-		return std::atan2(y, x);
-	}
-
-	template <typename T>
-	inline constexpr T Atan(const T& rads)
-	{
-		return std::atan(rads);
-	}
-
-	template <typename T>
-	inline constexpr T Atan(const T& y, const T& x)
-	{
-		return std::atan2(y, x);
-	}
-
-	template <typename T>
-	inline constexpr T Round(const T& val)
-	{
-		return std::round(val * static_cast<T>(1000.0)) / static_cast<T>(1000.0f);
-	}
-
-	template <typename T>
-	inline constexpr T Floor(const T& val)
-	{
-		return std::floor(val);
-	}
-
-	template <typename T>
-	inline constexpr T Ceil(const T& val)
-	{
-		return std::ceil(val);
-	}
-
-	template <typename T>
 	inline constexpr int32 Sign(const T& val)
 	{
 		return (static_cast<T>(0.0) < val) - (val < static_cast<T>(0));
-	}
-
-	template <typename T>
-	inline constexpr T Pow(const T& base, const T& exp)
-	{
-		T result = pow(base, exp);
-
-		return result;
-	}
-
-	template <typename T>
-	inline constexpr T Sqrt(const T& val)
-	{
-		return std::sqrt(val);
 	}
 
 	template <typename T>
@@ -201,7 +134,6 @@ namespace sol
 		*a1 = *a2;
 		*a2 = temp;
 	}
-
 
 	template <typename T>
 	inline constexpr bool32 Equal(const T& a, const T& b, const T& epsilon = FLOATING_POINT_ERROR_PRESCION)
@@ -218,7 +150,8 @@ namespace sol
 	template <typename T>
 	inline constexpr T Clamp(const T& value, const T& lowerBound, const T& upperBound)
 	{
-		T result = std::clamp(value, lowerBound, upperBound);
+		T result = value < lowerBound ? lowerBound : value;
+		result = value > upperBound ? upperBound : value;
 
 		return result;
 	}
@@ -3243,11 +3176,11 @@ namespace sol
 	inline Vec3f RandomPointOnUnitSphere()
 	{
 		// @HELP: http://corysimon.github.io/articles/uniformdistn-on-sphere/
-		real32 r1 = RandomUnillateral<real32>();
-		real32 r2 = RandomUnillateral<real32>();
+		real32 r1 = RandomReal32();
+		real32 r2 = RandomReal32();
 
 		real32 theta = 2.0f * PI * r1;
-		real32 phi = Acos(1.0f - 2.0f * r2);
+		real32 phi = ArcCos(1.0f - 2.0f * r2);
 
 		real32 sin_phi = Sin(phi);
 		real32 cos_phi = Cos(phi);

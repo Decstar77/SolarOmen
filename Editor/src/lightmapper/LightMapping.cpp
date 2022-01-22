@@ -1,32 +1,17 @@
 #include "LightMapping.h"
+#include <algorithm>
 
 namespace sol
 {
-	static inline real64 RandomReal()
-	{
-		static std::uniform_real_distribution<real64> distribution(0.0, 1.0);
-		static std::mt19937 generator;
-		return distribution(generator);
-	}
-
-	static inline real64 RandomReal(real64 min, real64 max)
-	{
-		return min + (max - min) * RandomReal();
-	}
-
-	static inline int64 RandomInt64(int64 min, int64 max) {
-		// Returns a random integer in [min,max].
-		return static_cast<int64>(RandomReal((real64)min, (real64)(max + 1)));
-	}
 
 	static Vec3d RandomPointInUnitSphere()
 	{
 		while (true)
 		{
 			Vec3d p = {};
-			p.x = RandomReal(-1.0, 1.0);
-			p.y = RandomReal(-1.0, 1.0);
-			p.z = RandomReal(-1.0, 1.0);
+			p.x = RandomReal64(-1.0, 1.0);
+			p.y = RandomReal64(-1.0, 1.0);
+			p.z = RandomReal64(-1.0, 1.0);
 
 			if (MagSqrd(p) >= 1) { continue; }
 
@@ -44,19 +29,19 @@ namespace sol
 	{
 		while (true)
 		{
-			auto p = Vec3d(RandomReal(-1, 1), RandomReal(-1, 1), 0);
+			auto p = Vec3d(RandomReal64(-1, 1), RandomReal64(-1, 1), 0);
 			if (MagSqrd(p) >= 1) continue;
 			return p;
 		}
 	}
 	static Vec3d RandomVec3()
 	{
-		return Vec3d(RandomReal(), RandomReal(), RandomReal());
+		return Vec3d(RandomReal64(), RandomReal64(), RandomReal64());
 	}
 
 	static Vec3d RandomVec3(real64 min, real64 max)
 	{
-		return Vec3d(RandomReal(min, max), RandomReal(min, max), RandomReal(min, max));
+		return Vec3d(RandomReal64(min, max), RandomReal64(min, max), RandomReal64(min, max));
 	}
 
 	PerlinNoise::PerlinNoise()
@@ -207,8 +192,8 @@ namespace sol
 
 		for (int a = -11; a < 11; a++) {
 			for (int b = -11; b < 11; b++) {
-				auto choose_mat = RandomReal();
-				Vec3d center(a + 0.9 * RandomReal(), 0.2, b + 0.9 * RandomReal());
+				auto choose_mat = RandomReal64();
+				Vec3d center(a + 0.9 * RandomReal64(), 0.2, b + 0.9 * RandomReal64());
 
 				if (Mag(center - Vec3d(4, 0.2, 0)) > 0.9) {
 
@@ -221,7 +206,7 @@ namespace sol
 					else if (choose_mat < 0.95) {
 						// metal
 						auto albedo = RandomVec3(0.5, 1);
-						auto fuzz = RandomReal(0, 0.5);
+						auto fuzz = RandomReal64(0, 0.5);
 
 						objects.push_back(std::make_shared<RayTracingSphere>(center, 0.2, std::make_shared<MetalMaterial>(albedo, fuzz)));
 					}
@@ -365,7 +350,7 @@ namespace sol
 		bool8 cannot_refract = refraction_ratio * sin_theta > 1.0;
 		Vec3d direction;
 
-		if (cannot_refract || Reflectance(cos_theta, refraction_ratio) > RandomReal())
+		if (cannot_refract || Reflectance(cos_theta, refraction_ratio) > RandomReal64())
 			direction = Reflect(unit_direction, rec.normal);
 		else
 			direction = Refract(unit_direction, rec.normal, refraction_ratio);
@@ -628,8 +613,8 @@ namespace sol
 
 				for (; samples < 10; samples++)
 				{
-					auto u = (real64(i) + RandomReal()) / (real64)(imageWidth - 1);
-					auto v = (real64(j) + RandomReal()) / (real64)(imageHeight - 1);
+					auto u = (real64(i) + RandomReal64()) / (real64)(imageWidth - 1);
+					auto v = (real64(j) + RandomReal64()) / (real64)(imageHeight - 1);
 					RayTracingRay ray = camera.GetRay(u, v);
 					colour += TraceRay(ray, world, depth);
 				}

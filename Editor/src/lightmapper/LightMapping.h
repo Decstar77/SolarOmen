@@ -221,7 +221,7 @@ namespace sol
 		inline real64 Reflectance(real64 cosine, real64 ref_idx) const {
 			real64 r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
 			r0 = r0 * r0;
-			return r0 + (1.0 - r0) * Pow<real64>((1.0 - cosine), 5.0);
+			return r0 + (1.0 - r0) * Pow((1.0 - cosine), 5.0);
 		}
 	};
 

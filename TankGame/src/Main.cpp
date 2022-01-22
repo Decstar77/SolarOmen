@@ -39,7 +39,7 @@ namespace sol
 		terrian.SetLocalTransform(Transform(Vec3f(), Quatf(), Vec3f(100)));
 		terrian.SetMaterial("terrain", "");
 
-		for (uint32 i = 0; i < RandomUInt<uint32>(5, 10); i++)
+		for (uint32 i = 0; i < (uint32)RandomInt32(5, 10); i++)
 		{
 			const char* hangars[] = {
 				"hangar_smallA",
@@ -51,7 +51,7 @@ namespace sol
 				"hangar_roundB",
 			};
 
-			uint32 index = RandomUInt((uint32)0, (uint32)ArrayCount(hangars));
+			uint32 index = (uint32)RandomInt32((uint32)0, (uint32)ArrayCount(hangars));
 
 			Entity hangar = room->CreateEntity(String("hangar").Add(i));
 			Vec3f spawnPoint = RandomPointOnUnitSphere();//* RandomReal(1.0f, 90.0f);
@@ -60,7 +60,7 @@ namespace sol
 			hangar.SetLocalTransform(Transform(Vec3f(spawnPoint.x, 0.0f, spawnPoint.z)));
 		}
 
-		for (uint32 i = 0; i < RandomUInt<uint32>(5, 25); i++)
+		for (uint32 i = 0; i < (uint32)RandomInt32(5, 25); i++)
 		{
 			Vec3f spawnPoint = RandomPointOnUnitSphere();//* RandomReal<real32>(1.0f, 90.0f);
 			Entity turretBase = room->CreateEntity(String("TurretBase").Add(i));
