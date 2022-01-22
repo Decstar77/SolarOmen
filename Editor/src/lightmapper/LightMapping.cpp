@@ -2,53 +2,6 @@
 
 namespace sol
 {
-	void ReferenceRayTracer::Initialize(uint32 samples)
-	{
-		*this = ReferenceRayTracer();
-
-		imageWidth = (int32)Application::GetSurfaceWidth();
-		imageHeight = (int32)Application::GetSurfaceHeight();
-		aspectRatio = (real64)Application::GetSurfaceAspectRatio();
-
-		TextureFormat format = TextureFormat::Value::R32G32B32A32_FLOAT;
-		textureHandle = Renderer::CreateTexture(imageWidth, imageHeight, format, ResourceCPUFlags::Value::WRITE);
-
-		pixels.clear();
-		pixels.resize(imageWidth * imageHeight);
-
-		pixelsProcessed = 0;
-
-		complete = false;
-
-		samplesPerPixel = samples;
-
-		world.objects.clear();
-		world.MakeRandomSphereWorld();
-
-		//auto materialGround = std::make_shared<Lambertian>(Vec3d(0.8, 0.8, 0.0));
-		//auto materialCenter = std::make_shared<Lambertian>(Vec3d(0.1, 0.2, 0.5));
-		//auto materialLeft = std::make_shared<DielectricMaterial>(1.5);
-		//auto materialRight = std::make_shared<MetalMaterial>(Vec3d(0.8, 0.6, 0.2), 0.0);
-
-		//world.objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -100.5, -1), 100.0f, materialGround));
-		//world.objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, 0, -1), 0.5, materialCenter));
-		//world.objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(-1.0, 0.0, -1.0), 0.5, materialLeft));
-		//world.objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(-1.0, 0.0, -1.0), -0.45, materialLeft));
-		//world.objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(1.0, 0.0, -1.0), 0.5, materialRight));
-
-		Vec3d lookfrom(13, 2, 3);
-		Vec3d lookat(0, 0, 0);
-		Vec3d vup(0, 1, 0);
-		auto dist_to_focus = 10.0;
-		auto aperture = 0.1;
-
-		camera.Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
-	}
-	void ReferenceRayTracer::Shutdown()
-	{
-		Renderer::DestroyTexture(&textureHandle);
-	}
-
 	static inline real64 RandomReal()
 	{
 		static std::uniform_real_distribution<real64> distribution(0.0, 1.0);
@@ -106,7 +59,148 @@ namespace sol
 		return Vec3d(RandomReal(min, max), RandomReal(min, max), RandomReal(min, max));
 	}
 
-	void sol::RayTracingWorld::MakeRandomSphereWorld()
+	PerlinNoise::PerlinNoise()
+	{
+		ranVec = new Vec3d[POINT_COUNT];
+		for (int32 i = 0; i < POINT_COUNT; i++) { ranVec[i] = RandomVec3(-1.0, 1.0); }
+
+		permx = GeneratePerm();
+		permy = GeneratePerm();
+		permz = GeneratePerm();
+	}
+
+	PerlinNoise::~PerlinNoise()
+	{
+		delete[] ranVec;
+		delete[] permx;
+		delete[] permy;
+		delete[] permz;
+	}
+
+	real64 PerlinNoise::Sample(const Vec3d& p) const
+	{
+		real64 u = p.x - Floor(p.x);
+		real64 v = p.y - Floor(p.y);
+		real64 w = p.z - Floor(p.z);
+
+		int32 i = (int32)(Floor(p.x));
+		int32 j = (int32)(Floor(p.y));
+		int32 k = (int32)(Floor(p.z));
+
+		Vec3d c[2][2][2] = {};
+
+		for (int32 di = 0; di < 2; di++)
+		{
+			for (int32 dj = 0; dj < 2; dj++)
+			{
+				for (int32 dk = 0; dk < 2; dk++)
+				{
+					c[di][dj][dk] = ranVec[permx[(i + di) & 255] ^ permy[(j + dj) & 255] ^ permz[(k + dk) & 255]];
+				}
+			}
+		}
+
+		return TrilinearInterp(c, u, v, w);
+	}
+
+	real64 sol::PerlinNoise::Sample01(const Vec3d& p) const
+	{
+		return Clamp(0.5 * (1.0 + Sample(p)), 0.0, 1.0);
+	}
+
+	real64 sol::PerlinNoise::Turb(const Vec3d& p, int depth) const
+	{
+		Vec3d temp = p;
+		real64 accum = 0.0;
+		real64 weight = 1.0;
+
+		for (int32 i = 0; i < depth; i++)
+		{
+			accum += weight * Sample(temp);
+			weight *= 0.5;
+			temp = temp * 2.0;
+		}
+
+		return Abs(accum);
+	}
+
+	real64 sol::PerlinNoise::TrilinearInterp(Vec3d c[2][2][2], real64 u, real64 v, real64 w) const
+	{
+		real64 uu = u * u * (3 - 2 * u);
+		real64 vv = v * v * (3 - 2 * v);
+		real64 ww = w * w * (3 - 2 * w);
+		real64 accum = 0.0;
+
+		for (int32 i = 0; i < 2; i++)
+		{
+			for (int32 j = 0; j < 2; j++)
+			{
+				for (int32 k = 0; k < 2; k++)
+				{
+					Vec3d weight_v(u - i, v - j, w - k);
+					accum += (i * uu + (1 - i) * (1 - uu))
+						* (j * vv + (1 - j) * (1 - vv))
+						* (k * ww + (1 - k) * (1 - ww))
+						* Dot(c[i][j][k], weight_v);
+				}
+			}
+		}
+
+		return accum;
+	}
+
+	int32* PerlinNoise::GeneratePerm()
+	{
+		int32* p = new int32[POINT_COUNT];
+		for (int32 i = 0; i < POINT_COUNT; i++) { p[i] = i; }
+		Shuffle(p, POINT_COUNT);
+
+		return p;
+	}
+
+	void PerlinNoise::Shuffle(int32* p, int32 n)
+	{
+		for (int32 i = n - 1; i > 0; i--) {
+			int32 target = (int32)RandomInt64(0, i);
+			int32 tmp = p[i];
+			p[i] = p[target];
+			p[target] = tmp;
+		}
+	}
+
+	void ReferenceRayTracer::Initialize(uint32 samples)
+	{
+		*this = ReferenceRayTracer();
+
+		imageWidth = (int32)Application::GetSurfaceWidth();
+		imageHeight = (int32)Application::GetSurfaceHeight();
+		aspectRatio = (real64)Application::GetSurfaceAspectRatio();
+
+		TextureFormat format = TextureFormat::Value::R32G32B32A32_FLOAT;
+		textureHandle = Renderer::CreateTexture(imageWidth, imageHeight, format, ResourceCPUFlags::Value::WRITE);
+
+		pixels.clear();
+		pixels.resize(imageWidth * imageHeight);
+
+		pixelsProcessed = 0;
+
+		complete = false;
+
+		samplesPerPixel = samples;
+
+		world.objects.clear();
+		//world.MakeRandomSphereWorld(&camera, aspectRatio);
+		//world.MakeTwoSphereWorld(&camera, aspectRatio);
+		world.MakeTwoPerlineSpheres(&camera, aspectRatio);
+	}
+	void ReferenceRayTracer::Shutdown()
+	{
+		Renderer::DestroyTexture(&textureHandle);
+	}
+
+
+
+	void sol::RayTracingWorld::MakeRandomSphereWorld(RayTracingCamera* camera, real64 aspectRatio)
 	{
 		auto ground_material = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(Vec3d(0.2, 0.3, 0.1), Vec3d(0.9, 0.9, 0.9)));
 		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -1000, 0), 1000, ground_material));
@@ -150,8 +244,52 @@ namespace sol
 
 		bvhTree.Build(objects, 0, objects.size(), 0, 0);
 		SOLINFO("Raytracing BVH built");
+
+		Vec3d lookfrom(13, 2, 3);
+		Vec3d lookat(0, 0, 0);
+		Vec3d vup(0, 1, 0);
+		auto dist_to_focus = 10.0;
+		auto aperture = 0.1;
+
+		camera->Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
 	}
 
+	void sol::RayTracingWorld::MakeTwoSphereWorld(RayTracingCamera* camera, real64 aspectRatio)
+	{
+		auto checker = std::make_shared<CheckerTexture>(Vec3d(0.2, 0.3, 0.1), Vec3d(0.9, 0.9, 0.9));
+
+		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -10, 0), 10, std::make_shared<Lambertian>(checker)));
+		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, 10, 0), 10, std::make_shared<Lambertian>(checker)));
+
+		bvhTree.Build(objects, 0, objects.size(), 0, 0);
+		SOLINFO("Raytracing BVH built");
+
+		Vec3d lookfrom(13, 2, 3);
+		Vec3d lookat(0, 0, 0);
+		Vec3d vup(0, 1, 0);
+		auto dist_to_focus = 10.0;
+		auto aperture = 0.1;
+
+		camera->Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
+	}
+
+	void RayTracingWorld::MakeTwoPerlineSpheres(RayTracingCamera* camera, real64 aspectRatio)
+	{
+		auto pertext = std::make_shared<NoiseTexture>();
+		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -1000, 0), 1000, std::make_shared<Lambertian>(pertext)));
+		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, 2, 0), 2, std::make_shared<Lambertian>(pertext)));
+
+		bvhTree.Build(objects, 0, objects.size(), 0, 0);
+		SOLINFO("Raytracing BVH built");
+
+		Vec3d lookfrom(13, 2, 3);
+		Vec3d lookat(0, 0, 0);
+		Vec3d vup(0, 1, 0);
+		auto dist_to_focus = 10.0;
+		auto aperture = 0.1;
+
+		camera->Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
+	}
 
 	void RayTracingCamera::Initialize(Vec3d lookfrom, Vec3d lookat, Vec3d vup, real64 vfov, real64 aspect_ratio, real64 aperture, real64 focus_dist)
 	{
@@ -505,11 +643,10 @@ namespace sol
 				real32 g = Sqrt((real32)colour.y);
 				real32 b = Sqrt((real32)colour.z);
 
-
 				pixels.at(index) = Vec4f(r, g, b, 1.0f);
 
 				pixelsProcssedThisUpdate++;
-				if (pixelsProcssedThisUpdate == 50000 / (samples * depth)) { return; }
+				if (pixelsProcssedThisUpdate == 500000 / (samples * depth)) { return; }
 			}
 
 			complete = true;

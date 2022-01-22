@@ -5,6 +5,29 @@
 
 namespace sol
 {
+
+	class PerlinNoise
+	{
+	public:
+		PerlinNoise();
+		~PerlinNoise();
+
+		real64 Sample(const Vec3d& p)const;
+		real64 Sample01(const Vec3d& p)const;
+		real64 Turb(const Vec3d& p, int depth = 7) const;
+
+	private:
+		inline static const int32 POINT_COUNT = 256;
+		Vec3d* ranVec;
+		int32* permx;
+		int32* permy;
+		int32* permz;
+	private:
+		real64 TrilinearInterp(Vec3d c[2][2][2], real64 u, real64 v, real64 w) const;
+		int32* GeneratePerm();
+		void Shuffle(int32* p, int32 n);
+	};
+
 	template<typename T>
 	struct ImplicitSphere
 	{
@@ -130,6 +153,7 @@ namespace sol
 		Vec3d colour;
 	};
 
+
 	class CheckerTexture : public RayTracingTexture
 	{
 	public:
@@ -142,6 +166,19 @@ namespace sol
 		std::shared_ptr<SolidColour> odd;
 		std::shared_ptr<SolidColour> even;
 	};
+
+	class NoiseTexture : public RayTracingTexture
+	{
+	public:
+		NoiseTexture() {};
+		virtual Vec3d Value(real64 u, real64 v, const Vec3d& p) const override {
+			return Vec3d(1, 1, 1) * 0.5 * (1 + Sin(4.0 * p.z + 10.0 * noise.Turb(p)));
+		};
+
+	private:
+		PerlinNoise noise;
+	};
+
 
 
 
@@ -233,9 +270,13 @@ namespace sol
 		std::vector<std::shared_ptr<RayTracingObject>> objects;
 		RayTracingBVHNode bvhTree;
 
-		void MakeRandomSphereWorld();
 		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* hitrecord) const override;
 		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+
+
+		void MakeRandomSphereWorld(RayTracingCamera* camera, real64 aspectRatio);
+		void MakeTwoSphereWorld(RayTracingCamera* camera, real64 aspectRatio);
+		void MakeTwoPerlineSpheres(RayTracingCamera* camera, real64 aspectRatio);
 	};
 
 	class ReferenceRayTracer
