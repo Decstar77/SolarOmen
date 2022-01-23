@@ -167,6 +167,9 @@ namespace sol
 		pixels.clear();
 		pixels.resize(imageWidth * imageHeight);
 
+		pixelCaches.clear();
+		pixelCaches.resize(imageWidth * imageHeight);
+
 		pixelsProcessed = 0;
 
 		complete = false;
@@ -177,7 +180,9 @@ namespace sol
 		//world.MakeRandomSphereWorld(&camera, aspectRatio);
 		//world.MakeTwoSphereWorld(&camera, aspectRatio);
 		//world.MakeTwoPerlineSpheres(&camera, aspectRatio);
-		world.MakeTextureWorld(&camera, aspectRatio);
+		//world.MakeTextureWorld(&camera, aspectRatio);
+		//world.MakeSimpleLight(&camera, aspectRatio);
+		world.MakeBoxWorld(&camera, aspectRatio);
 	}
 	void ReferenceRayTracer::Shutdown()
 	{
@@ -188,6 +193,7 @@ namespace sol
 
 	void sol::RayTracingWorld::MakeRandomSphereWorld(RayTracingCamera* camera, real64 aspectRatio)
 	{
+		backgroundColour = Vec3d(0.70, 0.80, 1.00);
 		auto ground_material = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(Vec3d(0.2, 0.3, 0.1), Vec3d(0.9, 0.9, 0.9)));
 		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -1000, 0), 1000, ground_material));
 
@@ -242,6 +248,7 @@ namespace sol
 
 	void sol::RayTracingWorld::MakeTwoSphereWorld(RayTracingCamera* camera, real64 aspectRatio)
 	{
+		backgroundColour = Vec3d(0.70, 0.80, 1.00);
 		auto checker = std::make_shared<CheckerTexture>(Vec3d(0.2, 0.3, 0.1), Vec3d(0.9, 0.9, 0.9));
 
 		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -10, 0), 10, std::make_shared<Lambertian>(checker)));
@@ -261,6 +268,7 @@ namespace sol
 
 	void RayTracingWorld::MakeTwoPerlineSpheres(RayTracingCamera* camera, real64 aspectRatio)
 	{
+		backgroundColour = Vec3d(0.70, 0.80, 1.00);
 		auto pertext = std::make_shared<NoiseTexture>();
 		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -1000, 0), 1000, std::make_shared<Lambertian>(pertext)));
 		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, 2, 0), 2, std::make_shared<Lambertian>(pertext)));
@@ -277,8 +285,9 @@ namespace sol
 		camera->Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
 	}
 
-	void sol::RayTracingWorld::MakeTextureWorld(RayTracingCamera* camera, real64 aspectRatio)
+	void RayTracingWorld::MakeTextureWorld(RayTracingCamera* camera, real64 aspectRatio)
 	{
+		backgroundColour = Vec3d(0.70, 0.80, 1.00);
 		auto earth_texture = std::make_shared<ImageTexture>("MenuBackground");
 		auto earth_surface = std::make_shared<Lambertian>(earth_texture);
 
@@ -289,6 +298,48 @@ namespace sol
 
 		Vec3d lookfrom(13, 2, 3);
 		Vec3d lookat(0, 0, 0);
+		Vec3d vup(0, 1, 0);
+		auto dist_to_focus = 10.0;
+		auto aperture = 0.1;
+
+		camera->Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
+	}
+
+	void RayTracingWorld::MakeSimpleLight(RayTracingCamera* camera, real64 aspectRatio)
+	{
+		backgroundColour = Vec3d(0);
+
+		auto pertext = std::make_shared<NoiseTexture>();
+		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -1000, 0), 1000, std::make_shared<Lambertian>(pertext)));
+		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, 2, 0), 2, std::make_shared<Lambertian>(pertext)));
+
+		auto difflight = std::make_shared<DiffuseLight>(Vec3d(4));
+		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, 6.5, 0), 2, difflight));
+
+		bvhTree.Build(objects, 0, objects.size(), 0, 0);
+		SOLINFO("Raytracing BVH built");
+
+		Vec3d lookfrom(26, 3, 6);
+		Vec3d lookat(0, 2, 0);
+		Vec3d vup(0, 1, 0);
+		auto dist_to_focus = 10.0;
+		auto aperture = 0.1;
+
+		camera->Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
+	}
+
+	void RayTracingWorld::MakeBoxWorld(RayTracingCamera* camera, real64 aspectRatio)
+	{
+		backgroundColour = Vec3d(0.70, 0.80, 1.00);
+		objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, -1000, 0), 1000, std::make_shared<Lambertian>(Vec3d(0.3f))));
+		//objects.push_back(std::make_shared<RayTracingSphere>(Vec3d(0, 2, 0), 1, std::make_shared<Lambertian>(Vec3d(0.2, 0.2, 7.0))));
+		objects.push_back(std::make_shared<RayTracingBox>(Vec3d(4, 1, 1), Vec3d(0, 2, 0), std::make_shared<Lambertian>(Vec3d(0.2, 0.2, 7.0))));
+
+		bvhTree.Build(objects, 0, objects.size(), 0, 0);
+		SOLINFO("Raytracing BVH built");
+
+		Vec3d lookfrom(0, 7, 13);
+		Vec3d lookat(0, 2, 0);
 		Vec3d vup(0, 1, 0);
 		auto dist_to_focus = 10.0;
 		auto aperture = 0.1;
@@ -410,21 +461,95 @@ namespace sol
 		return true;
 	}
 
-	static bool8 RaycastAABB(const RayTracingRay& r, const PreciseAABB& aabb, real64 t_min, real64 t_max)
+	// @NOTE: Thanks to ray tracing gems 2. 
+	static bool8 RaycastAABB(const RayTracingRay& r, const PreciseAABB& aabb, HitRecord* record)
 	{
-		for (int32 a = 0; a < 3; a++) {
-			auto invD = 1.0f / r.direction[a];
-			auto t0 = (aabb.min[a] - r.origin[a]) * invD;
-			auto t1 = (aabb.max[a] - r.origin[a]) * invD;
+		Vec3d tmin = (aabb.min - r.origin) / r.direction;
+		Vec3d tmax = (aabb.max - r.origin) / r.direction;
 
-			if (invD < 0.0f) { Swap(&t0, &t1); }
+		Vec3d sc = Min(tmin, tmax);
+		Vec3d sf = Max(tmin, tmax);
 
-			t_min = t0 > t_min ? t0 : t_min;
-			t_max = t1 < t_max ? t1 : t_max;
-			if (t_max <= t_min) { return false; }
+		real64 t0 = Max(sc.x, sc.y, sc.z);
+		real64 t1 = Min(sf.x, sf.y, sf.z);
+
+		if (t0 <= t1 && t1 > 0.0)
+		{
+			if (record)
+			{
+				record->t = t0;
+				record->p = r.TravelDown(t0);
+
+				Vec3d a = Abs(record->p - aabb.min);
+				Vec3d b = Abs(record->p - aabb.max);
+
+				// @TODO: Make fast
+				real64 min = a.x;
+				record->normal = Vec3d(-1, 0, 0);
+				if (a.y < min) { record->normal = Vec3d(0, -1, 0); min = a.y; }
+				if (a.z < min) { record->normal = Vec3d(0, 0, -1); min = a.z; }
+				if (b.x < min) { record->normal = Vec3d(1, 0, 0); min = b.x; }
+				if (b.y < min) { record->normal = Vec3d(0, 1, 0); min = b.y; }
+				if (b.z < min) { record->normal = Vec3d(0, 0, 1); min = b.z; }
+
+				record->frontFace = true;
+			}
+
+			return true;
 		}
 
-		return true;
+		return false;
+	}
+
+	static bool8 RaycastOBB(const RayTracingRay& r, const PreciseOBB& obb, HitRecord* record)
+	{
+		Mat4d m = Mat4d(ScaleCardinal(obb.basis, obb.extents), obb.origin);
+		Mat4d invm = Inverse(m);
+		Mat4d nm = Transpose(invm);
+
+		RayTracingRay rPrime = {};
+		rPrime.origin = Vec4ToVec3(Vec4d(r.origin, 1.0) * invm);
+		rPrime.direction = Vec4ToVec3(Vec4d(r.direction, 0.0) * invm);
+
+		PreciseAABB bPrime = {};
+		bPrime.min = Vec3d(-0.5);
+		bPrime.max = Vec3d(0.5);
+
+		if (RaycastAABB(rPrime, bPrime, record))
+		{
+			if (record)
+			{
+				record->p = r.TravelDown(record->t);
+				record->normal = Normalize(Vec4ToVec3(Vec4d(record->normal, 0.0) * nm));
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	static PreciseAABB CreateAABBContainingOBB(const PreciseOBB& obb)
+	{
+		Mat4d mat(obb.basis, obb.origin);
+		Vec3d extents = obb.extents;
+
+		Vec3d v0 = Vec4ToVec3(Vec4d(extents, 1) * mat);
+		Vec3d v1 = Vec4ToVec3(Vec4d(extents * -1.0, 1) * mat);
+
+		Vec3d v2 = Vec4ToVec3(Vec4d(-extents.x, extents.y, extents.z, 1) * mat);
+		Vec3d v3 = Vec4ToVec3(Vec4d(extents.x, -extents.y, extents.z, 1) * mat);
+		Vec3d v4 = Vec4ToVec3(Vec4d(extents.x, extents.y, -extents.z, 1) * mat);
+
+		Vec3d v5 = Vec4ToVec3(Vec4d(-extents.x, -extents.y, extents.z, 1) * mat);
+		Vec3d v6 = Vec4ToVec3(Vec4d(extents.x, -extents.y, -extents.z, 1) * mat);
+		Vec3d v7 = Vec4ToVec3(Vec4d(-extents.x, extents.y, -extents.z, 1) * mat);
+
+		PreciseAABB result = {};
+		result.min = Min(Min(Min(Min(Min(Min(Min(v0, v1), v2), v3), v4), v5), v6), v7);
+		result.max = Max(Max(Max(Max(Max(Max(Max(v0, v1), v2), v3), v4), v5), v6), v7);
+
+		return result;
 	}
 
 	void RayTracingSphere::GetUV(const Vec3d& p, real64* u, real64* v) const
@@ -465,6 +590,27 @@ namespace sol
 		return true;
 	}
 
+	bool8 RayTracingBox::Raycast(const RayTracingRay& ray, real64 tMin, real64 tMax, HitRecord* rec) const
+	{
+		if (RaycastOBB(ray, obb, rec))
+		{
+			if (rec->t > tMin && rec->t < tMax)
+			{
+				rec->material = material;
+				rec->material = std::make_shared<Lambertian>(std::make_shared<SolidColour>((rec->normal + Vec3d(1)) * 0.5));
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool8 RayTracingBox::GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const
+	{
+		*box = CreateAABBContainingOBB(obb);
+		return true;
+	}
+
 	bool8 RayTracingSphere::GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const
 	{
 		box->min = sphere.origin - Vec3d(sphere.radius, sphere.radius, sphere.radius);
@@ -475,7 +621,7 @@ namespace sol
 
 	bool8 RayTracingBVHNode::Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* hitrecord) const
 	{
-		if (!RaycastAABB(r, nodeBox, tMin, tMax)) { return false; }
+		if (!RaycastAABB(r, nodeBox, nullptr)) { return false; }
 
 		bool8 hitLeft = left->Raycast(r, tMin, tMax, hitrecord);
 		bool8 hitRight = right->Raycast(r, tMin, hitLeft ? hitrecord->t : tMax, hitrecord);
@@ -572,7 +718,7 @@ namespace sol
 		bool8 hitAnything = false;
 		real64 closest = tMax;
 
-#if 1
+#if 0
 		if (bvhTree.Raycast(r, tMin, closest, &tempRec))
 		{
 			hitAnything = true;
@@ -623,69 +769,66 @@ namespace sol
 		if (depth <= 0) { return Vec3d(0, 0, 0); }
 
 		HitRecord record = {};
-		if (world.Raycast(r, 0.0001, 100000.0, &record))
-		{
-			RayTracingRay scatterd = {};
-			Vec3d attenuation = {};
+		if (!world.Raycast(r, 0.0001, 100000.0, &record)) { return world.backgroundColour; }
 
-			if (record.material->Scatter(r, record, &attenuation, &scatterd))
-			{
-				return attenuation * TraceRay(scatterd, world, depth - 1);
-			}
+		Vec3d emitted = record.material->Emission(record.u, record.v, record.p);
 
-			return Vec3d(0);
+		Vec3d attenuation;
+		RayTracingRay scattered;
+		if (!record.material->Scatter(r, record, &attenuation, &scattered)) {
+			return emitted;
 		}
 
-		Vec3d unit_direction = Normalize(r.direction);
-		real64 t = 0.5 * (unit_direction.y + 1.0);
-		return (1.0 - t) * Vec3d(1.0, 1.0, 1.0) + t * Vec3d(0.5, 0.7, 1.0);
+		return emitted + attenuation * TraceRay(scattered, world, depth - 1);
 	}
 
 	void ReferenceRayTracer::Trace()
 	{
+		//Input* inp = Input::Get();
+		//SOLTRACE(String("x:").Add(inp->mousePositionPixelCoords.x).Add(" y:").Add(inp->mousePositionPixelCoords.y).GetCStr());
+
 		if (updateCount++ == 1) { updateCount = 0; Renderer::UpdateWholeTexture(textureHandle, pixels.data()); }
 
 		if (!complete)
 		{
 			int32 pixelCount = (int32)pixels.size();
-			uint32 pixelsProcssedThisUpdate = 0;
+			SOLINFO(String("Sample: ").Add(pixelCaches.at(0).samples).GetCStr());
 
 			//ProfilerClock PIXEL("TOTAL");
-			for (int32 pixelIndex = pixelsProcessed; pixelIndex < pixelCount; pixelIndex++, pixelsProcessed++)
+			for (int32 pixelIndex = 0; pixelIndex < pixelCount; pixelIndex++)
 			{
 				//ProfilerClock PIXEL("PIXELS");
 				int32 i = pixelIndex % imageWidth;
 				int32 j = pixelIndex / imageWidth;
 
-				Vec3d colour = Vec3d();
+				if (i == 200 && j == 80)
+					int a = 2;
 
-				int32 samples = 0;
-				int32 depth = 2;
+				PixelCache* cache = &pixelCaches.at(pixelIndex);
 
-				for (; samples < 10; samples++)
+				if (cache->samples < cache->totalSamples)
 				{
 					auto u = (real64(i) + RandomReal64()) / (real64)(imageWidth - 1);
 					auto v = (real64(j) + RandomReal64()) / (real64)(imageHeight - 1);
 					RayTracingRay ray = camera.GetRay(u, v);
-					colour += TraceRay(ray, world, depth);
+					cache->colour += TraceRay(ray, world, cache->depth);
+					cache->samples++;
+				}
+				else
+				{
+					complete = true;
 				}
 
-
-				colour = colour / (real64)samples;
-
+				Vec3d colour = cache->colour / (real64)cache->samples;
 				int32 index = (-j + imageHeight - 1) * imageWidth + i;
+				//int32 index = j * imageWidth + i;
 
 				real32 r = Sqrt((real32)colour.x);
 				real32 g = Sqrt((real32)colour.y);
 				real32 b = Sqrt((real32)colour.z);
 
 				pixels.at(index) = Vec4f(r, g, b, 1.0f);
-
-				pixelsProcssedThisUpdate++;
-				if (pixelsProcssedThisUpdate == 5000000 / (samples * depth)) { return; }
 			}
-
-			complete = true;
 		}
 	}
-}
+			}

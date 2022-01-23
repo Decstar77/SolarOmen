@@ -120,9 +120,11 @@ namespace sol
 	}
 
 	template <typename T>
-	inline constexpr int32 Sign(const T& val)
+	inline constexpr T Sign(const T& val)
 	{
-		return (static_cast<T>(0.0) < val) - (val < static_cast<T>(0));
+		if (val > static_cast<T>(0.0)) { return static_cast<T>(1.0); }
+		if (val < static_cast<T>(0.0)) { return static_cast<T>(-1.0); }
+		return static_cast<T>(0.0);
 	}
 
 	template <typename T>
@@ -194,7 +196,7 @@ namespace sol
 		return (f > max) ? f : max;
 	}
 
-	template <typename T>
+	template<typename T>
 	inline constexpr T SmoothMax(const T& a, const T& b, const T& t)
 	{
 		// @HELP: http://www.viniciusgraciano.com/blog/smin/
@@ -206,8 +208,13 @@ namespace sol
 		return result;
 	}
 
+	template<typename T>
+	inline constexpr T Step(const T& a, const T& edge)
+	{
+		return a < edge ? static_cast<T>(0.0) : static_cast<T>(1.0);
+	}
 
-	template <typename T>
+	template<typename T>
 	inline constexpr T SmoothStep(const T& t)
 	{
 		T result = t * t * (static_cast<T>(3.0) - static_cast<T>(2.0) * t);
@@ -635,7 +642,7 @@ namespace sol
 		{
 			String result = "";
 
-			result.Add('(').Add(x).Add(";").Add(y).Add(";").Add(z).Add(')');
+			result.Add('(').Add((real32)x).Add(";").Add((real32)y).Add(";").Add((real32)z).Add(')');
 
 			return result;
 		}
@@ -827,6 +834,30 @@ namespace sol
 		result.x = Min(a.x, b.x);
 		result.y = Min(a.y, b.y);
 		result.z = Min(a.z, b.z);
+
+		return result;
+	}
+
+	template<typename T>
+	inline Vec3<T> Sign(const Vec3<T>& a)
+	{
+		Vec3<T> result = {};
+
+		result.x = Sign(a.x);
+		result.y = Sign(a.y);
+		result.z = Sign(a.z);
+
+		return result;
+	}
+
+	template<typename T>
+	inline Vec3<T> Step(const Vec3<T>& a, const Vec3<T>& edge)
+	{
+		Vec3<T> result = {};
+
+		result.x = Step(a.x, edge.x);
+		result.y = Step(a.y, edge.y);
+		result.z = Step(a.z, edge.z);
 
 		return result;
 	}
@@ -1039,6 +1070,7 @@ namespace sol
 	};
 
 	typedef Vec4<real32> Vec4f;
+	typedef Vec4<real64> Vec4d;
 	typedef Vec4<int32> Vec4i;
 
 	template<typename T>
@@ -2191,6 +2223,7 @@ namespace sol
 	};
 
 	typedef Mat4<real32> Mat4f;
+	typedef Mat4<real64> Mat4d;
 
 	template <typename T>
 	inline Mat3<T> Mat4ToMat3(const Mat4<T>& a)

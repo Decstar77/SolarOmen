@@ -75,6 +75,25 @@ namespace sol
 		return result;
 	}
 
+	template<typename T>
+	struct ImplicitOBB
+	{
+		Vec3<T> extents;
+		Vec3<T> origin;
+		Mat3<T> basis;
+
+		ImplicitOBB() {}
+		ImplicitOBB(const Vec3<T>& extents, const Vec3<T>& origin)
+		{
+			this->extents = extents;
+			this->origin = origin;
+			basis = Mat3<T>(1);
+		}
+	};
+
+	typedef ImplicitOBB<real32> OBB;
+	typedef ImplicitOBB<real64> PreciseOBB;
+
 	struct RayTracingRay
 	{
 		Vec3d origin;
@@ -197,6 +216,7 @@ namespace sol
 	class RayTracingMaterial
 	{
 	public:
+		virtual Vec3d Emission(real64 u, real64 v, const Vec3d& p) const { return Vec3d(0.0, 0.0, 0.0); }
 		virtual bool8 Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const = 0;
 	};
 
@@ -237,6 +257,17 @@ namespace sol
 		}
 	};
 
+	class DiffuseLight : public RayTracingMaterial
+	{
+	public:
+		DiffuseLight(std::shared_ptr<RayTracingTexture> a) : emit(a) {}
+		DiffuseLight(Vec3d c) : emit(std::make_shared<SolidColour>(c)) {}
+		virtual bool8 Scatter(const RayTracingRay& r, const HitRecord& rec, Vec3d* attenuation, RayTracingRay* scattered) const override { return false; }
+		virtual Vec3d Emission(real64 u, real64 v, const Vec3d& p) const { return emit->Value(u, v, p); }
+	public:
+		std::shared_ptr<RayTracingTexture> emit;
+	};
+
 
 
 	class RayTracingObject
@@ -260,6 +291,18 @@ namespace sol
 		void GetUV(const Vec3d& p, real64* u, real64* v) const;
 	};
 
+	class RayTracingBox : public RayTracingObject
+	{
+	public:
+		PreciseOBB obb;
+		std::shared_ptr<RayTracingMaterial> material;
+	public:
+		RayTracingBox() {};
+		RayTracingBox(Vec3d extents, Vec3d position, std::shared_ptr<RayTracingMaterial> m) : obb(extents, position), material(m) {	};
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+	};
+
 	class RayTracingBVHNode : public RayTracingObject
 	{
 	public:
@@ -281,6 +324,7 @@ namespace sol
 	public:
 		std::vector<std::shared_ptr<RayTracingObject>> objects;
 		RayTracingBVHNode bvhTree;
+		Vec3d backgroundColour;
 
 		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* hitrecord) const override;
 		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
@@ -290,6 +334,19 @@ namespace sol
 		void MakeTwoSphereWorld(RayTracingCamera* camera, real64 aspectRatio);
 		void MakeTwoPerlineSpheres(RayTracingCamera* camera, real64 aspectRatio);
 		void MakeTextureWorld(RayTracingCamera* camera, real64 aspectRatio);
+		void MakeSimpleLight(RayTracingCamera* camera, real64 aspectRatio);
+		void MakeBoxWorld(RayTracingCamera* camera, real64 aspectRatio);
+	};
+
+	class PixelCache
+	{
+	public:
+		Vec3d colour;
+		int32 samples;
+		int32 totalSamples;
+		int32 depth;
+
+		PixelCache() : colour(0), samples(0), totalSamples(10), depth(10) {}
 	};
 
 	class ReferenceRayTracer
@@ -307,6 +364,8 @@ namespace sol
 		bool8 complete;
 
 		RayTracingCamera camera;
+
+		std::vector<PixelCache> pixelCaches;
 		std::vector<Vec4f> pixels;
 
 		RayTracingWorld world;
