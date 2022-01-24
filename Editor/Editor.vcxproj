@@ -158,6 +158,9 @@
   <ItemGroup>
     <ClCompile Include="src\Entry.cpp" />
     <ClCompile Include="src\lightmapper\LightMapping.cpp" />
+    <ClCompile Include="src\lightmapper\tracer\RayTracingCamera.cpp" />
+    <ClCompile Include="src\lightmapper\tracer\RayTracingMaterials.cpp" />
+    <ClCompile Include="src\lightmapper\tracer\RayTracingTextures.cpp" />
     <ClCompile Include="src\processors\AssetIdGenerator.cpp" />
     <ClCompile Include="src\Processors\AssetPacking.cpp" />
     <ClCompile Include="src\processors\BinaryFile.cpp" />
@@ -180,6 +183,10 @@
     <ClInclude Include="src\Core.h" />
     <ClInclude Include="src\EditorTypes.h" />
     <ClInclude Include="src\lightmapper\LightMapping.h" />
+    <ClInclude Include="src\lightmapper\tracer\RayTracingCamera.h" />
+    <ClInclude Include="src\lightmapper\tracer\RayTracingMaterials.h" />
+    <ClInclude Include="src\lightmapper\tracer\RayTracingRay.h" />
+    <ClInclude Include="src\lightmapper\tracer\RayTracingTextures.h" />
     <ClInclude Include="src\processors\AssetIdGenerator.h" />
     <ClInclude Include="src\processors\AssetPacking.h" />
     <ClInclude Include="src\processors\BinaryFile.h" />

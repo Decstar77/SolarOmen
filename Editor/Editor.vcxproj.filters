@@ -72,6 +72,15 @@
     <ClCompile Include="src\lightmapper\LightMapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\lightmapper\tracer\RayTracingCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lightmapper\tracer\RayTracingTextures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lightmapper\tracer\RayTracingMaterials.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vendor\imgui\imconfig.h">
@@ -138,6 +147,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\lightmapper\LightMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lightmapper\tracer\RayTracingRay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lightmapper\tracer\RayTracingCamera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lightmapper\tracer\RayTracingTextures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lightmapper\tracer\RayTracingMaterials.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

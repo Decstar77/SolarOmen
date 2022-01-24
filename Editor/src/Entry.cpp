@@ -150,18 +150,16 @@ namespace sol
 			es->referenceRayTracer.Trace();
 
 
-			renderPacket->viewMatrix = es->camera.GetViewMatrix();
-			renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
+			//renderPacket->viewMatrix = es->camera.GetViewMatrix();
+			//renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
 
-			//renderPacket->viewMatrix = Mat4f(1);
-			//renderPacket->projectionMatrix = Mat4f(1);
+			renderPacket->viewMatrix = Mat4f(1);
+			renderPacket->projectionMatrix = Mat4f(1);
 
 			RenderEntry entry = {};
 			entry.material.modelId.number = 1;
 			entry.material.albedoTexture = es->referenceRayTracer.textureHandle;
 			//entry.material = es->selectedEntity.GetMaterialomponent()->material;
-
-
 
 			renderPacket->renderEntries.Add(entry);
 		}
@@ -171,15 +169,15 @@ namespace sol
 
 	bool8 CreateGame(Game* game)
 	{
-		//game->appConfig.startPosX = 700;
-		//game->appConfig.startPosY = 400;
-		//game->appConfig.startWidth = 400;
-		//game->appConfig.startHeight = 255;
+		game->appConfig.startPosX = 700;
+		game->appConfig.startPosY = 400;
+		game->appConfig.startWidth = 400;
+		game->appConfig.startHeight = 255;
 
-		game->appConfig.startPosX = 100;
-		game->appConfig.startPosY = 100;
-		game->appConfig.startWidth = 1280;
-		game->appConfig.startHeight = 720;
+		//game->appConfig.startPosX = 100;
+		//game->appConfig.startPosY = 100;
+		//game->appConfig.startWidth = 1280;
+		//game->appConfig.startHeight = 720;
 
 		game->appConfig.name = "Engine Editor";
 		game->Initialize = GameInitialze;
