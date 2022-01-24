@@ -15,32 +15,6 @@ namespace sol
 		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const = 0;
 	};
 
-	class RayTracingSphere : public RayTracingObject
-	{
-	public:
-		PreciseSphere sphere;
-		std::shared_ptr<RayTracingMaterial> material;
-
-	public:
-		RayTracingSphere() {};
-		RayTracingSphere(Vec3d origin, real64 r, std::shared_ptr<RayTracingMaterial> m) : sphere(origin, r), material(m) {};
-		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
-		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
-		void GetUV(const Vec3d& p, real64* u, real64* v) const;
-	};
-
-	class RayTracingBox : public RayTracingObject
-	{
-	public:
-		PreciseOBB obb;
-		std::shared_ptr<RayTracingMaterial> material;
-	public:
-		RayTracingBox() {};
-		RayTracingBox(Vec3d extents, Vec3d position, std::shared_ptr<RayTracingMaterial> m) : obb(extents, position), material(m) {	};
-		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
-		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
-	};
-
 	class RayTracingBVHNode : public RayTracingObject
 	{
 	public:
@@ -57,16 +31,136 @@ namespace sol
 		PreciseAABB nodeBox;
 	};
 
+	class RayTracingHittableList : public RayTracingObject
+	{
+	public:
+		RayTracingHittableList() {};
+		inline void Open() { objects.clear(); bvhTree = RayTracingBVHNode(); };
+		inline void Add(std::shared_ptr<RayTracingObject> object) { objects.push_back(object); }
+		inline void Seal() { bvhTree.Build(objects, 0, objects.size(), 0, 0); }
+
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+
+	private:
+		RayTracingBVHNode bvhTree;
+		std::vector<std::shared_ptr<RayTracingObject>> objects;
+	};
+
+	class RayTracingSphere : public RayTracingObject
+	{
+	public:
+		PreciseSphere sphere;
+		std::shared_ptr<RayTracingMaterial> material;
+
+	public:
+		RayTracingSphere() {};
+		RayTracingSphere(Vec3d origin, real64 r, std::shared_ptr<RayTracingMaterial> m) : sphere(origin, r), material(m) {};
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+		void GetUV(const Vec3d& p, real64* u, real64* v) const;
+	};
+
+	class  RayTracingXYRect : public RayTracingObject
+	{
+	public:
+		RayTracingXYRect() : x0(0), x1(0), y0(0), y1(0), k(0) {}
+		RayTracingXYRect(real64 _x0, real64 _x1, real64 _y0, real64 _y1, real64 _k, std::shared_ptr<RayTracingMaterial> mat)
+			: x0(_x0), x1(_x1), y0(_y0), y1(_y1), k(_k), material(mat) {};
+
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+
+	public:
+		std::shared_ptr<RayTracingMaterial> material;
+		real64 x0, x1, y0, y1, k;
+	};
+
+	class RayTracingXZRect : public RayTracingObject
+	{
+	public:
+		RayTracingXZRect() : x0(0), x1(0), z0(0), z1(0), k(0) {}
+		RayTracingXZRect(real64 _x0, real64 _x1, real64 _z0, real64 _z1, real64 _k, std::shared_ptr<RayTracingMaterial> mat)
+			: x0(_x0), x1(_x1), z0(_z0), z1(_z1), k(_k), material(mat) {};
+
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+
+	public:
+		std::shared_ptr<RayTracingMaterial> material;
+		real64 x0, x1, z0, z1, k;
+	};
+
+	class RayTracingYZRect : public RayTracingObject
+	{
+	public:
+		RayTracingYZRect() : y0(0), y1(0), z0(0), z1(0), k(0) {}
+		RayTracingYZRect(real64 _y0, real64 _y1, real64 _z0, real64 _z1, real64 _k, std::shared_ptr<RayTracingMaterial> mat)
+			: y0(_y0), y1(_y1), z0(_z0), z1(_z1), k(_k), material(mat) {};
+
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+
+	public:
+		std::shared_ptr<RayTracingMaterial> material;
+		real64 y0, y1, z0, z1, k;
+	};
+
+	class RayTracingBox : public RayTracingObject
+	{
+	public:
+		RayTracingBox() {};
+		RayTracingBox(Vec3d boxMin, Vec3d boxMax, std::shared_ptr<RayTracingMaterial> m);
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+
+	public:
+		Vec3d boxMin;
+		Vec3d boxMax;
+		RayTracingHittableList sides;
+		std::shared_ptr<RayTracingMaterial> material;
+	};
+
+	class RayTracingTranslate : public RayTracingObject
+	{
+	public:
+		RayTracingTranslate(std::shared_ptr<RayTracingObject> p, const Vec3d& displacement) : ptr(p), offset(displacement) {}
+
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
+
+	public:
+		std::shared_ptr<RayTracingObject> ptr;
+		Vec3d offset;
+	};
+
+	class RayTracingRotateY : public RayTracingObject
+	{
+	public:
+		RayTracingRotateY(std::shared_ptr<RayTracingObject> p, real64 angle);
+
+		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
+		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override {
+			*box = bbox;
+			return hasbox;
+		};
+
+	public:
+		std::shared_ptr<RayTracingObject> ptr;
+		real64 sin_theta;
+		real64 cos_theta;
+		bool8 hasbox;
+		PreciseAABB bbox;
+	};
+
 	class RayTracingWorld : public RayTracingObject
 	{
 	public:
-		std::vector<std::shared_ptr<RayTracingObject>> objects;
-		RayTracingBVHNode bvhTree;
+		RayTracingHittableList objects;
 		Vec3d backgroundColour;
 
 		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* hitrecord) const override;
 		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
-
 
 		void MakeRandomSphereWorld(RayTracingCamera* camera, real64 aspectRatio);
 		void MakeTwoSphereWorld(RayTracingCamera* camera, real64 aspectRatio);
@@ -85,7 +179,7 @@ namespace sol
 		int32 totalSamples;
 		int32 depth;
 
-		PixelCache() : colour(0), samples(0), totalSamples(500), depth(50) {}
+		PixelCache() : colour(0), samples(0), totalSamples(1000), depth(50) {}
 	};
 
 	class ReferenceRayTracer

@@ -172,7 +172,8 @@ namespace sol
 		game->appConfig.startPosX = 700;
 		game->appConfig.startPosY = 400;
 		game->appConfig.startWidth = 400;
-		game->appConfig.startHeight = 255;
+		game->appConfig.startHeight = 400;
+		//game->appConfig.startHeight = 255;
 
 		//game->appConfig.startPosX = 100;
 		//game->appConfig.startPosY = 100;
