@@ -28,71 +28,7 @@ namespace sol
 		void Shuffle(int32* p, int32 n);
 	};
 
-	template<typename T>
-	struct ImplicitSphere
-	{
-		Vec3<T> origin;
-		T radius;
 
-		inline static ImplicitSphere<T> Create(const Vec3<T>& origin, T radius)
-		{
-			ImplicitSphere sphere = {};
-			sphere.origin = origin;
-			sphere.radius = radius;
-			return sphere;
-		}
-	};
-
-	typedef ImplicitSphere<real32> Sphere;
-	typedef ImplicitSphere<real64> PreciseSphere;
-
-	template<typename T>
-	struct ImplicitAABB
-	{
-		Vec3<T> min;
-		Vec3<T> max;
-
-		inline static ImplicitAABB<T> Create(const Vec3<T>& min, const Vec3<T>& max)
-		{
-			ImplicitAABB<T> aabb = {};
-			aabb.min = min;
-			aabb.max = max;
-			return aabb;
-		}
-	};
-
-	typedef ImplicitAABB<real32> AABB;
-	typedef ImplicitAABB<real64> PreciseAABB;
-
-	template<typename T>
-	inline ImplicitAABB<T> SurroundingAABB(const ImplicitAABB<T>& box1, const ImplicitAABB<T>& box2)
-	{
-		ImplicitAABB<T> result = {};
-
-		result.min = Min(box1.min, box2.min);
-		result.max = Max(box1.max, box2.max);
-
-		return result;
-	}
-
-	template<typename T>
-	struct ImplicitOBB
-	{
-		Vec3<T> extents;
-		Vec3<T> origin;
-		Mat3<T> basis;
-
-		ImplicitOBB() {}
-		ImplicitOBB(const Vec3<T>& extents, const Vec3<T>& origin)
-		{
-			this->extents = extents;
-			this->origin = origin;
-			basis = Mat3<T>(1);
-		}
-	};
-
-	typedef ImplicitOBB<real32> OBB;
-	typedef ImplicitOBB<real64> PreciseOBB;
 
 	struct RayTracingRay
 	{
@@ -285,7 +221,7 @@ namespace sol
 
 	public:
 		RayTracingSphere() {};
-		RayTracingSphere(Vec3d origin, real64 r, std::shared_ptr<RayTracingMaterial> m) : sphere(PreciseSphere::Create(origin, r)), material(m) {};
+		RayTracingSphere(Vec3d origin, real64 r, std::shared_ptr<RayTracingMaterial> m) : sphere(origin, r), material(m) {};
 		virtual bool8 Raycast(const RayTracingRay& r, real64 tMin, real64 tMax, HitRecord* rec) const override;
 		virtual bool8 GetBoundingBox(real64 time0, real64 time1, PreciseAABB* box) const override;
 		void GetUV(const Vec3d& p, real64* u, real64* v) const;
@@ -336,6 +272,7 @@ namespace sol
 		void MakeTextureWorld(RayTracingCamera* camera, real64 aspectRatio);
 		void MakeSimpleLight(RayTracingCamera* camera, real64 aspectRatio);
 		void MakeBoxWorld(RayTracingCamera* camera, real64 aspectRatio);
+		void MakeCornellBox(RayTracingCamera* camera, real64 aspectRatio);
 	};
 
 	class PixelCache
@@ -346,7 +283,7 @@ namespace sol
 		int32 totalSamples;
 		int32 depth;
 
-		PixelCache() : colour(0), samples(0), totalSamples(10), depth(10) {}
+		PixelCache() : colour(0), samples(0), totalSamples(500), depth(50) {}
 	};
 
 	class ReferenceRayTracer

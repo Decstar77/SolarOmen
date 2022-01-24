@@ -7,10 +7,18 @@
 #include "core/SolarLogging.h"
 #include "core/SolarEvent.h"
 
+#if SOL_DEBUG_RENDERING
+#include "core/SolarDebug.h"
+#endif
+
 namespace sol
 {
 	bool8 Application::Initialize(Game* game)
 	{
+#if SOL_DEBUG_RENDERING
+		if (!Debug::Initialize()) { SOLFATAL("Debug failed to initialize"); return false; }
+#endif
+
 		if (EventSystemInitialize())
 		{
 			if (Input::Initailize())

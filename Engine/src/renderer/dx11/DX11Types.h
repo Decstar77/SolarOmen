@@ -36,6 +36,7 @@
 #else 
 #define DXCHECK(call) {(call);}
 #define DXINFO(call) {(call);}
+#define DXNAME(obj, name) {}
 #endif
 
 #define DXRELEASE(object)  \
@@ -56,14 +57,27 @@ namespace sol
 		ID3D11RenderTargetView* renderView;
 	};
 
+	struct ProgramInstance
+	{
+		ResourceId id;
+		ID3D11VertexShader* vs;
+		ID3D11PixelShader* ps;
+		ID3D11ComputeShader* cs;
+		ID3D11InputLayout* layout;
+
+		static void Release(ProgramInstance* program);
+		static ProgramInstance CreateGraphics(const ProgramResource& programResource);
+		static ProgramInstance DEBUGCompileFromFile(const String& path, VertexLayoutType vertexLayout);
+	};
+
 #if SOL_DEBUG_RENDERING
 	struct RenderDebug
 	{
 		uint64 next;
 		struct IDXGIInfoQueue* info_queue;
 		ID3D11Debug* debug;
-		//ShaderInstance shader;
-		//ID3D11Buffer* vertex_buffer;
+		ProgramInstance program;
+		ID3D11Buffer* vertexBuffer;
 	};
 
 	void LogDirectXDebugGetMessages(RenderDebug* debug);
@@ -187,19 +201,6 @@ namespace sol
 		static void Release(SamplerState* sampler);
 		static SamplerState Create(TextureFilterMode filter, TextureWrapMode wrap);
 		static SamplerState CreateShadowPFC();
-	};
-
-	struct ProgramInstance
-	{
-		ResourceId id;
-		ID3D11VertexShader* vs;
-		ID3D11PixelShader* ps;
-		ID3D11ComputeShader* cs;
-		ID3D11InputLayout* layout;
-
-		static void Release(ProgramInstance* program);
-		static ProgramInstance CreateGraphics(const ProgramResource& programResource);
-		static ProgramInstance DEBUGCompileFromFile(const String& path, VertexLayoutType vertexLayout);
 	};
 
 	template<typename T>

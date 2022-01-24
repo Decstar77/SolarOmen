@@ -125,13 +125,13 @@ namespace sol
 		transform.position.y = 0.25f;
 		player->velocity = player->velocity * player->drag;
 
-		Plane plane = Plane::Create(Vec3f(0), Vec3f(0, 1, 0));
+		Plane plane = Plane(Vec3f(0), Vec3f(0, 1, 0));
 		Ray ray = room->camera.ShootRayAtMouse();
 		RaycastInfo info = {};
 
 		if (Raycast::CheckPlane(ray, plane, &info))
 		{
-			transform.LookAtLH(info.closePoint);
+			transform.LookAtLH(info.point);
 		}
 
 

@@ -125,31 +125,43 @@ namespace sol
 			renderPacket->viewMatrix = es->camera.GetViewMatrix();
 			renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
 
+			OBB obb = OBB(1, 0);
+			obb.basis = Rotate(Mat3f(1), 45.0f, Vec3f(0, 1, 0));
+			Debug::DrawOBB(obb);
+
+			Ray ray = es->camera.ShootRayAtMouse();
+			RaycastInfo info = {};
+			if (Raycast::CheckOBB(ray, obb, &info))
+			{
+				Debug::DrawLine(info.point, info.point + info.normal);
+			}
+
 			if (es->selectedEntity.IsValid())
 			{
 				RenderEntry entry = {};
 				entry.worldTransform = es->selectedEntity.GetWorldTransform();
 				entry.material = es->selectedEntity.GetMaterialomponent()->material;
 
-				renderPacket->renderEntries.Add(entry);
+				//renderPacket->renderEntries.Add(entry);
 			}
 		}
 		else
 		{
-
 			es->referenceRayTracer.Trace();
 
 
-			//renderPacket->viewMatrix = es->camera.GetViewMatrix();
-			//renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
+			renderPacket->viewMatrix = es->camera.GetViewMatrix();
+			renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
 
-			renderPacket->viewMatrix = Mat4f(1);
-			renderPacket->projectionMatrix = Mat4f(1);
+			//renderPacket->viewMatrix = Mat4f(1);
+			//renderPacket->projectionMatrix = Mat4f(1);
 
 			RenderEntry entry = {};
 			entry.material.modelId.number = 1;
 			entry.material.albedoTexture = es->referenceRayTracer.textureHandle;
 			//entry.material = es->selectedEntity.GetMaterialomponent()->material;
+
+
 
 			renderPacket->renderEntries.Add(entry);
 		}
@@ -159,15 +171,15 @@ namespace sol
 
 	bool8 CreateGame(Game* game)
 	{
-		game->appConfig.startPosX = 700;
-		game->appConfig.startPosY = 400;
-		game->appConfig.startWidth = 400;
-		game->appConfig.startHeight = 255;
+		//game->appConfig.startPosX = 700;
+		//game->appConfig.startPosY = 400;
+		//game->appConfig.startWidth = 400;
+		//game->appConfig.startHeight = 255;
 
-		//game->appConfig.startPosX = 100;
-		//game->appConfig.startPosY = 100;
-		//game->appConfig.startWidth = 1280;
-		//game->appConfig.startHeight = 720;
+		game->appConfig.startPosX = 100;
+		game->appConfig.startPosY = 100;
+		game->appConfig.startWidth = 1280;
+		game->appConfig.startHeight = 720;
 
 		game->appConfig.name = "Engine Editor";
 		game->Initialize = GameInitialze;

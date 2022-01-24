@@ -9,6 +9,12 @@
 #include "DX11Types.h"
 #include "DX11RenderCommands.h"
 
+#undef min
+#undef max
+
+#include "core/SolarDebug.h"
+
+
 namespace sol
 {
 	static RenderState renderState = {};
@@ -49,6 +55,84 @@ namespace sol
 		}
 	}
 
+	static bool8 InitializeDirectXDrawing()
+	{
+		DeviceContext dc = GetDeviceContext();
+		DebugState* ds = Debug::GetState();
+
+		D3D11_BUFFER_DESC vertex_desc = {};
+		vertex_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		vertex_desc.Usage = D3D11_USAGE_DYNAMIC;
+		vertex_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		vertex_desc.MiscFlags = 0;
+		vertex_desc.ByteWidth = ds->vertexSizeBytes;
+		vertex_desc.StructureByteStride = sizeof(real32) * ds->vertexStride;
+
+		D3D11_SUBRESOURCE_DATA vertex_res = {};
+		vertex_res.pSysMem = ds->vertexData.data;
+
+		DXCHECK(dc.device->CreateBuffer(&vertex_desc, &vertex_res, &renderState.deviceContext.debug.vertexBuffer));
+
+		renderState.deviceContext.debug.program = ProgramInstance::DEBUGCompileFromFile("Engine/src/renderer/shaders/DebugLine.hlsl", VertexLayoutType::Value::P);
+
+		return (renderState.deviceContext.debug.program.vs != nullptr) && (renderState.deviceContext.debug.vertexBuffer != nullptr);
+	}
+
+	void DEBUGRenderAndFlushDebugDraws()
+	{
+		DeviceContext dc = GetDeviceContext();
+		RenderDebug* rd = &renderState.deviceContext.debug;
+		DebugState* ds = Debug::GetState();
+
+		D3D11_MAPPED_SUBRESOURCE resource = {};
+
+		DXCHECK(dc.context->Map(rd->vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource));
+		memcpy(resource.pData, ds->vertexData.data, ds->vertexSizeBytes);
+		DXINFO(dc.context->Unmap(rd->vertexBuffer, 0));
+
+		uint32 offset = 0;
+		uint32 vertex_stride_bytes = ds->vertexStride * sizeof(real32);
+		DXINFO(dc.context->IASetVertexBuffers(0, 1, &rd->vertexBuffer, &vertex_stride_bytes, &offset));
+
+		//////////////////////////////////
+		//////////////////////////////////
+
+		RenderCommand::SetProgram(rd->program);
+
+		//////////////////////////////////
+		//////////////////////////////////
+
+		DXINFO(dc.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST));
+
+		DXINFO(dc.context->Draw(ds->nextVertexIndex, 0));
+
+		DXINFO(dc.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+
+		//////////////////////////////////
+		//////////////////////////////////
+
+		ds->vertexData.Clear();
+		ds->nextVertexIndex = 0;
+	}
+
+	void LogDirectXDebugGetMessages(RenderDebug* debug)
+	{
+		uint64 end = debug->info_queue->GetNumStoredMessages(DXGI_DEBUG_ALL);
+		for (uint64 i = debug->next; i < end; i++)
+		{
+			SIZE_T messageLength = 0;
+			debug->info_queue->GetMessage(DXGI_DEBUG_ALL, i, nullptr, &messageLength);
+
+			byte* bytes = GameMemory::PushTransientCount<byte>((uint32)messageLength);
+			DXGI_INFO_QUEUE_MESSAGE* message = reinterpret_cast<DXGI_INFO_QUEUE_MESSAGE*>(bytes);
+
+			debug->info_queue->GetMessage(DXGI_DEBUG_ALL, i, message, &messageLength);
+
+			SOLERROR(message->pDescription);
+		}
+	}
+#endif
+
 	TextureHandle Renderer::CreateTexture(int32 width, int32 height, TextureFormat format, ResourceCPUFlags cpuFlags)
 	{
 		BindUsage usage[4] = {};
@@ -85,24 +169,6 @@ namespace sol
 		GameMemory::Copy(data.pData, pixelData, sizeBytes);
 		DXINFO(dc.context->Unmap(texture.texture, 0));
 	}
-
-	void LogDirectXDebugGetMessages(RenderDebug* debug)
-	{
-		uint64 end = debug->info_queue->GetNumStoredMessages(DXGI_DEBUG_ALL);
-		for (uint64 i = debug->next; i < end; i++)
-		{
-			SIZE_T messageLength = 0;
-			debug->info_queue->GetMessage(DXGI_DEBUG_ALL, i, nullptr, &messageLength);
-
-			byte* bytes = GameMemory::PushTransientCount<byte>((uint32)messageLength);
-			DXGI_INFO_QUEUE_MESSAGE* message = reinterpret_cast<DXGI_INFO_QUEUE_MESSAGE*>(bytes);
-
-			debug->info_queue->GetMessage(DXGI_DEBUG_ALL, i, message, &messageLength);
-
-			SOLERROR(message->pDescription);
-		}
-	}
-#endif
 
 	static void CreateSwapChainBuffers()
 	{
@@ -373,10 +439,21 @@ namespace sol
 					hr = tempDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&renderState.deviceContext.debug.debug));
 					if (FAILED(hr))
 					{
-						SOLFATAL("Could not find ID3D11Debug interface");
+						SOLFATAL("DX11 Could not find ID3D11Debug interface");
+						return false;
+					}
+
+					if (InitializeDirectXDrawing())
+					{
+						SOLINFO("DX11 Debug drawing enabled");
+					}
+					else
+					{
+						SOLFATAL("DX11 Could not create debug drawing");
 						return false;
 					}
 #endif
+
 					IDXGIFactory2* dxgiFactory = nullptr;
 					hr = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
 					if (SUCCEEDED(hr))
@@ -577,11 +654,14 @@ namespace sol
 #endif
 		}
 
+		DEBUGRenderAndFlushDebugDraws();
+
 		EventSystem::Fire((uint16)EngineEvent::Value::ON_RENDER_END, nullptr, {});
 		DeviceContext dc = renderState.deviceContext;
 
 		DXGI_PRESENT_PARAMETERS parameters = { 0 };
 		DXCHECK(renderState.swapChain.swapChain->Present1(1, 0, &parameters));
+		//DXCHECK(renderState.swapChain.swapChain->Present1(0, DXGI_PRESENT_DO_NOT_WAIT, &parameters));
 	}
 
 	void Renderer::Shutdown()

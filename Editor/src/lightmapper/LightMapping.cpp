@@ -182,14 +182,14 @@ namespace sol
 		//world.MakeTwoPerlineSpheres(&camera, aspectRatio);
 		//world.MakeTextureWorld(&camera, aspectRatio);
 		//world.MakeSimpleLight(&camera, aspectRatio);
-		world.MakeBoxWorld(&camera, aspectRatio);
+		//world.MakeBoxWorld(&camera, aspectRatio);
+		world.MakeCornellBox(&camera, aspectRatio);
+
 	}
 	void ReferenceRayTracer::Shutdown()
 	{
 		Renderer::DestroyTexture(&textureHandle);
 	}
-
-
 
 	void sol::RayTracingWorld::MakeRandomSphereWorld(RayTracingCamera* camera, real64 aspectRatio)
 	{
@@ -347,6 +347,35 @@ namespace sol
 		camera->Initialize(lookfrom, lookat, vup, 20.0, aspectRatio, aperture, dist_to_focus);
 	}
 
+	void RayTracingWorld::MakeCornellBox(RayTracingCamera* camera, real64 aspectRatio)
+	{
+		backgroundColour = Vec3d(0, 0, 0);
+
+		auto red = std::make_shared<Lambertian>(Vec3d(.65, .05, .05));
+		auto white = std::make_shared<Lambertian>(Vec3d(.73, .73, .73));
+		auto green = std::make_shared<Lambertian>(Vec3d(.12, .45, .15));
+		auto black = std::make_shared<Lambertian>(Vec3d(1, 0, 1));
+		auto light = std::make_shared<DiffuseLight>(Vec3d(15, 15, 15));
+
+		objects.push_back(std::make_shared<RayTracingBox>(Vec3d(0.1, 10, 10), Vec3d(-1, 0, 0), green));
+		objects.push_back(std::make_shared<RayTracingBox>(Vec3d(0.1, 10, 10), Vec3d(1, 0, 0), red));
+		objects.push_back(std::make_shared<RayTracingBox>(Vec3d(10, 0.1, 10), Vec3d(0, -1, 0), white));
+		objects.push_back(std::make_shared<RayTracingBox>(Vec3d(10, 0.1, 10), Vec3d(0, 1, 0), white));
+		objects.push_back(std::make_shared<RayTracingBox>(Vec3d(10, 10, 0.1), Vec3d(0, 0, -10), white));
+		objects.push_back(std::make_shared<RayTracingBox>(Vec3d(1, 0.01, 1), Vec3d(0, 0.8, -3.5), light));
+
+		bvhTree.Build(objects, 0, objects.size(), 0, 0);
+		SOLINFO("Raytracing BVH built");
+
+		Vec3d lookfrom(0, 0, 0);
+		Vec3d lookat(0, 0, -1);
+		Vec3d vup(0, 1, 0);
+		auto dist_to_focus = 10.0;
+		auto aperture = 0.1;
+
+		camera->Initialize(lookfrom, lookat, vup, 40.0, aspectRatio, aperture, dist_to_focus);
+	}
+
 	void RayTracingCamera::Initialize(Vec3d lookfrom, Vec3d lookat, Vec3d vup, real64 vfov, real64 aspect_ratio, real64 aperture, real64 focus_dist)
 	{
 		real64 theta = DegToRad(vfov);
@@ -501,6 +530,7 @@ namespace sol
 		return false;
 	}
 
+	// @NOTE: Thanks to ray tracing gems 2. 
 	static bool8 RaycastOBB(const RayTracingRay& r, const PreciseOBB& obb, HitRecord* record)
 	{
 		Mat4d m = Mat4d(ScaleCardinal(obb.basis, obb.extents), obb.origin);
@@ -597,7 +627,7 @@ namespace sol
 			if (rec->t > tMin && rec->t < tMax)
 			{
 				rec->material = material;
-				rec->material = std::make_shared<Lambertian>(std::make_shared<SolidColour>((rec->normal + Vec3d(1)) * 0.5));
+				//rec->material = std::make_shared<Lambertian>(std::make_shared<SolidColour>((rec->normal + Vec3d(1)) * 0.5));
 				return true;
 			}
 		}
@@ -831,4 +861,4 @@ namespace sol
 			}
 		}
 	}
-			}
+}
