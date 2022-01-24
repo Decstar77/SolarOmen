@@ -197,24 +197,23 @@ namespace sol
 		template<typename T>
 		static bool8 CheckOBB(const ImplicitRay<T>& ray, const ImplicitOBB<T>& obb, ImplicitRaycastInfo<T>* info)
 		{
-			Mat4<T> m = Mat4<T>(ScaleCardinal(obb.basis, obb.extents), obb.origin);
+			Mat4<T> m = Mat4<T>(obb.basis, obb.origin);
 			Mat4<T> invm = Inverse(m);
-			Mat4<T> nm = Transpose(invm);
 
 			ImplicitRay<T> rPrime = {};
 			rPrime.origin = Vec4ToVec3(Vec4<T>(ray.origin, static_cast<T>(1.0)) * invm);
 			rPrime.direction = Vec4ToVec3(Vec4<T>(ray.direction, static_cast<T>(0.0)) * invm);
 
 			ImplicitAABB<T> bPrime = {};
-			bPrime.min = Vec3<T>(static_cast<T>(-0.5));
-			bPrime.max = Vec3<T>(static_cast<T>(0.5));
+			bPrime.min = static_cast<T>(-1.0) * obb.extents;
+			bPrime.max = static_cast<T>(1.0) * obb.extents;
 
 			if (Raycast::CheckAABB(rPrime, bPrime, info))
 			{
 				if (info)
 				{
-					info->point = TravelDown(ray, info->t);
-					info->normal = Normalize(Vec4ToVec3(Vec4<T>(info->normal, 0.0) * nm));
+					info->point = Vec4ToVec3(Vec4<T>(info->point, static_cast<T>(1.0)) * m);
+					info->normal = Normalize(Vec4ToVec3(Vec4<T>(info->normal, static_cast<T>(0.0)) * Transpose(invm)));
 				}
 
 				return true;

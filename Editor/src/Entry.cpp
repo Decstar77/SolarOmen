@@ -125,7 +125,7 @@ namespace sol
 			renderPacket->viewMatrix = es->camera.GetViewMatrix();
 			renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
 
-			OBB obb = OBB(1, 0);
+			OBB obb = OBB(1, 1);
 			obb.basis = Rotate(Mat3f(1), 45.0f, Vec3f(0, 1, 0));
 			Debug::DrawOBB(obb);
 
@@ -133,6 +133,7 @@ namespace sol
 			RaycastInfo info = {};
 			if (Raycast::CheckOBB(ray, obb, &info))
 			{
+				//Debug::DrawPoint(info.point);
 				Debug::DrawLine(info.point, info.point + info.normal);
 			}
 
@@ -175,10 +176,10 @@ namespace sol
 		game->appConfig.startHeight = 400;
 		//game->appConfig.startHeight = 255;
 
-		//game->appConfig.startPosX = 100;
-		//game->appConfig.startPosY = 100;
-		//game->appConfig.startWidth = 1280;
-		//game->appConfig.startHeight = 720;
+		game->appConfig.startPosX = 100;
+		game->appConfig.startPosY = 100;
+		game->appConfig.startWidth = 1280;
+		game->appConfig.startHeight = 720;
 
 		game->appConfig.name = "Engine Editor";
 		game->Initialize = GameInitialze;
