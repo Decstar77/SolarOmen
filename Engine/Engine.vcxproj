@@ -97,6 +97,7 @@
     <ClInclude Include="src\core\SolarDebug.h" />
     <ClInclude Include="src\core\SolarPrimitives.h" />
     <ClInclude Include="src\renderer\dx11\DX11RenderCommands.h" />
+    <ClInclude Include="src\renderer\dx11\DX11Techniques.h" />
     <ClInclude Include="src\renderer\dx11\DX11Types.h" />
     <ClInclude Include="src\resources\SolarResourceTypes.h" />
     <ClInclude Include="src\core\SolarApplication.h" />
@@ -136,6 +137,7 @@
     <ClCompile Include="src\renderer\dx11\DX11Renderer.cpp" />
     <ClCompile Include="src\renderer\dx11\DX11StaticModel.cpp" />
     <ClCompile Include="src\renderer\dx11\DX11StaticTexture.cpp" />
+    <ClCompile Include="src\renderer\dx11\DX11Techniques.cpp" />
     <ClCompile Include="src\resources\ModelGenerator.cpp" />
     <ClCompile Include="src\resources\SolarResources.cpp" />
   </ItemGroup>

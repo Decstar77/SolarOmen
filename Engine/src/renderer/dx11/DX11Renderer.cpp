@@ -8,6 +8,7 @@
 
 #include "DX11Types.h"
 #include "DX11RenderCommands.h"
+#include "DX11Techniques.h"
 
 #undef min
 #undef max
@@ -73,7 +74,7 @@ namespace sol
 
 		DXCHECK(dc.device->CreateBuffer(&vertex_desc, &vertex_res, &renderState.deviceContext.debug.vertexBuffer));
 
-		renderState.deviceContext.debug.program = ProgramInstance::DEBUGCompileFromFile("Engine/src/renderer/shaders/DebugLine.hlsl", VertexLayoutType::Value::P);
+		ProgramInstance::DEBUGCompileFromFile("Engine/src/renderer/shaders/DebugLine.hlsl", VertexLayoutType::Value::P, &renderState.deviceContext.debug.program);
 
 		return (renderState.deviceContext.debug.program.vs != nullptr) && (renderState.deviceContext.debug.vertexBuffer != nullptr);
 	}
@@ -351,7 +352,9 @@ namespace sol
 	static void ShutdownModels()
 	{
 		ManagedArray<ModelInstance> models = renderState.modelInstances.GetValueSet();
-		for (uint32 i = 0; i < models.count; i++) { ModelInstance::Release(&models[i]); }
+		for (uint32 i = 0; i < models.count; i++) {
+			ModelInstance::Release(&models[i]);
+		}
 		renderState.modelInstances.Clear();
 	}
 
@@ -380,6 +383,31 @@ namespace sol
 				}
 			}
 		}
+
+		return true;
+	}
+
+	static void ShutdownPrograms()
+	{
+		for (uint32 i = 0; i < ArrayCount(renderState.programs); i++) {
+			ProgramInstance::Release(&renderState.programs[i]);
+		}
+	}
+
+	bool8 Renderer::LoadAllPrograms()
+	{
+		ShutdownPrograms();
+		bool8 compiled = true;
+
+		//renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("post_processing"));
+		compiled = compiled && ProgramInstance::DEBUGCompileFromFile("Engine/src/renderer/shaders/phong.hlsl",
+			VertexLayoutType::Value::PNT, &renderState.phongProgram);
+
+		compiled = compiled && ProgramInstance::DEBUGCompileFromFile("Engine/src/renderer/shaders/EquirectangularToCubemap.hlsl",
+			VertexLayoutType::Value::PNT, &renderState.eqiToCubeProgram);
+
+		compiled = compiled && ProgramInstance::DEBUGCompileFromFile("Engine/src/renderer/shaders/Skybox.hlsl",
+			VertexLayoutType::Value::PNT, &renderState.skyboxProgram);
 
 		return true;
 	}
@@ -493,10 +521,6 @@ namespace sol
 
 							EventSystem::Register((uint16)EngineEvent::Value::WINDOW_RESIZED, 0, OnWindowResizeCallback);
 
-							renderState.postProcessingProgram = ProgramInstance::CreateGraphics(*Resources::GetProgramResource("post_processing"));
-
-							renderState.phongProgram = ProgramInstance::DEBUGCompileFromFile("Engine/src/renderer/shaders/phong.hlsl", VertexLayoutType::Value::PNT);
-
 							renderState.modelConstBuffer = ShaderConstBuffer<ShaderConstBufferModel>::Create();
 							renderState.viewConstBuffer = ShaderConstBuffer<ShaderConstBufferView>::Create();
 							renderState.lightingConstBuffer = ShaderConstBuffer<ShaderConstBufferLightingInfo>::Create();
@@ -516,6 +540,7 @@ namespace sol
 							renderState.cube = StaticMesh::Create(ModelGenerator::CreateBox(1, 1, 1, 1, VertexLayoutType::Value::PNT));
 
 							LoadAllModels();
+							LoadAllPrograms();
 
 							ManagedArray<TextureResource> textures = Resources::GetAllTextureResources();
 							{
@@ -566,17 +591,19 @@ namespace sol
 
 	void Renderer::Render(RenderPacket* renderPacket)
 	{
+		if (renderPacket->skyboxId.IsValid() && renderPacket->skyboxId != renderState.skyBoxId)
+		{
+			renderState.skyBoxId = renderPacket->skyboxId;
+			CubeMapInstance::Release(&renderState.skyBoxTexture);
+			StaticTexture* texture = renderState.staticTextures.Get(renderPacket->skyboxId);
+			if (texture)
+			{
+				renderState.skyBoxTexture = RenderTechnique::ConvertEqiTextureToCubeMap(&renderState, 1024, *texture);
+			}
+		}
+
 		real32 windowWidth = (real32)Platform::GetSurfaceWidth();
 		real32 windowHeight = (real32)Platform::GetSurfaceHeight();
-
-		RenderCommand::ClearRenderTarget(renderState.swapChain.renderView, Vec4f(0.2f, 0.2f, 0.2f, 1.0f));
-		RenderCommand::ClearDepthBuffer(renderState.swapChain.depthView);
-
-		RenderCommand::SetRenderTargets(renderState.swapChain.renderView, renderState.swapChain.depthView);
-		RenderCommand::SetTopology(Topology::Value::TRIANGLE_LIST);
-		RenderCommand::SetViewportState(windowWidth, windowHeight);
-		RenderCommand::SetDepthState(renderState.depthLessEqualState);
-		RenderCommand::SetRasterState(renderState.rasterBackFaceCullingState);
 
 		Mat4f view = renderPacket->viewMatrix;
 		Mat4f proj = renderPacket->projectionMatrix;
@@ -592,6 +619,27 @@ namespace sol
 		renderState.lightingConstBuffer.data.spotLightCount = 0;
 		renderState.lightingConstBuffer.data.pointLightCount = 0;
 		RenderCommand::UploadShaderConstBuffer(&renderState.lightingConstBuffer);
+
+		RenderCommand::ClearRenderTarget(renderState.swapChain.renderView, Vec4f(0.2f, 0.2f, 0.2f, 1.0f));
+		RenderCommand::ClearDepthBuffer(renderState.swapChain.depthView);
+
+		RenderCommand::SetRenderTargets(renderState.swapChain.renderView, renderState.swapChain.depthView);
+		RenderCommand::SetViewportState(windowWidth, windowHeight);
+		RenderCommand::SetTopology(Topology::Value::TRIANGLE_LIST);
+
+		if (renderPacket->skyboxId.IsValid() && renderState.skyBoxTexture.texture)
+		{
+			RenderCommand::SetDepthState(renderState.depthOffState);
+			RenderCommand::SetRasterState(renderState.rasterNoFaceCullState);
+
+			RenderCommand::SetProgram(renderState.skyboxProgram);
+			RenderCommand::SetCubeMap(renderState.skyBoxTexture, 10);
+
+			RenderCommand::DrawStaticMesh(renderState.cube);
+		}
+
+		RenderCommand::SetDepthState(renderState.depthLessEqualState);
+		RenderCommand::SetRasterState(renderState.rasterBackFaceCullingState);
 
 		for (uint32 i = 0; i < renderPacket->renderEntries.count; i++)
 		{
@@ -680,6 +728,8 @@ namespace sol
 		ManagedArray<StaticTexture> textures = renderState.staticTextures.GetValueSet();
 		for (uint32 i = 0; i < textures.count; i++) { StaticTexture::Release(&textures[i]); }
 		textures.Clear();
+
+		CubeMapInstance::Release(&renderState.skyBoxTexture);
 
 		ShaderConstBuffer<ShaderConstBufferModel>::Release(&renderState.modelConstBuffer);
 		ShaderConstBuffer<ShaderConstBufferView>::Release(&renderState.viewConstBuffer);

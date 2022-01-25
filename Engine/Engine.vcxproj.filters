@@ -81,6 +81,9 @@
     <ClInclude Include="src\renderer\dx11\DX11RenderCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderer\dx11\DX11Techniques.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\SolarString.cpp">
@@ -141,6 +144,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\core\SolarMath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\dx11\DX11Techniques.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

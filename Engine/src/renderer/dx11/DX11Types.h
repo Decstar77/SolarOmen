@@ -60,6 +60,7 @@ namespace sol
 	struct ProgramInstance
 	{
 		ResourceId id;
+		String name;
 		ID3D11VertexShader* vs;
 		ID3D11PixelShader* ps;
 		ID3D11ComputeShader* cs;
@@ -67,7 +68,7 @@ namespace sol
 
 		static void Release(ProgramInstance* program);
 		static ProgramInstance CreateGraphics(const ProgramResource& programResource);
-		static ProgramInstance DEBUGCompileFromFile(const String& path, VertexLayoutType vertexLayout);
+		static bool8 DEBUGCompileFromFile(const String& path, VertexLayoutType vertexLayout, ProgramInstance* program);
 	};
 
 #if SOL_DEBUG_RENDERING
@@ -182,13 +183,10 @@ namespace sol
 	{
 		ID3D11Texture2D* texture = nullptr;
 		ID3D11ShaderResourceView* shaderView = nullptr;
-
 		FixedArray<ID3D11RenderTargetView*, 6> renderFaces;
 
+		static void Release(CubeMapInstance* cube);
 		static CubeMapInstance Create(uint32 resolution);
-
-		//void Bind(RenderState* rs, ShaderStage shaderStage, int32 register_);
-		//void Unbind(RenderState* rs);
 	};
 
 	struct SamplerState
@@ -358,6 +356,8 @@ namespace sol
 				ProgramInstance phongProgram;
 				ProgramInstance phongKenneyProgram;
 				ProgramInstance postProcessingProgram;
+				ProgramInstance eqiToCubeProgram;
+				ProgramInstance skyboxProgram;
 			};
 		};
 
@@ -371,6 +371,8 @@ namespace sol
 
 		FixedArray<StaticTexture, 16> dynamicTextures;
 
+		ResourceId skyBoxId;
+		CubeMapInstance skyBoxTexture;
 
 		ShaderConstBuffer<ShaderConstBufferModel> modelConstBuffer;
 		ShaderConstBuffer<ShaderConstBufferView> viewConstBuffer;

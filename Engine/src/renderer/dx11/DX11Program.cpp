@@ -16,6 +16,10 @@ namespace sol
 		DXRELEASE(program->cs);
 		DXRELEASE(program->layout);
 
+		if (program->name.GetLength() > 0) {
+			SOLTRACE(String("Released program: ").Add(program->name).GetCStr());
+		}
+
 		GameMemory::ZeroStruct(program);
 	}
 
@@ -25,6 +29,7 @@ namespace sol
 
 		ProgramInstance program = {};
 		program.id = programResource.id;
+		program.name = programResource.name;
 
 		switch (programResource.vertexLayout.Get())
 		{
@@ -199,7 +204,7 @@ namespace sol
 
 		HRESULT hr = D3DCompileFromFile(
 			AnsiToWString(path.GetCStr()).c_str(),
-			nullptr, nullptr,
+			nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 			entry, target,
 			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
 			0, &shader, &errorBuff);
@@ -214,7 +219,7 @@ namespace sol
 		return shader;
 	}
 
-	ProgramInstance ProgramInstance::DEBUGCompileFromFile(const String& path, VertexLayoutType vertexLayout)
+	bool8 ProgramInstance::DEBUGCompileFromFile(const String& path, VertexLayoutType vertexLayout, ProgramInstance* program)
 	{
 		ID3DBlob* vertexShader = CompileShader(path, "VSmain", "vs_5_0");
 		ID3DBlob* pixelShader = CompileShader(path, "PSmain", "ps_5_0");
@@ -222,7 +227,7 @@ namespace sol
 		if (!(vertexShader && pixelShader))
 		{
 			SOLERROR("Could not compile program");
-			return {};
+			return false;
 		}
 
 		ProgramResource resource = {};
@@ -238,7 +243,9 @@ namespace sol
 		resource.pixelData.capcity = (uint32)pixelShader->GetBufferSize();
 		resource.pixelData.data = (char*)pixelShader->GetBufferPointer();
 
-		return CreateGraphics(resource);
+		resource.name = Util::StripFilePathAndExtentions(path);
+
+		*program = CreateGraphics(resource);
 	}
 }
 

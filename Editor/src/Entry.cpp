@@ -117,6 +117,13 @@ namespace sol
 			}
 		}
 
+		if (IsKeyJustDown(input, f4))
+		{
+			Renderer::LoadAllPrograms();
+		}
+
+		//renderPacket->skyboxId = Resources::GetTextureResource("FS002_Day_Sunless")->id;
+
 		if (!es->isLightMapping)
 		{
 			OperateCamera(&es->camera, dt);

@@ -1,0 +1,32 @@
+Texture2D texture0 : register(t0);
+Texture2D texture1 : register(t1);
+Texture2D texture2 : register(t2);
+Texture2D texture3 : register(t3);
+Texture2D texture4 : register(t4);
+Texture2D texture5 : register(t5);
+Texture2D texture6 : register(t6);
+Texture2D texture7 : register(t7);
+Texture2D texture8 : register(t8);
+Texture2D texture9 : register(t9);
+Texture2D texture10 : register(t10);
+
+TextureCube texture10Cube:  register(t10);
+TextureCube texture11Cube:  register(t11);
+TextureCube texture12Cube:  register(t12);
+TextureCube texture13Cube:  register(t13);
+TextureCube texture14Cube:  register(t14);
+TextureCube texture15Cube:  register(t15);
+TextureCube texture16Cube:  register(t16);
+TextureCube texture17Cube:  register(t17);
+TextureCube texture18Cube:  register(t18);
+TextureCube texture19Cube:  register(t19);
+TextureCube texture20Cube:  register(t20);
+
+SamplerState pointSamplerRepeat			: register(s0);
+SamplerState linearSamplerRepeat		: register(s1);
+SamplerState triSamplerRepeat			: register(s2);
+SamplerState pointSamplerClamp			: register(s3);
+SamplerState linearSamplerClamp			: register(s4);
+SamplerState triSamplerClamp			: register(s5);
+SamplerState antiSamplerClamp			: register(s6);
+SamplerComparisonState shadowPCFSampler : register(s7);
