@@ -70,8 +70,6 @@ namespace sol
 
 	bool8 Application::Run(Game* game)
 	{
-		real32 dt = 0.016f;
-
 		RenderPacket* packet = GameMemory::PushPermanentStruct<RenderPacket>();
 		while (Platform::PumpMessages())
 		{
@@ -102,6 +100,11 @@ namespace sol
 		Renderer::Shutdown();
 		Platform::Shutdown();
 		Input::Shutdown();
+	}
+
+	real32 Application::GetDeltaTime()
+	{
+		return dt;
 	}
 
 	uint32 Application::GetSurfaceWidth()

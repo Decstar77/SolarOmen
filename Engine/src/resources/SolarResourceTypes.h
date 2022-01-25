@@ -24,16 +24,16 @@ namespace sol
 
 	struct ModelResource
 	{
-		String name;
 		ResourceId id;
+		String name;
 		ManagedArray<MeshResource> meshes;
 		ManagedArray<MeshTextures> textures;
 	};
 
 	struct TextureResource
 	{
-		String name;
 		ResourceId id;
+		String name;
 		int32 width;
 		int32 height;
 		TextureFormat format;
@@ -54,6 +54,13 @@ namespace sol
 		ManagedArray<char> pixelData;
 	};
 
+	struct RoomResource
+	{
+		ResourceId id;
+		String name;
+		ResourceId skyBoxId;
+	};
+
 	class SOL_API Resources
 	{
 	public:
@@ -71,6 +78,11 @@ namespace sol
 		static ManagedArray<ProgramResource> GetAllProgramResources();
 		static ProgramResource* GetProgramResource(const ResourceId& id);
 		static ProgramResource* GetProgramResource(const String& name);
+
+		static bool8 LoadAllRoomResources();
+		static ManagedArray<RoomResource> GetAllRoomResources();
+		static RoomResource* GetRoomResource(const ResourceId& id);
+		static RoomResource* GetRoomResource(const String& name);
 
 	private:
 		static bool8 Initialize();

@@ -29,6 +29,8 @@ namespace sol
 			metaData.format = TextureFormat::Value::R8G8B8A8_UNORM;
 			metaData.usage[0] = BindUsage::Value::SHADER_RESOURCE;
 			metaData.mips = false;
+			metaData.isSkybox = false;
+			metaData.isNormalMap = false;
 
 			String newPath = Util::StripFileExtension(path).Add(".slo");
 			metaProcessor.SaveMetaData(newPath, metaData);

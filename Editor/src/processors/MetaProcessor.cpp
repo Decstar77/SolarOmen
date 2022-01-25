@@ -60,7 +60,10 @@ namespace sol
 	void MetaProcessor::SaveMetaData(const String& path, const TextureMetaFile& textureData)
 	{
 		TextFileWriter file;
-		file.WriteLine(String("GUID=").Add(GenerateAssetId()));
+
+		if (textureData.id.IsValid()) { file.WriteLine(String("GUID=").Add(textureData.id)); }
+		else { file.WriteLine(String("GUID=").Add(GenerateAssetId())); }
+
 		file.WriteLine(String("Type=TEXTURE"));
 		file.WriteLine(String("Format=").Add(textureData.format.ToString()));
 		file.WriteLine(String("Usage0=").Add(textureData.usage[0].ToString()));
@@ -69,6 +72,8 @@ namespace sol
 		file.WriteLine(String("Usage3=").Add(textureData.usage[3].ToString()));
 		file.WriteLine(String("CPUFlags=").Add(textureData.cpuFlags.ToString()));
 		file.WriteLine(String("Mips=").Add((int32)textureData.mips));
+		file.WriteLine(String("IsSkybox=").Add((int32)textureData.isSkybox));
+		file.WriteLine(String("IsNormalMap=").Add((int32)textureData.isNormalMap));
 
 		file.SaveToDisk(path);
 	}
@@ -120,7 +125,18 @@ namespace sol
 			}
 			else if (line.StartsWith("Type"))
 			{
-
+			}
+			else if (line.StartsWith("Mips"))
+			{
+				metaFile.mips = (bool8)line.SubStr(line.FindFirstOf('=') + 1).ToInt32();
+			}
+			else if (line.StartsWith("IsSkybox"))
+			{
+				metaFile.isSkybox = (bool8)line.SubStr(line.FindFirstOf('=') + 1).ToInt32();
+			}
+			else if (line.StartsWith("IsNormalMap"))
+			{
+				metaFile.isNormalMap = (bool8)line.SubStr(line.FindFirstOf('=') + 1).ToInt32();
 			}
 			else if (line.StartsWith("Scale"))
 			{

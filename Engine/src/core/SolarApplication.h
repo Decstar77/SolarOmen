@@ -20,8 +20,12 @@ namespace sol
 		static bool8 Run(struct Game* game);
 		static void Shutdown();
 
+
+		static real32 GetDeltaTime();
 		static uint32 GetSurfaceWidth();
 		static uint32 GetSurfaceHeight();
 		static real32 GetSurfaceAspectRatio();
+	private:
+		inline static real32 dt = 0.0f;
 	};
 }

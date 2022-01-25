@@ -31,7 +31,9 @@ namespace sol
 		TextureFormat format;
 		BindUsage usage[4];
 		ResourceCPUFlags cpuFlags;
-		bool mips;
+		bool8 mips;
+		bool8 isSkybox;
+		bool8 isNormalMap;
 	};
 
 	class MetaProcessor

@@ -2,7 +2,7 @@
 #include <SolarEngine.h>
 #include <src/renderer/SolarRenderer.h>
 #include "src/SolarEntry.h"
-#include "processors/AssetPacking.h"
+
 
 #include "../vendor/imgui/imgui.h"
 #include "../vendor/imgui/imgui_impl_win32.h"
@@ -14,6 +14,125 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 namespace sol
 {
+	static String ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
+
+	EditorWindowList::EditorWindowList() : EditorWindow("WINDOW LIST", true)
+	{
+	}
+
+	bool8 EditorWindowList::Show()
+	{
+		for (uint64 i = 0; i < windows.size(); i++)
+		{
+			auto window = windows.at(i);
+
+			if (window->ShouldShow())
+			{
+				bool8 remove = window->Show();
+				if (remove)
+				{
+					windows.erase(windows.begin() + i);
+					i--;
+				}
+			}
+		}
+
+		return windows.empty();
+	}
+
+	bool8 EditorWindowList::Add(std::shared_ptr<EditorWindow> window)
+	{
+		for (const auto& w : windows)
+		{
+			if (w->GetName() == window->GetName())
+			{
+				SOLERROR("Can not create window with same name");
+				return false;
+			}
+		}
+
+		windows.push_back(window);
+		return true;
+	}
+
+	TextureMetaFileWindow::TextureMetaFileWindow(const String& name) : EditorWindow(name, true)
+	{
+		FileProcessor fileProcessor = {};
+		MetaProcessor metaProcessor = {};
+		metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
+		path = metaProcessor.Find(name);
+		file = metaProcessor.ParseTextureMetaFile(path);
+		if (!file.id.IsValid())
+		{
+			show = false;
+			SOLERROR("Could not edit texture meta file");
+		}
+	}
+
+	bool8 TextureMetaFileWindow::Show()
+	{
+		String windowName = "MetaData";
+		windowName.Add(name);
+		if (ImGui::Begin(windowName.GetCStr(), &show))
+		{
+			ImGui::Text("Id: %llu", file.id.number);
+			ImGui::Text("Format: %s", file.format.ToString().GetCStr());
+			ImGui::Checkbox("Generate Mip maps", &file.mips);
+			ImGui::Checkbox("Is Skybox", &file.isSkybox);
+			ImGui::Checkbox("Is Normal Map", &file.isNormalMap);
+
+			if (ImGui::Button("Save"))
+			{
+				MetaProcessor metaProcessor = {};
+				metaProcessor.SaveMetaData(path, file);
+			}
+
+
+			ImGui::End();
+		}
+
+		return !show;
+	}
+
+
+	bool8 EditorPerformanceWindow::Show()
+	{
+		if (ImGui::Begin(GetName().GetCStr(), &show))
+		{
+			ImGui::Text("Permanent Memory Used: %llu mbs", GameMemory::GetTheAmountOfPermanentMemoryUsed() / (1024 * 1024));
+			ImGui::Text("Transient Memory Used: %llu mbs", GameMemory::GetTheAmountOfTransientMemoryUsed() / (1024 * 1024));
+
+			ImGui::Text("Permanent Memory Allocated: %llu mbs", GameMemory::GetTheTotalAmountOfPermanentMemoryAllocated() / (1024 * 1024));
+			ImGui::Text("Transient Memory Allocated: %llu mbs", GameMemory::GetTheTotalAmountOfTransientMemoryAllocated() / (1024 * 1024));
+
+			ImGui::Separator();
+
+			for (int32 i = 0; i < ArrayCount(frameTimes) - 1; i++)
+			{
+				frameTimes[i] = frameTimes[i + 1];
+			}
+
+			real32 dt = Application::GetDeltaTime();
+			frameTimes[ArrayCount(frameTimes) - 1] = dt * 1000;
+
+			minTime = Min(minTime, dt);
+			maxTime = Max(maxTime, dt);
+
+			ImGui::Text("Min %f", minTime * 1000.0f);
+			ImGui::SameLine();
+			ImGui::Text("Max %f", maxTime * 1000.0f);
+			ImGui::SameLine();
+			if (ImGui::Button("Reset")) { minTime = REAL_MAX; maxTime = REAL_MIN; }
+			ImGui::PlotLines("Frame time", frameTimes, ArrayCount(frameTimes), 0, 0, 0, 30, ImVec2(128, 128), 4);
+
+
+			ImGui::End();
+		}
+
+		return !show;
+	}
+
+
 	static bool8 ImguiWin32MessageCallback(uint16 eventCode, void* sender, void* listener, EventContext data)
 	{
 		struct Win32EventPumpMessageContext
@@ -129,9 +248,9 @@ namespace sol
 
 			if (ImGui::BeginMenu("View"))
 			{
-				if (ImGui::MenuItem("Room Window")) { es->showRoomWindow = true; }
+				if (ImGui::MenuItem("Room Settings")) { es->showRoomWindow = true; }
 				if (ImGui::MenuItem("Render Settings")) { es->showRenderSettingsWindow = true; }
-				if (ImGui::MenuItem("Performance")) { es->showPerformanceWindow = true; }
+				if (ImGui::MenuItem("Performance")) { es->windows.Add(std::make_shared<EditorPerformanceWindow>()); }
 				if (ImGui::MenuItem("Console")) { es->showConsoleWindow = true; }
 				if (ImGui::MenuItem("Build")) { es->showBuildWindow = true; }
 				if (ImGui::MenuItem("Inspector")) { es->showInspectorWindow = true; }
@@ -147,71 +266,106 @@ namespace sol
 
 	static void ShowPerformanceWindow(EditorState* es, real32 dt)
 	{
-		for (int32 i = 0; i < ArrayCount(es->frameTimes) - 1; i++)
-		{
-			es->frameTimes[i] = es->frameTimes[i + 1];
-		}
-		es->frameTimes[ArrayCount(es->frameTimes) - 1] = dt * 1000;
 
-		es->minTime = Min(es->minTime, dt);
-		es->maxTime = Max(es->maxTime, dt);
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-		ImGui::Begin("Performance", &es->showPerformanceWindow);
-		ImGui::Text("Min %f", es->minTime * 1000.0f);
-		ImGui::Text("max %f", es->maxTime * 1000.0f);
-		if (ImGui::Button("Reset"))
-		{
-			es->minTime = REAL_MAX;
-			es->maxTime = REAL_MIN;
-		}
-		ImGui::PlotLines("Frame time", es->frameTimes, ArrayCount(es->frameTimes), 0, 0, 0, 30, ImVec2(128, 128), 4);
-
-		ImGui::End();
-		ImGui::PopStyleVar();
 	}
 
 	static void ShowAssetWindow(EditorState* es, real32 dt)
 	{
 		ImGui::Begin("Assets", &es->showAssetWindow);
-
+		uint32 idCount = 0;
+		String filter = "";
 		if (ImGui::CollapsingHeader("Models"))
 		{
+			filter.Clear();
+			ImGui::InputText("Model Filter", filter.GetCStr(), String::CAPCITY);
+			filter.CalculateLength();
 			auto resources = Resources::GetAllModelResources();
+			ImGui::Separator();
 			ImGui::Text("Total: %i", resources.count);
+			ImGui::Separator();
 
+			filter.ToUpperCase();
 			for (uint32 i = 0; i < resources.count; i++)
 			{
 				auto* res = &resources[i];
+				if (filter.GetLength() > 0)
+				{
+					String name = res->name;
+					name.ToUpperCase();
+					if (!name.Contains(filter))
+					{
+						continue;
+					}
+				}
 				ImGui::Text(res->name.GetCStr());
+				ImGui::SameLine(ImGui::GetWindowWidth() - 40);
+				ImGui::PushID(idCount++);
+				if (ImGui::SmallButton("Edit")) { SOLINFO(res->name.GetCStr()); }
+				ImGui::PopID();
 			}
 		}
 
 		if (ImGui::CollapsingHeader("Textures"))
 		{
+			filter.Clear();
+			ImGui::InputText("Texture Filter", filter.GetCStr(), String::CAPCITY);
+			filter.CalculateLength();
 			auto resources = Resources::GetAllTextureResources();
+			ImGui::Separator();
 			ImGui::Text("Total: %i", resources.count);
+			ImGui::Separator();
 
+			filter.ToUpperCase();
 			for (uint32 i = 0; i < resources.count; i++)
 			{
 				auto* res = &resources[i];
+				if (filter.GetLength() > 0)
+				{
+					String name = res->name;
+					name.ToUpperCase();
+					if (!name.Contains(filter))
+					{
+						continue;
+					}
+				}
+
 				ImGui::Text(res->name.GetCStr());
+				ImGui::SameLine(ImGui::GetWindowWidth() - 40);
+				ImGui::PushID(idCount++);
+				if (ImGui::SmallButton("Edit")) { es->windows.Add(std::make_shared<TextureMetaFileWindow>(res->name)); }
+				ImGui::PopID();
 			}
 		}
 
-		if (ImGui::CollapsingHeader("Shader"))
+		if (ImGui::CollapsingHeader("Programs"))
 		{
+			filter.Clear();
+			ImGui::InputText("Program Filter", filter.GetCStr(), String::CAPCITY);
+			filter.CalculateLength();
 			auto resources = Resources::GetAllProgramResources();
+			ImGui::Separator();
 			ImGui::Text("Total: %i", resources.count);
+			ImGui::Separator();
 
+			filter.ToUpperCase();
 			for (uint32 i = 0; i < resources.count; i++)
 			{
 				auto* res = &resources[i];
+				if (filter.GetLength() > 0)
+				{
+					String name = res->name;
+					name.ToUpperCase();
+					if (!name.Contains(filter))
+					{
+						continue;
+					}
+				}
+
 				ImGui::Text(res->name.GetCStr());
 			}
 		}
 
-		static String ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
+
 
 		if (ImGui::Button("Pack Models"))
 		{
@@ -238,7 +392,7 @@ namespace sol
 			metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
 
 			//auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Models/obj/", fileProcessor, metaProcessor);
-			auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Textures/", fileProcessor, metaProcessor);
+			auto textures = LoadAndProcessTextures("F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/Skyboxes/", fileProcessor, metaProcessor);
 			SaveBinaryData(textures, "Assets/Packed/textures.bin");
 		}
 
@@ -309,6 +463,8 @@ namespace sol
 		if (es->showPerformanceWindow) { ShowPerformanceWindow(es, dt); }
 		if (es->showAssetWindow) { ShowAssetWindow(es, dt); }
 		if (es->showInspectorWindow) { ShowInspectorWindow(es, dt); }
+
+		es->windows.Show();
 	}
 }
 

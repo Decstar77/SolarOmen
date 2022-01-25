@@ -21,6 +21,11 @@ namespace sol
 		return data;
 	}
 
+	void String::CalculateLength()
+	{
+		SetLength((int32)strlen(data));
+	}
+
 	inline void String::Clear()
 	{
 		for (int32 i = 0; i < CAPCITY + 1; i++)

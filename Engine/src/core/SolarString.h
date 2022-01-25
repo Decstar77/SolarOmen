@@ -31,6 +31,7 @@ namespace sol
 		int32 GetLength() const;
 		const char* GetCStr() const;
 		char* GetCStr();
+		void CalculateLength();
 		void Clear();
 		String& Add(const char& c);
 		String& Add(const char* c);
