@@ -113,6 +113,7 @@ namespace sol
 		bool8 isPaused;
 
 		Camera camera;
+		ResourceId skyboxId;
 
 		FixedArray<Entity, ENTITY_STORAGE_COUNT>				entities;
 		FixedArray<EntityId, ENTITY_STORAGE_COUNT - 1>			entityFreeList;

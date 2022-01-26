@@ -122,23 +122,11 @@ namespace sol
 			Renderer::LoadAllPrograms();
 		}
 
-		if (IsKeyJustDown(input, f3))
-		{
-			RoomResource res = {};
-			String path = Platform::OpenNativeFileDialog();
-			SOLINFO(String("Loading...").Add(path).GetCStr());
-			if (path.GetLength())
-			{
-				RoomProcessor::ParseRoomTextFile(path, &res);
-			}
-		}
-
-		//renderPacket->skyboxId = Resources::GetTextureResource("FS002_Day_Sunless")->id;
-
 		if (!es->isLightMapping)
 		{
-			OperateCamera(&es->camera, dt);
+			es->room.ContructRenderPacket(renderPacket);
 
+			OperateCamera(&es->camera, dt);
 			renderPacket->cameraPos = es->camera.transform.position;
 			renderPacket->viewMatrix = es->camera.GetViewMatrix();
 			renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();

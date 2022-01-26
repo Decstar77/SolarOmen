@@ -26,56 +26,15 @@ namespace sol
 
 	static bool8 GameInitialze(Game* game)
 	{
-		return true;
 		Room* room = &gameState->room;
 
 		room->Initliaze(nullptr);
 		gameState->hostPlayer = room->CreateEntity("cube");
-		gameState->hostPlayer.SetMaterial("craft_speederD", "");
+		gameState->hostPlayer.SetMaterial("sphere", "");
 		gameState->hostPlayer.SetLocalTransform(Transform(Vec3f(), Quatf(), Vec3f(0.5f)));
 		gameState->cameraOffset = room->camera.transform.position - gameState->hostPlayer.GetLocalTransform().position;
+		room->skyboxId = Resources::GetTextureResource("FS002_Day_Sunless")->id;
 
-		Entity terrian = room->CreateEntity(String("terrain"));
-		terrian.SetLocalTransform(Transform(Vec3f(), Quatf(), Vec3f(100)));
-		terrian.SetMaterial("terrain", "");
-
-		for (uint32 i = 0; i < (uint32)RandomInt32(5, 10); i++)
-		{
-			const char* hangars[] = {
-				"hangar_smallA",
-				"hangar_smallB",
-				"hangar_largeA",
-				"hangar_largeB",
-				"hangar_roundGlass",
-				"hangar_roundA",
-				"hangar_roundB",
-			};
-
-			uint32 index = (uint32)RandomInt32((uint32)0, (uint32)ArrayCount(hangars));
-
-			Entity hangar = room->CreateEntity(String("hangar").Add(i));
-			Vec3f spawnPoint = RandomPointOnUnitSphere();//* RandomReal(1.0f, 90.0f);
-
-			hangar.SetMaterial(hangars[index], "");
-			hangar.SetLocalTransform(Transform(Vec3f(spawnPoint.x, 0.0f, spawnPoint.z)));
-		}
-
-		for (uint32 i = 0; i < (uint32)RandomInt32(5, 25); i++)
-		{
-			Vec3f spawnPoint = RandomPointOnUnitSphere();//* RandomReal<real32>(1.0f, 90.0f);
-			Entity turretBase = room->CreateEntity(String("TurretBase").Add(i));
-			//Entity turretGun = room->CreateEntity(String("TurretGun").Add(i));
-
-			turretBase.SetMaterial("turret_double", "");
-			//turretGun.SetMaterial("turret", "");
-
-			Transform  t = Transform();
-			t.position = spawnPoint;
-			t.position.y = 0.0f;
-
-			turretBase.SetLocalTransform(t);
-			//turretGun.SetLocalTransform(t);
-		}
 
 		return true;
 	}
@@ -145,16 +104,15 @@ namespace sol
 
 	static bool8 GameUpdate(Game* game, RenderPacket* renderPacket, real32 dt)
 	{
-		return true;
 		Room* room = &gameState->room;
 
-		Input* input = Input::Get();
-		if (IsKeyJustDown(input, escape))
-		{
-			return false;
-		}
+		//Input* input = Input::Get();
+		//if (IsKeyJustDown(input, escape))
+		//{
+		//	return false;
+		//}
 
-		UpdatePlayer(dt);
+		//UpdatePlayer(dt);
 
 		room->ContructRenderPacket(renderPacket);
 

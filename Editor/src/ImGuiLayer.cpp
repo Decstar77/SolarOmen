@@ -16,6 +16,41 @@ namespace sol
 {
 	static String ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
 
+	template<typename T>
+	bool ComboEnum(const String& lable, int32* currentItem)
+	{
+		constexpr int32 count = (int32)T::Value::COUNT;
+		const char* items[count] = {};
+		for (int32 i = 0; i < count; i++)
+		{
+			items[i] = T::__STRINGS__[i].GetCStr();
+		}
+
+		return ImGui::Combo("Type", currentItem, items, count);
+	}
+
+	template<typename T>
+	ResourceId ComboBoxOfAsset(const char* label, const ManagedArray<T>& assets, ResourceId currentId)
+	{
+		int32 currentItem = 0;
+		const char** items = GameMemory::PushTransientCount<const char*>(assets.count);
+		String* itemData = GameMemory::PushTransientCount<String>(assets.count);
+
+		for (uint32 i = 0; i < assets.count; i++)
+		{
+			if (assets[i].id == currentId) { currentItem = i; }
+			itemData[i].Add(assets[i].name);
+			items[i] = itemData[i].GetCStr();
+		}
+
+		if (ImGui::Combo(label, &currentItem, items, assets.count))
+		{
+			currentId = assets[currentItem].id;
+		}
+
+		return currentId;
+	}
+
 	EditorWindowList::EditorWindowList() : EditorWindow("WINDOW LIST", true)
 	{
 	}
@@ -138,6 +173,8 @@ namespace sol
 			ImGui::InputText("Name", room->name.GetCStr(), room->name.CAPCITY);
 			room->name.CalculateLength();
 
+			room->skyboxId = ComboBoxOfAsset("Skybox", Resources::GetAllTextureResources(), room->skyboxId);
+
 			ImGui::End();
 		}
 		return !show;
@@ -257,8 +294,17 @@ namespace sol
 					}
 				}
 				if (ImGui::MenuItem("Open", "Ctrl+O")) {
-					//CString path = PlatformOpenNFileDialogAndReturnPath();
-					//LoadAGameWorld(gs, rs, as, es, path);
+					RoomResource* res = GameMemory::PushTransientStruct<RoomResource>();
+					String path = Platform::OpenNativeFileDialog();
+					if (path.GetLength() > 0) {
+						SOLINFO(String("Loading...").Add(path).GetCStr());
+						if (RoomProcessor::ParseRoomTextFile(path, res)) {
+							GameMemory::ZeroStruct<Room>(&es->room);
+							if (es->room.Initliaze(res)) {
+
+							}
+						}
+					}
 				}
 				ImGui::EndMenu();
 			}
@@ -416,41 +462,6 @@ namespace sol
 
 		ImGui::End();
 
-	}
-
-	template<typename T>
-	bool ComboEnum(const String& lable, int32* currentItem)
-	{
-		constexpr int32 count = (int32)T::Value::COUNT;
-		const char* items[count] = {};
-		for (int32 i = 0; i < count; i++)
-		{
-			items[i] = T::__STRINGS__[i].GetCStr();
-		}
-
-		return ImGui::Combo("Type", currentItem, items, count);
-	}
-
-	template<typename T>
-	ResourceId ComboBoxOfAsset(const char* label, const ManagedArray<T>& assets, ResourceId currentId)
-	{
-		int32 currentItem = 0;
-		const char** items = GameMemory::PushTransientCount<const char*>(assets.count);
-		String* itemData = GameMemory::PushTransientCount<String>(assets.count);
-
-		for (uint32 i = 0; i < assets.count; i++)
-		{
-			if (assets[i].id == currentId) { currentItem = i; }
-			itemData[i].Add(assets[i].name);
-			items[i] = itemData[i].GetCStr();
-		}
-
-		if (ImGui::Combo(label, &currentItem, items, assets.count))
-		{
-			currentId = assets[currentItem].id;
-		}
-
-		return currentId;
 	}
 
 	static void ShowInspectorWindow(EditorState* es, real32 dt)

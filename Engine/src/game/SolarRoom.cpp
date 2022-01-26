@@ -29,6 +29,7 @@ namespace sol
 		{
 			id = res->id;
 			name = res->name;
+			skyboxId = res->skyBoxId;
 		}
 
 		return 1;
@@ -208,6 +209,7 @@ namespace sol
 	{
 		renderPacket->viewMatrix = camera.GetViewMatrix();
 		renderPacket->projectionMatrix = camera.GetProjectionMatrix();
+		renderPacket->skyboxId = skyboxId;
 
 		BeginEntityLoop();
 		while (Entity entity = GetNextEntity())
@@ -215,6 +217,7 @@ namespace sol
 			RenderEntry entry = {};
 			entry.worldTransform = entity.GetWorldTransform();
 			entry.material = entity.GetMaterialomponent()->material;
+
 			renderPacket->renderEntries.Add(entry);
 		}
 	}
@@ -223,5 +226,6 @@ namespace sol
 	{
 		res->id = id;
 		res->name = name;
+		res->skyBoxId = skyboxId;
 	}
 }
