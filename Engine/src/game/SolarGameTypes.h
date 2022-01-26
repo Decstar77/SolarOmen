@@ -126,7 +126,7 @@ namespace sol
 		//FixedArray<BrainComponent, ENTITY_STORAGE_COUNT> brainComponents;
 		//FixedArray<NetworkComponent, ENTITY_STORAGE_COUNT> networkComponents;
 	public:
-		SOL_API bool8 Initliaze();
+		SOL_API bool8 Initliaze(RoomResource* res);
 
 		SOL_API Entity CreateEntity();
 		SOL_API Entity CreateEntity(const String& name);
@@ -136,6 +136,8 @@ namespace sol
 		SOL_API Entity GetNextEntity();
 
 		SOL_API void ContructRenderPacket(RenderPacket* renderPacket);
+		SOL_API void ContructResource(RoomResource* res);
+
 	private:
 		uint32 entityLoopIndex;
 

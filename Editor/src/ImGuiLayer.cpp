@@ -46,7 +46,6 @@ namespace sol
 		{
 			if (w->GetName() == window->GetName())
 			{
-				SOLERROR("Can not create window with same name");
 				return false;
 			}
 		}
@@ -132,6 +131,17 @@ namespace sol
 		return !show;
 	}
 
+	bool8 EditorRoomSettingsWindow::Show()
+	{
+		if (ImGui::Begin(GetName().GetCStr(), &show))
+		{
+			ImGui::InputText("Name", room->name.GetCStr(), room->name.CAPCITY);
+			room->name.CalculateLength();
+
+			ImGui::End();
+		}
+		return !show;
+	}
 
 	static bool8 ImguiWin32MessageCallback(uint16 eventCode, void* sender, void* listener, EventContext data)
 	{
@@ -238,7 +248,14 @@ namespace sol
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("New")) {}
+				if (ImGui::MenuItem("New", "Ctrl+N")) {
+
+				}
+				if (ImGui::MenuItem("Save", "Ctrl+S")) {
+					if (!RoomProcessor::SaveRoom("Assets/Raw/Rooms/", &es->room)) {
+						es->windows.Add(std::make_shared<EditorRoomSettingsWindow>(&es->room));
+					}
+				}
 				if (ImGui::MenuItem("Open", "Ctrl+O")) {
 					//CString path = PlatformOpenNFileDialogAndReturnPath();
 					//LoadAGameWorld(gs, rs, as, es, path);
@@ -248,7 +265,7 @@ namespace sol
 
 			if (ImGui::BeginMenu("View"))
 			{
-				if (ImGui::MenuItem("Room Settings")) { es->showRoomWindow = true; }
+				if (ImGui::MenuItem("Room Settings")) { es->windows.Add(std::make_shared<EditorRoomSettingsWindow>(&es->room)); }
 				if (ImGui::MenuItem("Render Settings")) { es->showRenderSettingsWindow = true; }
 				if (ImGui::MenuItem("Performance")) { es->windows.Add(std::make_shared<EditorPerformanceWindow>()); }
 				if (ImGui::MenuItem("Console")) { es->showConsoleWindow = true; }
@@ -453,6 +470,14 @@ namespace sol
 
 	void UpdateImGui(EditorState* es, real32 dt)
 	{
+		Input* input = Input::Get();
+		if (IsKeyJustDown(input, s) && input->ctrl) {
+			if (!RoomProcessor::SaveRoom("Assets/Raw/Rooms/", &es->room)) {
+				es->windows.Add(std::make_shared<EditorRoomSettingsWindow>(&es->room));
+			}
+		}
+
+
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 

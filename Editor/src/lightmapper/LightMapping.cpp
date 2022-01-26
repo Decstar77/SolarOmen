@@ -3,6 +3,44 @@
 
 namespace sol
 {
+	inline Vec3d Vec3ToDoublePrecision(const Vec3f& v)
+	{
+		return Vec3d(v.x, v.y, v.z);
+	}
+
+	void ReferenceRayTracer::Initialize(const Camera& camera)
+	{
+		*this = ReferenceRayTracer();
+
+		imageWidth = (int32)Application::GetSurfaceWidth();
+		imageHeight = (int32)Application::GetSurfaceHeight();
+		aspectRatio = (real64)Application::GetSurfaceAspectRatio();
+
+		TextureFormat format = TextureFormat::Value::R32G32B32A32_FLOAT;
+		textureHandle = Renderer::CreateTexture(imageWidth, imageHeight, format, ResourceCPUFlags::Value::WRITE);
+
+		pixels.clear();
+		pixels.resize(imageWidth * imageHeight);
+
+		pixelCaches.clear();
+		pixelCaches.resize(imageWidth * imageHeight);
+
+		world.backgroundColour = Vec3d(0.70, 0.80, 1.00);
+		world.objects.Open();
+		auto material = std::make_shared<Lambertian>(Vec3d(0.4, 0.2, 0.1));
+		world.objects.Add(std::make_shared<RayTracingSphere>(Vec3d(0), 1.0, material));
+		world.objects.Seal();
+		SOLINFO("Raytracing BVH built");
+
+		Vec3d lookfrom = Vec3ToDoublePrecision(camera.transform.position);
+		Vec3d lookat = lookfrom + Vec3ToDoublePrecision(camera.transform.GetBasis().forward);
+		Vec3d vup = Vec3d(0, 1, 0);
+		auto dist_to_focus = 10.0;
+		auto aperture = 0.1;
+
+		this->camera.Initialize(lookfrom, lookat, vup, camera.yfov, camera.aspect, aperture, dist_to_focus);
+	}
+
 	void ReferenceRayTracer::Initialize(uint32 samples)
 	{
 		*this = ReferenceRayTracer();
@@ -20,10 +58,7 @@ namespace sol
 		pixelCaches.clear();
 		pixelCaches.resize(imageWidth * imageHeight);
 
-		pixelsProcessed = 0;
-
 		complete = false;
-
 		samplesPerPixel = samples;
 
 		world.objects.Open();
@@ -34,8 +69,8 @@ namespace sol
 		//world.MakeSimpleLight(&camera, aspectRatio);
 		//world.MakeBoxWorld(&camera, aspectRatio);
 		world.MakeCornellBox(&camera, aspectRatio);
-
 	}
+
 	void ReferenceRayTracer::Shutdown()
 	{
 		Renderer::DestroyTexture(&textureHandle);

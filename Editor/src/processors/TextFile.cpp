@@ -13,18 +13,27 @@ namespace sol
 		return lines.at(cursor++);
 	}
 
-	void TextFileReader::Read(const String& path)
+	bool8 TextFileReader::Read(const String& path)
 	{
 		std::ifstream file(path.GetCStr());
-		std::string line;
-		while (std::getline(file, line)) {
-			lines.push_back(line.c_str());
+		if (file.is_open())
+		{
+			std::string line;
+			while (std::getline(file, line)) {
+				lines.push_back(line.c_str());
+			}
+
+			file.close();
+
+			return true;
 		}
 
-		file.close();
+		SOLERROR(String("Could not open: ").Add(path).GetCStr());
+
+		return false;
 	}
 
-	void TextFileWriter::SaveToDisk(const String& path)
+	bool8 TextFileWriter::SaveToDisk(const String& path)
 	{
 		std::ofstream file(path.GetCStr());
 
@@ -37,9 +46,12 @@ namespace sol
 		}
 		else
 		{
-			Assert(0, "TODO ERROR SaveToDisk");
+			SOLERROR(String("Could not save: ").Add(path).GetCStr());
+			return false;
 		}
 
 		file.close();
+
+		return true;
 	}
 }

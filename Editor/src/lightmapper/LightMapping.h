@@ -179,7 +179,7 @@ namespace sol
 		int32 totalSamples;
 		int32 depth;
 
-		PixelCache() : colour(0), samples(0), totalSamples(1000), depth(50) {}
+		PixelCache() : colour(0), samples(0), totalSamples(10), depth(1) {}
 	};
 
 	class ReferenceRayTracer
@@ -189,7 +189,7 @@ namespace sol
 		int32 imageHeight;
 		real64 aspectRatio;
 
-		uint32 pixelsProcessed;
+
 		uint32 samplesPerPixel;
 
 		uint32 updateCount;
@@ -204,6 +204,7 @@ namespace sol
 		RayTracingWorld world;
 
 		void Initialize(uint32 samples);
+		void Initialize(const Camera& camera);
 		void Shutdown();
 		void Trace();
 

@@ -81,6 +81,9 @@
     <ClCompile Include="src\lightmapper\tracer\RayTracingMaterials.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\processors\RoomProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vendor\imgui\imconfig.h">
@@ -159,6 +162,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\lightmapper\tracer\RayTracingMaterials.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\processors\RoomProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

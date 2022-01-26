@@ -5,7 +5,7 @@ namespace sol
 {
 	static Room* currentRoom = nullptr;
 
-	bool8 Room::Initliaze()
+	bool8 Room::Initliaze(RoomResource* res)
 	{
 		currentRoom = this;
 
@@ -24,6 +24,12 @@ namespace sol
 
 		isPaused = false;
 		initialized = true;
+
+		if (res)
+		{
+			id = res->id;
+			name = res->name;
+		}
 
 		return 1;
 	}
@@ -211,5 +217,11 @@ namespace sol
 			entry.material = entity.GetMaterialomponent()->material;
 			renderPacket->renderEntries.Add(entry);
 		}
+	}
+
+	void Room::ContructResource(RoomResource* res)
+	{
+		res->id = id;
+		res->name = name;
 	}
 }

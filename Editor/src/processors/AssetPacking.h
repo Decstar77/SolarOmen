@@ -4,6 +4,7 @@
 #include "MetaProcessor.h"
 #include "ModelProcessor.h"
 #include "TextureProcessor.h"
+#include "RoomProcessor.h"
 
 namespace sol
 {

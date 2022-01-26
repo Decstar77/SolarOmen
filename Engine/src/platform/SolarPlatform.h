@@ -42,6 +42,8 @@ namespace sol
 		static ManagedArray<String> LoadEntireFolder(const String& path, const String& fileTypes);
 		static PlatformFile LoadEntireFile(const String& path, bool32 metaDataOnly);
 
+		static String OpenNativeFileDialog();
+
 		static void Quit();
 		static uint32 GetWindowWidth();
 		static uint32 GetWindowHeight();

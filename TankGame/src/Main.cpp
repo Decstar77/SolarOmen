@@ -29,7 +29,7 @@ namespace sol
 		return true;
 		Room* room = &gameState->room;
 
-		room->Initliaze();
+		room->Initliaze(nullptr);
 		gameState->hostPlayer = room->CreateEntity("cube");
 		gameState->hostPlayer.SetMaterial("craft_speederD", "");
 		gameState->hostPlayer.SetLocalTransform(Transform(Vec3f(), Quatf(), Vec3f(0.5f)));

@@ -169,6 +169,7 @@
     <ClCompile Include="src\processors\MaterialProcessor.cpp" />
     <ClCompile Include="src\processors\ModelProcessor.cpp" />
     <ClCompile Include="src\processors\MetaProcessor.cpp" />
+    <ClCompile Include="src\processors\RoomProcessor.cpp" />
     <ClCompile Include="src\processors\TextFile.cpp" />
     <ClCompile Include="src\processors\TextureProcessor.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="src\processors\MaterialProcessor.h" />
     <ClInclude Include="src\processors\ModelProcessor.h" />
     <ClInclude Include="src\processors\MetaProcessor.h" />
+    <ClInclude Include="src\processors\RoomProcessor.h" />
     <ClInclude Include="src\processors\TextFile.h" />
     <ClInclude Include="src\processors\TextureProcessor.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />

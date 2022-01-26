@@ -28,13 +28,12 @@ namespace sol
 
 			EventSystem::Register((uint16)EngineEvent::Value::WINDOW_RESIZED, nullptr, OnWindowResizeCallback);
 
-			es->room.Initliaze();
+			es->room.Initliaze(nullptr);
 			es->selectedEntity = es->room.CreateEntity("Test");
 
 			MaterialComponent* materailComponent = es->selectedEntity.GetMaterialomponent();
 			//materailComponent->material.albedoId = Resources::GetTextureResource("BoomBox_baseColor")->id;
 			//materailComponent->material.modelId = Resources::GetModelResource("BoomBox")->id;
-
 
 			return true;
 		}
@@ -109,7 +108,8 @@ namespace sol
 
 			if (es->isLightMapping)
 			{
-				es->referenceRayTracer.Initialize(100);
+				//es->referenceRayTracer.Initialize(100);
+				es->referenceRayTracer.Initialize(es->camera);
 			}
 			if (!es->isLightMapping)
 			{
@@ -122,6 +122,17 @@ namespace sol
 			Renderer::LoadAllPrograms();
 		}
 
+		if (IsKeyJustDown(input, f3))
+		{
+			RoomResource res = {};
+			String path = Platform::OpenNativeFileDialog();
+			SOLINFO(String("Loading...").Add(path).GetCStr());
+			if (path.GetLength())
+			{
+				RoomProcessor::ParseRoomTextFile(path, &res);
+			}
+		}
+
 		//renderPacket->skyboxId = Resources::GetTextureResource("FS002_Day_Sunless")->id;
 
 		if (!es->isLightMapping)
@@ -131,18 +142,6 @@ namespace sol
 			renderPacket->cameraPos = es->camera.transform.position;
 			renderPacket->viewMatrix = es->camera.GetViewMatrix();
 			renderPacket->projectionMatrix = es->camera.GetProjectionMatrix();
-
-			OBB obb = OBB(1, 1);
-			obb.basis = Rotate(Mat3f(1), 45.0f, Vec3f(0, 1, 0));
-			Debug::DrawOBB(obb);
-
-			Ray ray = es->camera.ShootRayAtMouse();
-			RaycastInfo info = {};
-			if (Raycast::CheckOBB(ray, obb, &info))
-			{
-				//Debug::DrawPoint(info.point);
-				Debug::DrawLine(info.point, info.point + info.normal);
-			}
 
 			if (es->selectedEntity.IsValid())
 			{

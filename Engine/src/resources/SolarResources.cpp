@@ -7,6 +7,7 @@ namespace sol
 	static HashMap<ProgramResource>* programs;
 	static HashMap<ModelResource>* models;
 	static HashMap<TextureResource>* textures;
+	static HashMap<RoomResource>* rooms;
 
 	static String PACKED_ASSET_PATH = "Assets/Packed/";
 	bool8 Resources::Initialize()
@@ -14,6 +15,7 @@ namespace sol
 		programs = GameMemory::PushPermanentStruct<HashMap<ProgramResource>>();
 		models = GameMemory::PushPermanentStruct<HashMap<ModelResource>>();
 		textures = GameMemory::PushPermanentStruct<HashMap<TextureResource>>();
+		rooms = GameMemory::PushPermanentStruct<HashMap<RoomResource>>();
 
 		bool8 modelsLoaded = LoadAllModelResources();
 		bool8 texturesLoaded = LoadAllTextureResources();
@@ -27,6 +29,7 @@ namespace sol
 		models->Clear();
 		textures->Clear();
 		programs->Clear();
+		rooms->Clear();
 	}
 
 	template<typename T>
@@ -80,6 +83,11 @@ namespace sol
 	TextureResource* Resources::GetTextureResource(const ResourceId& id)
 	{
 		return textures->Get(id);
+	}
+
+	ManagedArray<RoomResource> sol::Resources::GetAllRoomResources()
+	{
+		return rooms->GetValueSet();
 	}
 
 	struct BinaryAssetFile

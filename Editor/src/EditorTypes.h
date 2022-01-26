@@ -2,6 +2,7 @@
 #include <SolarEngine.h>
 #include "lightmapper/LightMapping.h"
 #include "processors/AssetPacking.h"
+
 namespace sol
 {
 	class EditorWindow
@@ -53,17 +54,16 @@ namespace sol
 	class EditorRoomSettingsWindow : public EditorWindow
 	{
 	public:
-		EditorRoomSettingsWindow(const String& name) : EditorWindow(name, true) {}
+		EditorRoomSettingsWindow(Room* room) : EditorWindow("Room", true), room(room) {}
 		virtual bool8 Show() override;
 	private:
-		RoomResource resource;
+		Room* room;
 	};
 
 	struct EditorState
 	{
 		bool8 showPerformanceWindow;
 		bool8 showConsoleWindow;
-		bool8 showRoomWindow;
 		bool8 showInspectorWindow;
 		bool8 showAssetWindow;
 		bool8 showRenderSettingsWindow;
