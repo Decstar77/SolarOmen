@@ -1301,6 +1301,12 @@ namespace sol
 		return q;
 	}
 
+	template<typename T>
+	Quat<T> EulerToQuat(const T& x, const T& y, const T& z)
+	{
+		return EulerToQuat<T>(Vec3<T>(x, y, z));
+	}
+
 	template <typename T>
 	Vec3<T> QuatToEuler(const Quat<T>& q)
 	{

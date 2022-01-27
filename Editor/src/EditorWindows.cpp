@@ -81,6 +81,41 @@ namespace sol
 		return !show;
 	}
 
+	ModelMetaFileWindow::ModelMetaFileWindow(const String& name) : EditorWindow(name, true)
+	{
+		FileProcessor fileProcessor = {};
+		MetaProcessor metaProcessor = {};
+		metaProcessor.LoadAllMetaFiles(fileProcessor.GetFilePaths(ASSET_PATH, "slo"));
+		path = metaProcessor.Find(name);
+		file = metaProcessor.ParseModelMetaFile(path);
+		if (!file.id.IsValid())
+		{
+			show = false;
+			SOLERROR("Could not edit texture meta file");
+		}
+	}
+
+	bool8 ModelMetaFileWindow::Show(EditorState* es)
+	{
+		String windowName = "MetaData";
+		windowName.Add(name);
+		if (ImGui::Begin(windowName.GetCStr(), &show))
+		{
+			ImGui::Text("Id: %llu", file.id.number);
+			ImGui::Text("Layout: %s", file.layout.ToString().GetCStr());
+			ImGui::InputFloat("Scale", &file.scale);
+
+			if (ImGui::Button("Save"))
+			{
+				MetaProcessor metaProcessor = {};
+				metaProcessor.SaveMetaData(path, file);
+			}
+
+			ImGui::End();
+		}
+
+		return !show;
+	}
 
 	bool8 EditorPerformanceWindow::Show(EditorState* es)
 	{
@@ -264,5 +299,7 @@ namespace sol
 		}
 		return !show;
 	}
+
+
 
 }

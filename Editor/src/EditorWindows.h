@@ -42,6 +42,17 @@ namespace sol
 		TextureMetaFile file;
 	};
 
+	class ModelMetaFileWindow : public EditorWindow
+	{
+	public:
+		ModelMetaFileWindow(const String& name);
+		virtual bool8 Show(EditorState* es) override;
+
+	private:
+		String path;
+		ModelMetaFile file;
+	};
+
 	class EditorPerformanceWindow : public EditorWindow
 	{
 	public:

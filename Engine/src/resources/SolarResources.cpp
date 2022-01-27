@@ -144,6 +144,13 @@ namespace sol
 		sphere->id.number = 3;
 		sphere->meshes.Allocate(1, MemoryType::PERMANENT);
 		sphere->meshes.Add(ModelGenerator::CreateSphere(1.0f, 16, 16, VertexLayoutType::Value::PNT));
+
+		ModelResource* cylinder = models->Create(4);
+		cylinder->name = "Cylinder";
+		cylinder->id.number = 4;
+		cylinder->meshes.Allocate(1, MemoryType::PERMANENT);
+		//cylinder->meshes.Add(ModelGenerator::CreateCylinder(1.0f, 1.0f, 1.0f, 5, 5, VertexLayoutType::Value::PNT));
+		cylinder->meshes.Add(ModelGenerator::CreateCylinder(0.5f, 0.5f, 1.0f, 16, 16, VertexLayoutType::Value::PNT));
 	}
 
 	bool8 Resources::LoadAllModelResources()

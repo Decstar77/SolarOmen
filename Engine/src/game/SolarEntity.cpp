@@ -215,11 +215,11 @@ namespace sol
 		return &room->materialComponets[id.index];
 	}
 
-	void Entity::SetMaterial(const String& modelName, const String& textureName)
+	void Entity::SetMaterial(const String& modelName, const String& albedo)
 	{
 		Assert(IsValid(), "Entity invalid");
 		ModelResource* model = Resources::GetModelResource(modelName);
-		//TextureResource* texture = Resources::GetTextureResource(modelName);
+		TextureResource* texture = Resources::GetTextureResource(albedo);
 
 		if (model)
 		{
@@ -230,13 +230,13 @@ namespace sol
 			SOLERROR("Model resource not found");
 		}
 
-		/*	if (texture)
-			{
-				room->materialComponets[id.index].material.albedoId = texture->id;
-			}
-			else
-			{
-				SOLERROR("Texture resource not found");
-			}*/
+		if (texture)
+		{
+			room->materialComponets[id.index].material.albedoId = texture->id;
+		}
+		else
+		{
+			SOLERROR("Texture resource not found");
+		}
 	}
 }

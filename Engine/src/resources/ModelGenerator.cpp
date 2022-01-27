@@ -408,4 +408,142 @@ namespace sol
 
 		return ConvertMeshDataIntoModelResource(&meshData, layout);
 	}
+
+	static void BuildCylinderTopCap(real32  bottomRadius, real32  topRadius, real32 height,
+		uint32 sliceCount, uint32 stackCount, MeshData* meshData)
+	{
+		uint32 baseIndex = (uint32)meshData->vertices.count;
+
+		real32 y = 0.5f * height;
+		real32 dTheta = 2.0f * PI / sliceCount;
+
+		// Duplicate cap ring vertices because the texture coordinates and normals differ.
+		for (uint32 i = 0; i <= sliceCount; ++i)
+		{
+			real32 x = topRadius * cosf(i * dTheta);
+			real32 z = topRadius * sinf(i * dTheta);
+
+			// Scale down by the height to try and make top cap texture coord area
+			// proportional to base.
+			real32 u = x / height + 0.5f;
+			real32 v = z / height + 0.5f;
+
+			meshData->vertices.Add(Vertex(x, y, z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
+		}
+
+		// Cap center vertex.
+		meshData->vertices.Add(Vertex(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+
+		// Index of center vertex.
+		uint32 centerIndex = (uint32)meshData->vertices.count - 1;
+
+		for (uint32 i = 0; i < sliceCount; ++i)
+		{
+			meshData->indices.Add(centerIndex);
+			meshData->indices.Add(baseIndex + i + 1);
+			meshData->indices.Add(baseIndex + i);
+		}
+	}
+
+	static void BuildCylinderBottomCap(real32 bottomRadius, real32 topRadius, real32 height,
+		uint32 sliceCount, uint32 stackCount, MeshData* meshData)
+	{
+		// 
+		// Build bottom cap.
+		//
+
+		uint32 baseIndex = (uint32)meshData->vertices.count;
+		real32 y = -0.5f * height;
+
+		// vertices of ring
+		real32 dTheta = 2.0f * PI / sliceCount;
+		for (uint32 i = 0; i <= sliceCount; ++i)
+		{
+			real32 x = bottomRadius * cosf(i * dTheta);
+			real32 z = bottomRadius * sinf(i * dTheta);
+
+			// Scale down by the height to try and make top cap texture coord area
+			// proportional to base.
+			real32 u = x / height + 0.5f;
+			real32 v = z / height + 0.5f;
+
+			meshData->vertices.Add(Vertex(x, y, z, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
+		}
+
+		// Cap center vertex.
+		meshData->vertices.Add(Vertex(0.0f, y, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+
+		// Cache the index of center vertex.
+		uint32 centerIndex = (uint32)meshData->vertices.count - 1;
+
+		for (uint32 i = 0; i < sliceCount; ++i)
+		{
+			meshData->indices.Add(centerIndex);
+			meshData->indices.Add(baseIndex + i);
+			meshData->indices.Add(baseIndex + i + 1);
+		}
+	}
+
+	MeshResource ModelGenerator::CreateCylinder(real32 bottomRadius, real32 topRadius, real32 height,
+		uint32 sliceCount, uint32 stackCount, VertexLayoutType layout)
+	{
+		MeshData meshData = {};
+
+		real32 stackHeight = height / stackCount;
+		real32 radiusStep = (topRadius - bottomRadius) / stackCount;
+		uint32 ringCount = stackCount + 1;
+
+		meshData.vertices.Allocate(2048, MemoryType::TRANSIENT);
+		meshData.indices.Allocate(4096, MemoryType::TRANSIENT);
+
+		for (uint32 i = 0; i < ringCount; ++i)
+		{
+			real32 y = -0.5f * height + i * stackHeight;
+			real32 r = bottomRadius + i * radiusStep;
+
+			real32 dTheta = 2.0f * PI / sliceCount;
+			for (uint32 j = 0; j <= sliceCount; ++j)
+			{
+				Vertex vertex = {};
+
+				real32 c = Cos(j * dTheta);
+				real32 s = Sin(j * dTheta);
+
+				vertex.position = Vec3f(r * c, y, r * s);
+				vertex.uv.x = (real32)j / sliceCount;
+				vertex.uv.y = 1.0f - (real32)i / stackCount;
+
+				vertex.tanget = Vec3f(-s, 0.0f, c);
+
+				real32 dr = bottomRadius - topRadius;
+				Vec3f bitangent = Vec3f(dr * c, -height, dr * s);
+
+				vertex.normal = Normalize(Cross(vertex.tanget, bitangent));
+
+				meshData.vertices.Add(vertex);
+			}
+		}
+
+		// @NOTE: Add one because we duplicate the first and last vertex per ring
+		// @NOTE: since the texture coordinates are different.
+		uint32 ringVertexCount = sliceCount + 1;
+
+		for (uint32 i = 0; i < stackCount; ++i)
+		{
+			for (uint32 j = 0; j < sliceCount; ++j)
+			{
+				meshData.indices.Add(i * ringVertexCount + j);
+				meshData.indices.Add((i + 1) * ringVertexCount + j);
+				meshData.indices.Add((i + 1) * ringVertexCount + j + 1);
+				meshData.indices.Add(i * ringVertexCount + j);
+				meshData.indices.Add((i + 1) * ringVertexCount + j + 1);
+				meshData.indices.Add(i * ringVertexCount + j + 1);
+			}
+		}
+
+		BuildCylinderTopCap(bottomRadius, topRadius, height, sliceCount, stackCount, &meshData);
+		BuildCylinderBottomCap(bottomRadius, topRadius, height, sliceCount, stackCount, &meshData);
+
+		return ConvertMeshDataIntoModelResource(&meshData, layout);
+	}
 }

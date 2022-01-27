@@ -241,7 +241,7 @@ namespace sol
 				ImGui::Text(res->name.GetCStr());
 				ImGui::SameLine(ImGui::GetWindowWidth() - 40);
 				ImGui::PushID(idCount++);
-				if (ImGui::SmallButton("Edit")) { SOLINFO(res->name.GetCStr()); }
+				if (ImGui::SmallButton("Edit")) { es->windows.Add(std::make_shared<ModelMetaFileWindow>(res->name)); }
 				ImGui::PopID();
 			}
 		}

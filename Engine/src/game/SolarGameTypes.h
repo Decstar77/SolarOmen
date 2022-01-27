@@ -62,7 +62,7 @@ namespace sol
 		SOL_API Transform GetWorldTransform() const;
 
 		SOL_API MaterialComponent* GetMaterialomponent();
-		SOL_API void SetMaterial(const String& modelName, const String& textureName);
+		SOL_API void SetMaterial(const String& modelName, const String& albedo);
 
 		SOL_API operator bool() const;
 		SOL_API bool operator==(const Entity& rhs) const;
