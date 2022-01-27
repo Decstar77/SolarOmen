@@ -68,141 +68,117 @@ namespace sol
 		return this->id != rhs.id;
 	}
 
-	void Entity::SetParent(Entity* entity)
+	void Entity::SetParent(Entity entity)
 	{
 		Assert(IsValid(), "Entity invalid");
-		Assert(this->id != entity->id, "Cannot parent an entity to its self !!");
+		Assert(this->id != entity.id, "Cannot parent an entity to its self !!");
+
+		TransformComponent* me = &room->transformComponents[this->id.index];
+
+		if (!entity.IsValid())
+		{
+			if (me->parent.index != 0) {
+				TransformComponent* currentParnet = &room->transformComponents[me->parent.index];
+				currentParnet->children.Remove(this->id);
+			}
+
+			me->parent = {};
+			return;
+		}
+
+		TransformComponent* other = &room->transformComponents[entity.id.index];
 
 		ManagedArray<Entity> descendants = GetDescendants();
 		for (uint32 i = 0; i < descendants.count; i++)
 		{
-			if (descendants[i].id == entity->id)
+			if (descendants[i].id == entity.id)
 			{
 				SOLWARN("Attempting to set a parent to a descendant");
 				return;
 			}
 		}
 
-		if (Entity* existingParent = parent.Get())
+		if (me->parent.index != 0)
 		{
-			Entity* prev = siblingBehind.Get();
-			Entity* next = siblingAhead.Get();
-
-			// @NOTE: I(this) was the only child
-			if (!prev && !next)
-			{
-				existingParent->child = {};
-			}
-			// @NOTE: me was the last child
-			else if (prev && !next)
-			{
-				prev->siblingAhead = {};
-			}
-			// @NOTE: me the the first child
-			else if (!prev && next)
-			{
-				existingParent->child = next->id;
-				next->siblingBehind = {};
-			}
-			// @NOTE: me was a middle child
-			else if (prev && next)
-			{
-				prev->siblingAhead = next->id;
-				next->siblingBehind = prev->id;
-			}
-			else
-			{
-				Assert(0, "SetParent went wrong");
-			}
+			TransformComponent* currentParnet = &room->transformComponents[me->parent.index];
+			currentParnet->children.Remove(this->id);
 		}
 
-		Entity* stored = id.Get();
-		if (Entity* newParent = entity->id.Get())
+		me->parent = entity.id;
+		other->children.Add(this->id);
+	}
+
+	Entity Entity::GetParent()
+	{
+		Assert(IsValid(), "Entity invalid");
+		TransformComponent* me = &room->transformComponents[id.index];
+		Entity parent = {};
+		parent.id = me->parent;
+
+		return parent;
+	}
+
+	ManagedArray<Entity> Entity::GetChildren()
+	{
+		Assert(IsValid(), "Entity invalid");
+		TransformComponent* me = &room->transformComponents[id.index];
+		ManagedArray<Entity> children = ManagedArray<Entity>(me->children.count, MemoryType::TRANSIENT);
+		for (uint32 i = 0; i < me->children.count; i++)
 		{
-			stored->parent = newParent->id;
-
-			if (Entity* child = newParent->GetFirstChild())
-			{
-				while (child)
-				{
-					Entity* next = child->GetSiblingAhead();
-					if (next != nullptr)
-					{
-						child = next;
-					}
-					else
-					{
-						break;
-					}
-				}
-
-				child->siblingAhead = stored->id;
-				stored->siblingBehind = child->id;
-			}
-			else
-			{
-				newParent->child = stored->id;
-			}
-
-			*entity = *newParent;
-		}
-		else
-		{
-			stored->parent = {};
-			stored->siblingBehind = {};
-			stored->siblingAhead = {};
+			Entity entity = {};
+			entity.id = me->children[i];
+			children.Add(entity);
 		}
 
-		*this = *stored;
+		return children;
 	}
 
-	Entity* Entity::GetParent()
+	uint32 Entity::GetChildrenCount()
 	{
-		return parent.Get();
+		Assert(IsValid(), "Entity invalid");
+		TransformComponent* me = &room->transformComponents[id.index];
+		return me->children.count;
 	}
 
-	Entity* Entity::GetFirstChild()
+	uint32 Entity::GetDescendantCount()
 	{
-		return child.Get();
-	}
+		Assert(IsValid(), "Entity invalid");
+		TransformComponent* me = &room->transformComponents[id.index];
 
-	Entity* Entity::GetSiblingAhead()
-	{
-		return siblingAhead.Get();
-	}
-
-	Entity* Entity::GetSiblingBehind()
-	{
-		return siblingBehind.Get();
-	}
-
-	void DoCountDescendants(Entity entity, uint32* count)
-	{
-		(*count)++;
-		for (Entity* child = entity.GetFirstChild(); child != nullptr; child = child->GetSiblingAhead())
+		uint32 count = me->children.count;
+		for (uint32 i = 0; i < me->children.count; i++)
 		{
-			DoCountDescendants(*child, count);
+			count += me->children[i].Get()->GetDescendantCount();
 		}
+
+		return count;
 	}
 
-	void AddDescendants(Entity entity, ManagedArray<Entity>* des)
+	void Entity::DoGetDescendants(Entity entity, ManagedArray<Entity>* des)
 	{
 		des->Add(entity);
-		for (Entity* child = entity.GetFirstChild(); child != nullptr; child = child->GetSiblingAhead())
+		TransformComponent* me = &room->transformComponents[entity.id.index];
+		for (uint32 i = 0; i < me->children.count; i++)
 		{
-			AddDescendants(*child, des);
+			Entity child = {};
+			child.id = me->children[i];
+			DoGetDescendants(child, des);
 		}
 	}
 
 	ManagedArray<Entity> Entity::GetDescendants()
 	{
-		uint32 count = 0;
-		DoCountDescendants(*this, &count);
+		Assert(IsValid(), "Entity invalid");
+		TransformComponent* me = &room->transformComponents[id.index];
+		uint32 count = GetDescendantCount();
 
-		ManagedArray<Entity> des = {};
-		des.Allocate(count, MemoryType::TRANSIENT);
-
-		AddDescendants(*this, &des);
+		ManagedArray<Entity> des = ManagedArray<Entity>(count, MemoryType::TRANSIENT);
+		for (uint32 i = 0; i < me->children.count; i++)
+		{
+			Entity child = {};
+			child.id = me->children[i];
+			DoGetDescendants(child, &des);
+		}
 
 		return des;
 	}
@@ -222,15 +198,15 @@ namespace sol
 	Transform Entity::GetWorldTransform() const
 	{
 		Assert(IsValid(), "Entity invalid");
+		return room->transformComponents[id.index].transform;
+		//Transform worldTransfom = room->transformComponents[id.index].transform;
+		//Entity* parentEntity = parent.Get();
+		//if (parentEntity)
+		//{
+		//	worldTransfom = Transform::CombineTransform(worldTransfom, parentEntity->GetWorldTransform());
+		//}
 
-		Transform worldTransfom = room->transformComponents[id.index].transform;
-		Entity* parentEntity = parent.Get();
-		if (parentEntity)
-		{
-			worldTransfom = Transform::CombineTransform(worldTransfom, parentEntity->GetWorldTransform());
-		}
-
-		return worldTransfom;
+		return Transform();
 	}
 
 	MaterialComponent* Entity::GetMaterialomponent()

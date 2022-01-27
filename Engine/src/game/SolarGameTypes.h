@@ -23,6 +23,8 @@ namespace sol
 	struct TransformComponent
 	{
 		Transform transform;
+		EntityId parent;
+		FixedArray<EntityId, 64> children;
 	};
 
 	struct NameComponent
@@ -48,11 +50,11 @@ namespace sol
 		SOL_API EntityId GetId() const;
 		SOL_API bool IsValid() const;
 
-		SOL_API void SetParent(Entity* entity);
-		SOL_API Entity* GetParent();
-		SOL_API Entity* GetFirstChild();
-		SOL_API Entity* GetSiblingAhead();
-		SOL_API Entity* GetSiblingBehind();
+		SOL_API void SetParent(Entity entity);
+		SOL_API Entity GetParent();
+		SOL_API uint32 GetChildrenCount();
+		SOL_API ManagedArray<Entity> GetChildren();
+		SOL_API uint32 GetDescendantCount();
 		SOL_API ManagedArray<Entity> GetDescendants();
 
 		SOL_API void SetLocalTransform(const Transform& transform);
@@ -68,11 +70,10 @@ namespace sol
 
 	private:
 		EntityId id;
-		EntityId parent;
-		EntityId child;
-		EntityId siblingAhead;
-		EntityId siblingBehind;
-		class Room* room;
+
+	private:
+		SOL_API void DoGetDescendants(Entity entity, ManagedArray<Entity>* des);
+		inline static class Room* room;
 
 	private:
 		friend struct GameState;
@@ -145,7 +146,7 @@ namespace sol
 		void CreateEntityFreeList();
 		EntityId GetNextFreeEntityId();
 		void PushFreeEntityId(EntityId id);
-		void RemoveEntityChildParentRelationship(Entity* entity);
+
 	};
 
 	struct Game

@@ -62,7 +62,13 @@ namespace sol
 		Room* room;
 	};
 
+	class EditorEntityInspectorWindow : public EditorWindow
+	{
+	public:
+		EditorEntityInspectorWindow() : EditorWindow("Inpsector", true) {};
+		virtual bool8 Show(EditorState* es) override;
 
+	};
 
 	inline static String ASSET_PATH = "F:/codes/SolarOmen/SolarOmen-2/Assets/Raw/";
 

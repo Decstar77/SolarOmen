@@ -86,7 +86,8 @@ namespace sol
 		MemoryArena transientStorage;
 		MemoryArena dynamicStorage;
 
-		MemoryNode dynamicHead;
+		MemoryNode freeHead;
+		MemoryNode fullHead;
 
 		void* TransientPushSize(uint64 size);
 		void* PermanentPushSize(uint64 size);

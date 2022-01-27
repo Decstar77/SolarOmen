@@ -61,6 +61,18 @@ namespace sol
 			count--;
 		}
 
+		inline void Remove(const T& item)
+		{
+			for (uint32 i = 0; i < count; i++)
+			{
+				if (item == data[i])
+				{
+					Remove(i);
+					return;
+				}
+			}
+		}
+
 		inline void Remove(const T* ptr)
 		{
 			for (uint32 i = 0; i < count; i++)

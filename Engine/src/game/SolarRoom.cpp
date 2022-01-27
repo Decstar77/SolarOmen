@@ -8,6 +8,7 @@ namespace sol
 	bool8 Room::Initliaze(RoomResource* res)
 	{
 		currentRoom = this;
+		Entity::room = this;
 
 		CreateEntityFreeList();
 
@@ -57,7 +58,6 @@ namespace sol
 		Entity* entity = &entities[id.index];
 		Assert(entity->id.index == INVALID_ENTITY_INDEX, "Using a valid entity");
 		entity->id = id;
-		entity->room = this;
 
 		transformComponents[id.index].transform = Transform();
 
@@ -78,40 +78,6 @@ namespace sol
 		return entity;
 	}
 
-	void Room::RemoveEntityChildParentRelationship(Entity* entity)
-	{
-		Assert(entity->IsValid(), "RemoveEntityChildParentRelationship");
-
-		for (Entity* child = entity->GetFirstChild(); child != nullptr;)
-		{
-			// @NOTE: Get the sibling before we delete/clear the current entity 
-			Entity* sibling = child->GetSiblingAhead();
-			DestoryEntity(child);
-			child = sibling;
-		}
-
-		if (Entity* parent = entity->GetParent())
-		{
-			Assert(*parent->child.Get() == *entity, "RemoveEntityChildParentRelationship");
-			parent->child = entity->siblingAhead;
-		}
-
-		if (Entity* sibling = entity->GetSiblingAhead())
-		{
-			Assert(*sibling->GetSiblingBehind() == *entity, "RemoveEntityChildParentRelationship");
-			sibling->siblingBehind = entity->siblingBehind;
-		}
-
-		if (Entity* sibling = entity->GetSiblingBehind())
-		{
-			Assert(*sibling->GetSiblingAhead() == *entity, "RemoveEntityChildParentRelationship");
-			sibling->siblingAhead = entity->siblingAhead;
-		}
-
-		// @NOTE: Update this pointer to what ever changed
-		*entity = *entity->GetId().Get();
-	}
-
 	void Room::DestoryEntity(Entity* entity)
 	{
 		Assert(entity, "Destroy null entity ?");
@@ -120,22 +86,28 @@ namespace sol
 
 		if (entity && entity->IsValid())
 		{
-			//LOG("Destorying entity: " << entity.id.index);
-			RemoveEntityChildParentRelationship(entity);
-			PushFreeEntityId(entity->id);
-
 			int32 index = entity->id.index;
+
+			// @NOTE: Remove children
+			TransformComponent* transformComp = &transformComponents[index];
+			for (uint32 i = 0; i < transformComp->children.count; i++)
+			{
+				Entity child = {};
+				child.id = transformComp->children[i];
+				DestoryEntity(&child);
+			}
+
+			if (transformComp->parent.index > 0) {
+				transformComponents[transformComp->parent.index].children.Remove(entity->id);
+			}
+
+
+			PushFreeEntityId(entity->id);
+			GameMemory::ZeroStruct(&transformComponents[index]);
 			GameMemory::ZeroStruct(&entities[index]);
 			GameMemory::ZeroStruct(&nameComponents[index]);
 			GameMemory::ZeroStruct(&tagComponents[index]);
 			GameMemory::ZeroStruct(&materialComponets[index]);
-			//ZeroStruct(&colliderComponents[index]);
-
-			// @NOTE: We don't zero the brain beacause if the brain is calling this function it will
-			//		: mess the current state of the brain, and thus any futher code is be broken entirely
-			//		: instead what happens is the brain is zero'd upon being set.
-			//brainComponents[index].enabled = false;
-			//ZeroStruct(&brainComponents[index]);
 
 			*entity = {};
 		}

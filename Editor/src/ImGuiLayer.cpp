@@ -14,6 +14,50 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 namespace sol
 {
+	bool8 EditorSelectionAction::Redo(EditorState* es)
+	{
+		es->selection.Set(cur);
+		return true;
+	}
+
+	bool8 EditorSelectionAction::Undo(EditorState* es)
+	{
+		es->selection.Set(old);
+		return true;
+	}
+
+	bool8 EditorSetParentAction::Redo(EditorState* es)
+	{
+		entity.SetParent(newParent);
+		return true;
+	}
+
+	bool8 EditorSetParentAction::Undo(EditorState* es)
+	{
+		entity.SetParent(oldParent);
+		return true;
+	}
+
+	bool8 EditorSetNameAction::Redo(EditorState* es)
+	{
+		if (entity.IsValid()) {
+			entity.SetName(curName);
+			return true;
+		}
+
+		return false;
+	}
+
+	bool8 EditorSetNameAction::Undo(EditorState* es)
+	{
+		if (entity.IsValid()) {
+			entity.SetName(oldName);
+			return true;
+		}
+
+		return false;
+	}
+
 	static bool8 ImguiWin32MessageCallback(uint16 eventCode, void* sender, void* listener, EventContext data)
 	{
 		struct Win32EventPumpMessageContext
@@ -150,7 +194,7 @@ namespace sol
 				if (ImGui::MenuItem("Performance")) { es->windows.Add(std::make_shared<EditorPerformanceWindow>()); }
 				if (ImGui::MenuItem("Console")) { es->showConsoleWindow = true; }
 				if (ImGui::MenuItem("Build")) { es->showBuildWindow = true; }
-				if (ImGui::MenuItem("Inspector")) { es->showInspectorWindow = true; }
+				if (ImGui::MenuItem("Inspector")) { es->windows.Add(std::make_shared<EditorEntityInspectorWindow>()); }
 				if (ImGui::MenuItem("Asset")) { es->showAssetWindow = true; }
 				//if (ImGui::MenuItem("Main window")) { es->windowOpen = true; }
 				//if (ImGui::MenuItem("Physics")) { es->physicsWindowOpen = true; }
@@ -298,21 +342,6 @@ namespace sol
 
 	}
 
-	static void ShowInspectorWindow(EditorState* es, real32 dt)
-	{
-		ImGui::Begin("Inspector", &es->showInspectorWindow);
-
-		if (es->selectedEntity.IsValid())
-		{
-			MaterialComponent* materialComp = es->selectedEntity.GetMaterialomponent();
-			materialComp->material.modelId = ComboBoxOfAsset("Model", Resources::GetAllModelResources(), materialComp->material.modelId);
-			materialComp->material.albedoId = ComboBoxOfAsset("Abledo", Resources::GetAllTextureResources(), materialComp->material.albedoId);
-			materialComp->material.programId = ComboBoxOfAsset("Program", Resources::GetAllProgramResources(), materialComp->material.programId);
-		}
-
-		ImGui::End();
-	}
-
 	void UpdateImGui(EditorState* es, real32 dt)
 	{
 		Input* input = Input::Get();
@@ -320,6 +349,22 @@ namespace sol
 			if (!RoomProcessor::SaveRoom("Assets/Raw/Rooms/", &es->room)) {
 				es->windows.Add(std::make_shared<EditorRoomSettingsWindow>(&es->room));
 			}
+		}
+
+		//if (IsKeyJustDown(input, del)) {
+		//	for (Entity entity : es->selectedEntities)
+		//	{
+		//		es->room.DestoryEntity(&entity);
+		//	}
+		//	es->selectedEntities.clear();
+		//}
+
+
+		if (IsKeyJustDown(input, z) && input->ctrl && input->shift) {
+			es->undoSystem.Redo(es);
+		}
+		else if (IsKeyJustDown(input, z) && input->ctrl) {
+			es->undoSystem.Undo(es);
 		}
 
 
@@ -332,7 +377,6 @@ namespace sol
 		ShowMainMenuBar(es);
 		if (es->showPerformanceWindow) { ShowPerformanceWindow(es, dt); }
 		if (es->showAssetWindow) { ShowAssetWindow(es, dt); }
-		if (es->showInspectorWindow) { ShowInspectorWindow(es, dt); }
 
 		es->windows.Show(es);
 	}

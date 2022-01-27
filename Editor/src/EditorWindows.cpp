@@ -1,5 +1,5 @@
 #include "EditorWindows.h"
-
+#include "EditorTypes.h"
 
 
 namespace sol
@@ -148,7 +148,8 @@ namespace sol
 	static void DoEntityTreeDisplay(EditorState* es, Entity entity)
 	{
 		ImGui::PushID(entity.GetId().index);
-		bool8 open = ImGui::TreeNodeEx(entity.GetName().GetCStr(),
+		String name = entity.GetName();
+		bool8 open = ImGui::TreeNodeEx(name.GetCStr(),
 			ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_DefaultOpen |
 			ImGuiTreeNodeFlags_OpenOnArrow |
 			ImGuiTreeNodeFlags_SpanAvailWidth, entity.GetName().GetCStr());
@@ -158,13 +159,14 @@ namespace sol
 
 		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
 		{
-
+			es->windows.Add(std::make_shared<EditorEntityInspectorWindow>());
+			es->selection.Set(entity);
 		}
 
 		if (ImGui::BeginDragDropSource())
 		{
 			ImGui::SetDragDropPayload(dragDropType, &entity, sizeof(entity));
-			ImGui::Text(entity.GetName().GetCStr());
+			ImGui::Text(name.GetCStr());
 			ImGui::EndDragDropSource();
 		}
 
@@ -178,7 +180,8 @@ namespace sol
 
 				if (dragEntity != entity)
 				{
-					dragEntity.SetParent(&entity);
+					es->undoSystem.AddAction(std::make_shared<EditorSetParentAction>(dragEntity, entity, dragEntity.GetParent()));
+					dragEntity.SetParent(entity);
 				}
 			}
 
@@ -187,9 +190,10 @@ namespace sol
 
 		if (open)
 		{
-			for (Entity* child = entity.GetFirstChild(); child != nullptr; child = child->GetSiblingAhead())
+			ManagedArray<Entity> children = entity.GetChildren();
+			for (uint32 i = 0; i < children.count; i++)
 			{
-				DoEntityTreeDisplay(es, *child);
+				DoEntityTreeDisplay(es, children[i]);
 			}
 
 			ImGui::TreePop();
@@ -210,7 +214,7 @@ namespace sol
 				room->BeginEntityLoop();
 				while (Entity entity = room->GetNextEntity())
 				{
-					Entity* parent = entity.GetParent();
+					Entity parent = entity.GetParent();
 					if (!parent)
 					{
 						DoEntityTreeDisplay(es, entity);
@@ -218,6 +222,44 @@ namespace sol
 				}
 			}
 
+			ImGui::End();
+		}
+		return !show;
+	}
+
+	bool8 EditorEntityInspectorWindow::Show(EditorState* es)
+	{
+		if (ImGui::Begin(GetName().GetCStr(), &show))
+		{
+			std::vector<Entity> selectedEntities = es->selection.GetSelectedEntities();
+
+			if (selectedEntities.size() == 1)
+			{
+				Entity entity = selectedEntities.at(0);
+
+				if (entity.IsValid())
+				{
+					String name = entity.GetName();
+					String oldName = name;
+					if (ImGui::InputText("Name", name.GetCStr(), name.CAPCITY, ImGuiInputTextFlags_EnterReturnsTrue)) {
+						name.CalculateLength();
+						if (name.GetLength() != 0)
+						{
+							es->undoSystem.AddAction(std::make_shared<EditorSetNameAction>(entity, oldName, name));
+							entity.SetName(name);
+						}
+						else
+						{
+							SOLERROR("Entity must have name");
+						}
+					}
+
+					MaterialComponent* materialComp = entity.GetMaterialomponent();
+					materialComp->material.modelId = ComboBoxOfAsset("Model", Resources::GetAllModelResources(), materialComp->material.modelId);
+					materialComp->material.albedoId = ComboBoxOfAsset("Abledo", Resources::GetAllTextureResources(), materialComp->material.albedoId);
+					materialComp->material.programId = ComboBoxOfAsset("Program", Resources::GetAllProgramResources(), materialComp->material.programId);
+				}
+			}
 			ImGui::End();
 		}
 		return !show;

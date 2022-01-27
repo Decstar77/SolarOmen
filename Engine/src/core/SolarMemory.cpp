@@ -74,9 +74,9 @@ namespace sol
 		transientStorage.used = 0;
 		dynamicStorage.used = 0;
 
-		dynamicHead.size = dynamicStorageSize;
-		dynamicHead.offset = 0;
-		dynamicHead.next = nullptr;
+		freeHead.size = dynamicStorageSize;
+		freeHead.offset = 0;
+		freeHead.next = nullptr;
 
 		instance = this;
 	}
@@ -112,29 +112,45 @@ namespace sol
 	{
 		uint64 pushOffset = 0;
 
-		MemoryNode* currentNode = &dynamicHead;
+		MemoryNode* currentNode = &freeHead;
 		MemoryNode* previousNode = nullptr;
+
+		uint64 totalSize = size + sizeof(MemoryNode);
 
 		while (currentNode)
 		{
-			if (currentNode->size == size)
+			if (currentNode->size == totalSize)
 			{
 
 			}
-			else if (currentNode->size > size)
+			else if (currentNode->size > totalSize)
 			{
 				pushOffset = currentNode->offset;
-				currentNode->size -= size;
-				currentNode->offset += size;
-
-				uint8* data = &dynamicStorage.base[currentNode->offset];
-
+				currentNode->size -= totalSize;
+				currentNode->offset += totalSize;
+				break;
 			}
 
 			previousNode = currentNode;
 			Assert(currentNode->next, "DynamicPushSize next node was null");
 			currentNode = currentNode->next;
 		}
+
+
+		MemoryNode* fullNode = &fullHead;
+		while (fullNode->next) { fullNode = fullNode->next; }
+
+		//fullNode->next =
+
+		uint8* offset = &dynamicStorage.base[pushOffset];
+
+
+		MemoryNode newNode = {};
+		newNode.offset = pushOffset;
+		newNode.size = totalSize;
+		newNode.next = nullptr;
+
+
 
 		return nullptr;
 	}

@@ -1,3 +1,4 @@
+#include "..\..\Engine\src\game\SolarGameTypes.h"
 #include "core/SolarEntity.h"
 #include "TankGame.h"
 
