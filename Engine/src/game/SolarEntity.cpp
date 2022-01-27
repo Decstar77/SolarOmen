@@ -33,7 +33,8 @@ namespace sol
 
 	String Entity::GetName() const
 	{
-		return "";
+		Assert(IsValid(), "Entity invalid");
+		return room->nameComponents[id.index].name;
 	}
 
 	void Entity::SetName(const String& name)
@@ -71,6 +72,16 @@ namespace sol
 	{
 		Assert(IsValid(), "Entity invalid");
 		Assert(this->id != entity->id, "Cannot parent an entity to its self !!");
+
+		ManagedArray<Entity> descendants = GetDescendants();
+		for (uint32 i = 0; i < descendants.count; i++)
+		{
+			if (descendants[i].id == entity->id)
+			{
+				SOLWARN("Attempting to set a parent to a descendant");
+				return;
+			}
+		}
 
 		if (Entity* existingParent = parent.Get())
 		{
@@ -163,6 +174,37 @@ namespace sol
 	Entity* Entity::GetSiblingBehind()
 	{
 		return siblingBehind.Get();
+	}
+
+	void DoCountDescendants(Entity entity, uint32* count)
+	{
+		(*count)++;
+		for (Entity* child = entity.GetFirstChild(); child != nullptr; child = child->GetSiblingAhead())
+		{
+			DoCountDescendants(*child, count);
+		}
+	}
+
+	void AddDescendants(Entity entity, ManagedArray<Entity>* des)
+	{
+		des->Add(entity);
+		for (Entity* child = entity.GetFirstChild(); child != nullptr; child = child->GetSiblingAhead())
+		{
+			AddDescendants(*child, des);
+		}
+	}
+
+	ManagedArray<Entity> Entity::GetDescendants()
+	{
+		uint32 count = 0;
+		DoCountDescendants(*this, &count);
+
+		ManagedArray<Entity> des = {};
+		des.Allocate(count, MemoryType::TRANSIENT);
+
+		AddDescendants(*this, &des);
+
+		return des;
 	}
 
 	void Entity::SetLocalTransform(const Transform& transform)

@@ -246,6 +246,8 @@ namespace sol
 		resource.name = Util::StripFilePathAndExtentions(path);
 
 		*program = CreateGraphics(resource);
+
+		return true;
 	}
 }
 

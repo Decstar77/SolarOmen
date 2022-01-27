@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{d2881ad8-25a1-4662-9905-617fc7874b48}</ProjectGuid>
-    <RootNamespace>Editor</RootNamespace>
+    <ProjectGuid>{34efda81-fc9e-46f9-9a7a-38f5990c2d21}</ProjectGuid>
+    <RootNamespace>Sandox</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -116,16 +116,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\;$(SolutionDir)SolarOmen\vendor\assimp\include</AdditionalIncludeDirectories>
-      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)SolarOmen\vendor\assimp\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -136,83 +133,24 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\;$(SolutionDir)SolarOmen\vendor\assimp\include</AdditionalIncludeDirectories>
-      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)SolarOmen\vendor\assimp\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.vcxproj">
       <Project>{2d596273-80d9-4d43-aa70-7bd944cca428}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\EditorWindows.cpp" />
-    <ClCompile Include="src\Entry.cpp" />
-    <ClCompile Include="src\lightmapper\LightMapping.cpp" />
-    <ClCompile Include="src\lightmapper\tracer\RayTracingCamera.cpp" />
-    <ClCompile Include="src\lightmapper\tracer\RayTracingMaterials.cpp" />
-    <ClCompile Include="src\lightmapper\tracer\RayTracingTextures.cpp" />
-    <ClCompile Include="src\processors\AssetIdGenerator.cpp" />
-    <ClCompile Include="src\Processors\AssetPacking.cpp" />
-    <ClCompile Include="src\processors\BinaryFile.cpp" />
-    <ClCompile Include="src\processors\FileProcessor.cpp" />
-    <ClCompile Include="src\ImGuiLayer.cpp" />
-    <ClCompile Include="src\processors\MaterialProcessor.cpp" />
-    <ClCompile Include="src\processors\ModelProcessor.cpp" />
-    <ClCompile Include="src\processors\MetaProcessor.cpp" />
-    <ClCompile Include="src\processors\RoomProcessor.cpp" />
-    <ClCompile Include="src\processors\TextFile.cpp" />
-    <ClCompile Include="src\processors\TextureProcessor.cpp" />
-    <ClCompile Include="vendor\imgui\imgui.cpp" />
-    <ClCompile Include="vendor\imgui\ImGuizmo.cpp" />
-    <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
-    <ClCompile Include="vendor\imgui\imgui_draw.cpp" />
-    <ClCompile Include="vendor\imgui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="vendor\imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\Core.h" />
-    <ClInclude Include="src\EditorTypes.h" />
-    <ClInclude Include="src\EditorWindows.h" />
-    <ClInclude Include="src\lightmapper\LightMapping.h" />
-    <ClInclude Include="src\lightmapper\tracer\RayTracingCamera.h" />
-    <ClInclude Include="src\lightmapper\tracer\RayTracingMaterials.h" />
-    <ClInclude Include="src\lightmapper\tracer\RayTracingRay.h" />
-    <ClInclude Include="src\lightmapper\tracer\RayTracingTextures.h" />
-    <ClInclude Include="src\processors\AssetIdGenerator.h" />
-    <ClInclude Include="src\processors\AssetPacking.h" />
-    <ClInclude Include="src\processors\BinaryFile.h" />
-    <ClInclude Include="src\processors\FileProcessor.h" />
-    <ClInclude Include="src\ImGuiLayer.h" />
-    <ClInclude Include="src\processors\MaterialProcessor.h" />
-    <ClInclude Include="src\processors\ModelProcessor.h" />
-    <ClInclude Include="src\processors\MetaProcessor.h" />
-    <ClInclude Include="src\processors\RoomProcessor.h" />
-    <ClInclude Include="src\processors\TextFile.h" />
-    <ClInclude Include="src\processors\TextureProcessor.h" />
-    <ClInclude Include="vendor\imgui\imconfig.h" />
-    <ClInclude Include="vendor\imgui\imgui.h" />
-    <ClInclude Include="vendor\imgui\ImGuizmo.h" />
-    <ClInclude Include="vendor\imgui\imgui_impl_dx11.h" />
-    <ClInclude Include="vendor\imgui\imgui_impl_win32.h" />
-    <ClInclude Include="vendor\imgui\imgui_internal.h" />
-    <ClInclude Include="vendor\imgui\imstb_rectpack.h" />
-    <ClInclude Include="vendor\imgui\imstb_textedit.h" />
-    <ClInclude Include="vendor\imgui\imstb_truetype.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="vendor\imgui\LICENSE" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

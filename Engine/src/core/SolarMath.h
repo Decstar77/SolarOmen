@@ -1312,15 +1312,15 @@ namespace sol
 
 		if (Equal(Vec2<T>(sp.x, sp.y), Vec2<T>(0.0)))
 		{
-			euler.x = 2.0f * Atan(q.w, q.x);
+			euler.x = 2.0f * ATan2(q.w, q.x);
 		}
 		else
 		{
-			euler.x = Atan(sp.x, sp.y);
+			euler.x = ATan2(sp.x, sp.y);
 		}
 
-		euler.y = Asin(Clamp(-2.0f * (q.x * q.z - q.w * q.y), -1.0f, 1.0f));
-		euler.z = Atan(2.0f * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
+		euler.y = ArcSin(Clamp(-2.0f * (q.x * q.z - q.w * q.y), -1.0f, 1.0f));
+		euler.z = ATan2(2.0f * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
 
 		euler.x = RadToDeg(euler.x);
 		euler.y = RadToDeg(euler.y);

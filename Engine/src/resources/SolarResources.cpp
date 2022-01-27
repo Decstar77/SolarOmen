@@ -138,6 +138,12 @@ namespace sol
 		cube->id.number = 2;
 		cube->meshes.Allocate(1, MemoryType::PERMANENT);
 		cube->meshes.Add(ModelGenerator::CreateBox(1, 1, 1, 1, VertexLayoutType::Value::PNT));
+
+		ModelResource* sphere = models->Create(3);
+		sphere->name = "Sphere";
+		sphere->id.number = 3;
+		sphere->meshes.Allocate(1, MemoryType::PERMANENT);
+		sphere->meshes.Add(ModelGenerator::CreateSphere(1.0f, 16, 16, VertexLayoutType::Value::PNT));
 	}
 
 	bool8 Resources::LoadAllModelResources()

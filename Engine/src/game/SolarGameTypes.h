@@ -53,7 +53,7 @@ namespace sol
 		SOL_API Entity* GetFirstChild();
 		SOL_API Entity* GetSiblingAhead();
 		SOL_API Entity* GetSiblingBehind();
-		SOL_API ManagedArray<Entity*> GetChildren();
+		SOL_API ManagedArray<Entity> GetDescendants();
 
 		SOL_API void SetLocalTransform(const Transform& transform);
 		SOL_API Transform GetLocalTransform() const;

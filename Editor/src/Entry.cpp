@@ -31,6 +31,16 @@ namespace sol
 			es->room.Initliaze(nullptr);
 			es->selectedEntity = es->room.CreateEntity("Test");
 
+			es->room.CreateEntity("D0");
+
+			Entity c1 = es->room.CreateEntity("C1");
+			Entity c2 = es->room.CreateEntity("C2");
+			Entity cc1 = es->room.CreateEntity("CC1");
+
+			c1.SetParent(&es->selectedEntity);
+			c2.SetParent(&es->selectedEntity);
+			cc1.SetParent(&c1);
+
 			MaterialComponent* materailComponent = es->selectedEntity.GetMaterialomponent();
 			//materailComponent->material.albedoId = Resources::GetTextureResource("BoomBox_baseColor")->id;
 			//materailComponent->material.modelId = Resources::GetModelResource("BoomBox")->id;

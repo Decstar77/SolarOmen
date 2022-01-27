@@ -29,12 +29,11 @@ namespace sol
 		Room* room = &gameState->room;
 
 		room->Initliaze(nullptr);
-		gameState->hostPlayer = room->CreateEntity("cube");
-		gameState->hostPlayer.SetMaterial("sphere", "");
+		gameState->hostPlayer = room->CreateEntity("Sphere");
+		gameState->hostPlayer.SetMaterial("Sphere", "");
 		gameState->hostPlayer.SetLocalTransform(Transform(Vec3f(), Quatf(), Vec3f(0.5f)));
 		gameState->cameraOffset = room->camera.transform.position - gameState->hostPlayer.GetLocalTransform().position;
 		room->skyboxId = Resources::GetTextureResource("FS002_Day_Sunless")->id;
-
 
 		return true;
 	}
@@ -106,13 +105,13 @@ namespace sol
 	{
 		Room* room = &gameState->room;
 
-		//Input* input = Input::Get();
-		//if (IsKeyJustDown(input, escape))
-		//{
-		//	return false;
-		//}
+		Input* input = Input::Get();
+		if (IsKeyJustDown(input, escape))
+		{
+			return false;
+		}
 
-		//UpdatePlayer(dt);
+		UpdatePlayer(dt);
 
 		room->ContructRenderPacket(renderPacket);
 
